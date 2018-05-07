@@ -37,7 +37,6 @@ class TillerTestCase(base.ArmadaTestCase):
 
         # set params
         chart = mock.Mock()
-        dry_run = False
         name = None
         namespace = None
         initial_values = None
@@ -45,14 +44,13 @@ class TillerTestCase(base.ArmadaTestCase):
         wait = False
         timeout = 3600
 
-        tiller_obj.install_release(chart, name, namespace,
-                                   dry_run=dry_run, values=initial_values,
-                                   wait=wait, timeout=timeout)
+        tiller_obj.install_release(
+            chart, name, namespace, values=initial_values,
+            wait=wait, timeout=timeout)
 
         mock_stub.assert_called_with(tiller_obj.channel)
         release_request = mock_install_request(
             chart=chart,
-            dry_run=dry_run,
             values=updated_values,
             release=name,
             namespace=namespace,
@@ -188,8 +186,8 @@ class TillerTestCase(base.ArmadaTestCase):
 
         mock_list_releases_request.assert_called_once_with(
             limit=tiller.RELEASE_LIMIT,
-            status_codes=[tiller.STATUS_DEPLOYED,
-                          tiller.STATUS_FAILED],
+            status_codes=[tiller.const.STATUS_DEPLOYED,
+                          tiller.const.STATUS_FAILED],
             sort_by='LAST_RELEASED',
             sort_order='DESC')
 
