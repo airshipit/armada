@@ -1,0 +1,58 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- project:
+    check:
+      jobs:
+        - airship-armada-linter
+        - airship-armada-ubuntu:
+            voting: false
+            irrelevant-files:
+              - ^.*\.rst$
+              - ^doc/.*$
+              - ^releasenotes/.*$
+    gate:
+      jobs:
+        - airship-armada-linter
+        # NOTE(portdirect): enable when voting enabled.
+        # - airship-armada-ubuntu:
+        #     irrelevant-files:
+        #       - ^.*\.rst$
+        #       - ^doc/.*$
+        #       - ^releasenotes/.*$
+
+- job:
+    name: airship-armada-linter
+    run: tools/gate/playbooks/zuul-linter.yaml
+    nodeset: openstack-helm-single-node
+
+- job:
+    name: airship-armada
+    roles:
+      - zuul: openstack/openstack-helm-infra
+    vars:
+      zuul_osh_infra_relative_path: ../openstack-helm-infra/
+    timeout: 7200
+    pre-run:
+      - tools/gate/playbooks/osh-infra-upgrade-host.yaml
+      - tools/gate/playbooks/osh-infra-deploy-docker.yaml
+      - tools/gate/playbooks/osh-infra-build.yaml
+      - tools/gate/playbooks/osh-infra-deploy-k8s.yaml
+    run: tools/gate/playbooks/airship-armada-check.yaml
+    post-run: tools/gate/playbooks/osh-infra-collect-logs.yaml
+    required-projects:
+      - openstack/openstack-helm-infra
+
+- job:
+    name: airship-armada-ubuntu
+    parent: airship-armada
+    nodeset: openstack-helm-single-node
