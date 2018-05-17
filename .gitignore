@@ -65,8 +65,8 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/build/
-docs/source/_static
+doc/build/
+doc/source/_static
 
 # PyBuilder
 target/
