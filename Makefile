@@ -127,7 +127,7 @@ test-unit: check-tox
 
 .PHONY: test-coverage
 test-coverage: check-tox
-	tox -e coverage
+	tox -e cover
 
 .PHONY: test-bandit
 test-bandit: check-tox
