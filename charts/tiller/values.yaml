@@ -15,13 +15,18 @@
 # namespace: "kube-system"
 
 dependencies:
-  tiller_deploy:
+  static:
+    tiller_deploy:
 
 images:
   tags:
     tiller: gcr.io/kubernetes-helm/tiller:v2.7.2
-
   pull_policy: "IfNotPresent"
+  local_registry:
+    # NOTE(portdirect): this tiller chart does not support image pulling
+    active: false
+    exclude:
+      - tiller
 
 deployment:
   # NOTE: Current replica is hard-coded to 1. This is a placeholder variable
