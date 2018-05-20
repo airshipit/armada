@@ -27,7 +27,7 @@ images:
   pull_policy: IfNotPresent
   tags:
     api: 'quay.io/attcomdev/armada:latest'
-    dep_check: 'quay.io/stackanetes/kubernetes-entrypoint:v0.3.0'
+    dep_check: 'quay.io/stackanetes/kubernetes-entrypoint:v0.3.1'
     ks_endpoints: 'docker.io/openstackhelm/heat:newton'
     ks_service: 'docker.io/openstackhelm/heat:newton'
     ks_user: 'docker.io/openstackhelm/heat:newton'
