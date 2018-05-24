@@ -130,6 +130,15 @@ class ArmadaClient(object):
 
         return resp.json()
 
+    def post_rollback_release(self, release, query=None, timeout=None):
+
+        endpoint = self._set_endpoint('1.0', 'rollback/{}'.format(release))
+        resp = self.session.get(endpoint, query=query, timeout=timeout)
+
+        self._check_response(resp)
+
+        return resp.json()
+
     def get_test_release(self, release=None, query=None, timeout=None):
 
         endpoint = self._set_endpoint('1.0', 'test/{}'.format(release))

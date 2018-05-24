@@ -154,6 +154,16 @@ class GetReleaseContentException(TillerException):
         super(GetReleaseContentException, self).__init__(message)
 
 
+class RollbackReleaseException(TillerException):
+    '''Exception that occurs during a failed Release Rollback'''
+
+    def __init__(self, release, version):
+        message = 'Failed to rollback release {} to version {}'.format(
+            release, version)
+
+        super(RollbackReleaseException, self).__init__(message)
+
+
 class TillerPodNotFoundException(TillerException):
     '''
     Exception that occurs when a tiller pod cannot be found using the labels

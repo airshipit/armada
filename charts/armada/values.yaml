@@ -176,6 +176,7 @@ conf:
   policy:
     admin_required: 'role:admin'
     'armada:create_endpoints': 'rule:admin_required'
+    'armada:rollback_release': 'rule:admin_required'
     'armada:test_manifest': 'rule:admin_required'
     'armada:test_release': 'rule:admin_required'
     'armada:validate_manifest': 'rule:admin_required'
