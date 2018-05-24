@@ -101,6 +101,9 @@ ENV/
 **/_partials.tpl
 **/_globals.tpl
 
+# OSX
+.DS_STORE
+
 AUTHORS
 ChangeLog
 etc/armada/armada.conf
