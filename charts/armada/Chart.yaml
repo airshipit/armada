@@ -20,8 +20,5 @@ keywords:
 - armada
 home: http://armada-helm.readthedocs.io/en/latest/
 sources:
-- https://github.com/att-comdev/armada
-- https://github.com/att-comdev/aic-helm
-maintainers:
-- name: att-comdev
+- https://github.com/openstack/airship-armada
 engine: gotpl

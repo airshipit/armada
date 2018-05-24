@@ -36,7 +36,7 @@ Usage
 
     Build:
 
-    git clone https://github.com/att-comdev/armada && cd armada/
+    git clone https://github.com/openstack/airship-armada && cd airship-armada/
     docker build . -t quay.io/attcomdev/armada:latest
 
 2. Running Armada
@@ -52,7 +52,7 @@ Usage
 
     To run you custom Armada.yamls you need to mount them into the container as
     shown below.
-    This example is using ``examples/`` directory in armada `repo <https://github.com/att-comdev/armada/tree/master/examples>`_
+    This example is using ``examples/`` directory in armada `repo <https://github.com/openstack/airship-armada/tree/master/examples>`_
 
 .. code:: bash
 

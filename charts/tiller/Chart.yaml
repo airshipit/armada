@@ -21,6 +21,4 @@ keywords:
 home: https://docs.helm.sh/
 sources:
 - https://github.com/kubernetes/helm
-maintainers:
-- name: att-comdev
 engine: gotpl

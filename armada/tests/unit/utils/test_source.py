@@ -57,14 +57,14 @@ class GitTestCase(base.ArmadaTestCase):
     @testtools.skipUnless(
         is_connected(), 'git clone requires network connectivity.')
     def test_git_clone_good_url(self):
-        url = 'http://github.com/att-comdev/armada'
+        url = 'https://github.com/openstack/airship-armada'
         git_dir = source.git_clone(url)
         self._validate_git_clone(git_dir)
 
     @testtools.skipUnless(
         is_connected(), 'git clone requires network connectivity.')
     def test_git_clone_commit(self):
-        url = 'http://github.com/att-comdev/armada'
+        url = 'https://github.com/openstack/airship-armada'
         commit = 'cba78d1d03e4910f6ab1691bae633c5bddce893d'
         git_dir = source.git_clone(url, commit)
         self._validate_git_clone(git_dir)
@@ -91,7 +91,7 @@ class GitTestCase(base.ArmadaTestCase):
     @testtools.skipUnless(
         is_connected(), 'git clone requires network connectivity.')
     def test_git_clone_bad_url(self):
-        url = 'http://github.com/dummy/armada'
+        url = 'https://github.com/dummy/armada'
 
         self.assertRaises(source_exceptions.GitException,
                           source.git_clone, url)
@@ -102,7 +102,7 @@ class GitTestCase(base.ArmadaTestCase):
     @testtools.skipUnless(
         is_connected(), 'git clone requires network connectivity.')
     def test_git_clone_fake_proxy(self):
-        url = 'http://github.com/att-comdev/armada'
+        url = 'https://github.com/openstack/airship-armada'
         proxy_url = test_utils.rand_name(
             'not.a.proxy.that.works.and.never.will',
             prefix='http://') + ":8080"
@@ -165,7 +165,7 @@ class GitTestCase(base.ArmadaTestCase):
         is_connected(), 'git clone requires network connectivity.')
     @mock.patch.object(source, 'LOG')
     def test_source_cleanup(self, mock_log):
-        url = 'http://github.com/att-comdev/armada'
+        url = 'https://github.com/openstack/airship-armada'
         git_path = source.git_clone(url)
         source.source_cleanup(git_path)
         mock_log.warning.assert_not_called()
@@ -212,7 +212,7 @@ class GitTestCase(base.ArmadaTestCase):
     def test_git_clone_ssh_auth_method_fails_auth(self, mock_os):
         mock_os.path.exists.return_value = True
         fake_user = test_utils.rand_name('fake_user')
-        url = ('ssh://%s@review.gerrithub.io:29418/att-comdev/armada'
+        url = ('ssh://%s@review.openstack.org:29418/openstack/airship-armada'
                % fake_user)
         self.assertRaises(
             source_exceptions.GitAuthException, source.git_clone, url,
@@ -225,7 +225,7 @@ class GitTestCase(base.ArmadaTestCase):
     def test_git_clone_ssh_auth_method_missing_ssh_key(self, mock_os):
         mock_os.path.exists.return_value = False
         fake_user = test_utils.rand_name('fake_user')
-        url = ('ssh://%s@review.gerrithub.io:29418/att-comdev/armada'
+        url = ('ssh://%s@review.openstack.org:29418/openstack/airship-armada'
                % fake_user)
         self.assertRaises(
             source_exceptions.GitSSHException, source.git_clone, url,
