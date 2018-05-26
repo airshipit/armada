@@ -20,7 +20,7 @@ import requests
 from oslo_log import log as logging
 
 from armada.exceptions.source_exceptions import InvalidPathException
-from armada.utils.keystone import KeystoneUtils
+from armada.utils import keystone as ks_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -119,7 +119,7 @@ class ReferenceResolver(object):
         :param design_uri: Tuple as returned by urllib.parse for the design
                            reference
         """
-        ks_sess = KeystoneUtils.get_session()
+        ks_sess = ks_utils.get_keystone_session()
         (new_scheme, foo) = re.subn('^[^+]+\+', '', design_uri.scheme)
         url = urllib.parse.urlunparse(
             (new_scheme, design_uri.netloc, design_uri.path, design_uri.params,
