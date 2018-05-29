@@ -13,12 +13,12 @@ Quick Start (via Container)
 
 To use the docker container to develop:
 
-#. Clone the `Armada repository <http://github.com/att-comdev/armada>`_.
+#. Clone the `Armada repository <http://github.com/openstack/airship-armada>`_.
 #. ``cd`` into the cloned directory.
 
    .. code-block:: bash
 
-     $ git clone http://github.com/att-comdev/armada.git && cd armada
+     $ git clone http://github.com/openstack/airship-armada.git && cd airship-armada
 
 #. Next, run the following commands to install ``tox``, generate sample policy
    and configuration files, and build Armada charts as well as the Armada
@@ -115,7 +115,7 @@ Follow the steps below to install the Armada CLI.
 
 Clone the Armada repository, ``cd`` into it::
 
-  git clone http://github.com/att-comdev/armada.git && cd armada
+  git clone http://github.com/openstack/airship-armada.git && cd airship-armada
 
 It is recommended that Armada be run inside a virtual environment. To do so::
 

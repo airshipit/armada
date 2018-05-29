@@ -48,13 +48,6 @@ Armada consists of two separate but complementary components:
    * Limiting projects to specific `Tiller`_ functionality by leveraging
      project-scoping provided by `Keystone`_.
 
-Roadmap
--------
-
-Detailed roadmap can be viewed `here <https://github.com/att-comdev/armada/milestones>`_.
-
-Issues can be reported `on GitHub <https://github.com/att-comdev/armada/issues>`_.
-
 Installation
 ------------
 
@@ -113,7 +106,7 @@ In addition, Armada's API component has the following integration points:
 Further Reading
 ---------------
 
-`Undercloud Platform (UCP) <https://github.com/att-comdev/ucp-integration>`_.
+`Airship <https://airshipit.org>`_.
 
 .. _Manual Install Guide: http://armada-helm.readthedocs.io/en/latest/development/getting-started.html#developer-install-guide
 .. _Armada Quickstart: http://armada-helm.readthedocs.io/en/latest/operations/guide-use-armada.html

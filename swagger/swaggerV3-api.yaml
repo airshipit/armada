@@ -7,7 +7,7 @@ info:
     charts using a single command.
   contact:
     name: Armada Github Repository
-    url: https://github.com/att-comdev/armada
+    url: https://github.com/openstack/airship-armada
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html

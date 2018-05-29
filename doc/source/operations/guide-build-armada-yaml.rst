@@ -463,4 +463,4 @@ References
 ~~~~~~~~~~
 
 For working examples please check the examples in our repo
-`here <https://github.com/att-comdev/armada/tree/master/examples>`__
+`here <https://github.com/openstack/airship-armada/tree/master/examples>`__

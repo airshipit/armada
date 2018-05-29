@@ -214,8 +214,8 @@ data:
     def test_validate_manifest_url(self):
         value = 'url'
         self.assertFalse(validate.validate_manifest_url(value))
-        value = 'https://raw.githubusercontent.com/att-comdev/' \
-                'armada/master/examples/simple.yaml'
+        value = 'https://raw.githubusercontent.com/openstack/' \
+                'airship-armada/master/examples/simple.yaml'
         self.assertTrue(validate.validate_manifest_url(value))
 
     def test_validate_manifest_filepath(self):
