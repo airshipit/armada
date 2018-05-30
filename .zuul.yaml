@@ -14,26 +14,22 @@
     check:
       jobs:
         - airship-armada-linter
-        - airship-armada-ubuntu:
-            voting: false
-            irrelevant-files:
-              - ^.*\.rst$
-              - ^doc/.*$
-              - ^releasenotes/.*$
+        - airship-armada-lint-pep8
+        - airship-armada-ubuntu
+        - airship-armada-unit-py35
+        - airship-armada-security-bandit
+
     gate:
       jobs:
         - airship-armada-linter
-        # NOTE(portdirect): enable when voting enabled.
-        # - airship-armada-ubuntu:
-        #     irrelevant-files:
-        #       - ^.*\.rst$
-        #       - ^doc/.*$
-        #       - ^releasenotes/.*$
+        - airship-armada-lint-pep8
+        - airship-armada-unit-py35
+        - airship-armada-security-bandit
 
 - job:
     name: airship-armada-linter
     run: tools/gate/playbooks/zuul-linter.yaml
-    nodeset: openstack-helm-single-node
+    nodeset: airship-armada-single-node
 
 - job:
     name: airship-armada
@@ -56,3 +52,43 @@
     name: airship-armada-ubuntu
     parent: airship-armada
     nodeset: openstack-helm-single-node
+    voting: false
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+
+- nodeset:
+    name: airship-armada-single-node
+    nodes:
+      - name: primary
+        label: ubuntu-xenial
+
+- job:
+    name: airship-armada-unit-py35
+    description: |
+      Executes unit tests under Python 3.5
+    run: tools/gate/playbooks/unit-py35.yaml
+    timeout: 300
+    nodeset: airship-armada-single-node
+
+- job:
+    name: airship-armada-security-bandit
+    description: |
+      Executes the Bandit security scanner against Python files
+    run: tools/gate/playbooks/security-bandit.yaml
+    timeout: 300
+    nodeset: airship-armada-single-node
+    files:
+      - ^.*\.py$
+
+- job:
+    name: airship-armada-lint-pep8
+    description: |
+      Lints Python files against the PEP8 standard
+    run: tools/gate/playbooks/pep8-linter.yaml
+    timeout: 300
+    nodeset: airship-armada-single-node
+    files:
+        - ^.*\.py$
+
