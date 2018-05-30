@@ -19,24 +19,19 @@ import yaml
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from armada import const
+from armada.exceptions.armada_exceptions import ArmadaTimeoutException
+from armada.exceptions import source_exceptions
+from armada.exceptions import tiller_exceptions
+from armada.exceptions import validate_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
 from armada.handlers.tiller import Tiller
-from armada.exceptions.armada_exceptions import ArmadaTimeoutException
-from armada.exceptions import source_exceptions
-from armada.exceptions import validate_exceptions
-from armada.exceptions import tiller_exceptions
 from armada.utils.release import release_prefix
 from armada.utils import source
 from armada.utils import validate
 
-from armada.const import DEFAULT_CHART_TIMEOUT
-from armada.const import KEYWORD_ARMADA
-from armada.const import KEYWORD_CHARTS
-from armada.const import KEYWORD_GROUPS
-from armada.const import KEYWORD_PREFIX
-from armada.const import STATUS_FAILED
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -146,13 +141,13 @@ class Armada(object):
                 details=','.join([m.get('message') for m in msg_list]))
 
         # Purge known releases that have failed and are in the current yaml
-        manifest_data = self.manifest.get(KEYWORD_ARMADA, {})
-        prefix = manifest_data.get(KEYWORD_PREFIX, '')
-        failed_releases = self.get_releases_by_status(STATUS_FAILED)
+        manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
+        prefix = manifest_data.get(const.KEYWORD_PREFIX, '')
+        failed_releases = self.get_releases_by_status(const.STATUS_FAILED)
 
         for release in failed_releases:
-            for group in manifest_data.get(KEYWORD_GROUPS, []):
-                for ch in group.get(KEYWORD_CHARTS, []):
+            for group in manifest_data.get(const.KEYWORD_GROUPS, []):
+                for ch in group.get(const.KEYWORD_CHARTS, []):
                     ch_release_name = release_prefix(
                         prefix, ch.get('chart', {}).get('chart_name'))
                     if release[0] == ch_release_name:
@@ -165,8 +160,8 @@ class Armada(object):
         # We only support a git source type right now, which can also
         # handle git:// local paths as well
         repos = {}
-        for group in manifest_data.get(KEYWORD_GROUPS, []):
-            for ch in group.get(KEYWORD_CHARTS, []):
+        for group in manifest_data.get(const.KEYWORD_GROUPS, []):
+            for ch in group.get(const.KEYWORD_CHARTS, []):
                 self.tag_cloned_repo(ch, repos)
 
                 for dep in ch.get('chart', {}).get('dependencies', []):
@@ -247,10 +242,10 @@ class Armada(object):
 
         # extract known charts on tiller right now
         known_releases = self.tiller.list_charts()
-        manifest_data = self.manifest.get(KEYWORD_ARMADA, {})
-        prefix = manifest_data.get(KEYWORD_PREFIX, '')
+        manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
+        prefix = manifest_data.get(const.KEYWORD_PREFIX, '')
 
-        for chartgroup in manifest_data.get(KEYWORD_GROUPS, []):
+        for chartgroup in manifest_data.get(const.KEYWORD_GROUPS, []):
             cg_name = chartgroup.get('name', '<missing name>')
             cg_desc = chartgroup.get('description', '<missing description>')
             LOG.info('Processing ChartGroup: %s (%s)', cg_name, cg_desc)
@@ -261,7 +256,7 @@ class Armada(object):
             namespaces_seen = set()
             tests_to_run = []
 
-            cg_charts = chartgroup.get(KEYWORD_CHARTS, [])
+            cg_charts = chartgroup.get(const.KEYWORD_CHARTS, [])
 
             # Track largest Chart timeout to stop the ChartGroup at the end
             cg_max_timeout = 0
@@ -295,8 +290,8 @@ class Armada(object):
 
                 if this_chart_should_wait and wait_timeout <= 0:
                     LOG.warn('No Chart timeout specified, using default: %ss',
-                             DEFAULT_CHART_TIMEOUT)
-                    wait_timeout = DEFAULT_CHART_TIMEOUT
+                             const.DEFAULT_CHART_TIMEOUT)
+                    wait_timeout = const.DEFAULT_CHART_TIMEOUT
 
                 # Track namespaces + labels touched
                 namespaces_seen.add((namespace, tuple(wait_labels.items())))
@@ -446,7 +441,7 @@ class Armada(object):
             # TODO(MarshM): Need to determine a better timeout
             #               (not cg_max_timeout)
             if cg_max_timeout <= 0:
-                cg_max_timeout = DEFAULT_CHART_TIMEOUT
+                cg_max_timeout = const.DEFAULT_CHART_TIMEOUT
             deadline = time.time() + cg_max_timeout
             for (ns, labels) in namespaces_seen:
                 labels_dict = dict(labels)
@@ -476,7 +471,7 @@ class Armada(object):
         if self.enable_chart_cleanup:
             self.tiller.chart_cleanup(
                 prefix,
-                self.manifest[KEYWORD_ARMADA][KEYWORD_GROUPS])
+                self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS])
 
         return msg
 
@@ -485,9 +480,9 @@ class Armada(object):
         Operations to run after deployment process has terminated
         '''
         # Delete temp dirs used for deployment
-        for group in self.manifest.get(KEYWORD_ARMADA, {}).get(
-                KEYWORD_GROUPS, []):
-            for ch in group.get(KEYWORD_CHARTS, []):
+        for group in self.manifest.get(const.KEYWORD_ARMADA, {}).get(
+                const.KEYWORD_GROUPS, []):
+            for ch in group.get(const.KEYWORD_CHARTS, []):
                 chart = ch.get('chart', {})
                 if chart.get('source', {}).get('type') == 'git':
                     source_dir = chart.get('source_dir')
