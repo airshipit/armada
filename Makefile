@@ -20,7 +20,7 @@ IMAGE_TAG       ?= latest
 HELM            ?= helm
 LABEL           ?= commit-id
 PYTHON          = python3
-CHART           = armada
+CHARTS          := $(patsubst charts/%/.,%,$(wildcard charts/*/.))
 IMAGE           := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}
 
 # VERSION INFO
@@ -108,6 +108,9 @@ protoc:
 .PHONY: clean
 clean:
 	rm -rf build
+	rm -f charts/*.tgz
+	rm -f charts/*/requirements.lock
+	rm -rf charts/*/charts
 
 # testing checks
 .PHONY: tests
@@ -138,13 +141,41 @@ lint: test-pep8 helm_lint
 test-pep8: check-tox
 	tox -e pep8
 
-.PHONY: helm-lint
-helm_lint:
-	@tools/helm_tk.sh $(HELM)
-	$(HELM) dep up charts/$(CHART)
-	$(HELM) lint charts/$(CHART)
+chartbanner:
+	@echo Building charts: $(CHARTS)
 
 .PHONY: charts
-charts: clean
-	$(HELM) dep up charts/$(CHART)
-	$(HELM) package charts/$(CHART)
+charts: $(CHARTS)
+	@echo Done building charts.
+
+.PHONY: helm-init
+helm-init: $(addprefix helm-init-,$(CHARTS))
+
+.PHONY: helm-init-%
+helm-init-%: helm-serve
+	@echo Initializing chart $*
+	cd charts;if [ -s $*/requirements.yaml ]; then echo "Initializing $*";$(HELM) dep up $*; fi
+
+.PHONY: helm-serve
+helm-serve:
+	./tools/helm_tk.sh $(HELM) $(HELM_PIDFILE)
+
+.PHONY: helm-lint
+helm-lint: $(addprefix helm-lint-,$(CHARTS))
+
+.PHONY: helm-lint-%
+helm-lint-%: helm-init-%
+	@echo Linting chart $*
+	cd charts;$(HELM) lint $*
+
+.PHONY: dry-run
+dry-run: $(addprefix dry-run-,$(CHARTS))
+
+.PHONY: dry-run-%
+dry-run-%: helm-lint-%
+	echo Running Dry-Run on chart $*
+	cd charts;$(HELM) template --set pod.resources.enabled=true $*
+
+.PHONY: $(CHARTS)
+$(CHARTS): $(addprefix dry-run-,$(CHARTS)) chartbanner
+	$(HELM) package -d charts charts/$@
