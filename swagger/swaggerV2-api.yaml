@@ -28,7 +28,7 @@ paths:
       responses:
         '200':
           $ref: "#/responses/response-get-versions"
-  /api/v1/health:
+  /api/v1.0/health:
     get:
       description: Returns the health of the system. [TO BE IMPLEMENTED]
       operationId: getHealth
@@ -39,7 +39,7 @@ paths:
           description: Indicates the system is healthy. This is currently the default return.
         '503':
           description: Indicates the system is not healthy.  This is not yet implemented.
-  /api/v1/releases:
+  /api/v1.0/releases:
     get:
       description: Returns list of Tiller releases
       operationId: getReleases
@@ -57,7 +57,7 @@ paths:
           $ref: "#/responses/err-forbidden"
         '500':
           $ref: "#/responses/err-server-error"
-  /api/v1/status:
+  /api/v1.0/status:
     get:
       description: Returns the status of Tiller
       operationId: getStatus
@@ -75,7 +75,7 @@ paths:
           $ref: "#/responses/err-forbidden"
         '500':
           $ref: "#/responses/err-server-error"
-  /api/v1/apply:
+  /api/v1.0/apply:
     post:
       description: Install or upgrade using an Armada manifest
       operationId: postApplyManifest
@@ -120,7 +120,7 @@ paths:
           $ref: "#/responses/err-unsupported-media-type"
         '500':
           $ref: "#/responses/err-server-error"
-  /api/v1/tests:
+  /api/v1.0/tests:
     post:
       description: Test manifest releases
       operationId: postTests
@@ -150,7 +150,7 @@ paths:
           $ref: "#/responses/err-forbidden"
         '500':
           $ref: "#/responses/err-server-error"
-  /api/v1/test/{release_name}:
+  /api/v1.0/test/{release_name}:
     post:
       description: Test specified release name
       operationId: postReleaseName
@@ -173,7 +173,7 @@ paths:
           $ref: "#/responses/err-forbidden"
         '500':
           $ref: "#/responses/err-server-error"
-  /api/v1/validatedesign:
+  /api/v1.0/validatedesign:
     post:
       description: Validate a design
       operationId: postValidateDesign
