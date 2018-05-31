@@ -92,7 +92,9 @@ class K8s(object):
                            propagation_policy='Foreground',
                            timeout=DEFAULT_K8S_TIMEOUT):
         try:
-            LOG.debug('Deleting %s %s, Wait timeout=%s',
+            timeout = self._check_timeout(timeout)
+
+            LOG.debug('Watching to delete %s %s, Wait timeout=%s',
                       job_type_description, name, timeout)
             body = client.V1DeleteOptions()
             w = watch.Watch()
@@ -108,10 +110,11 @@ class K8s(object):
 
                 event_type = event['type'].upper()
                 job_name = event['object'].metadata.name
+                LOG.debug('Watch event %s on %s', event_type, job_name)
 
                 if event_type == 'DELETED' and job_name == name:
-                    LOG.debug('Successfully deleted %s %s',
-                              job_type_description, job_name)
+                    LOG.info('Successfully deleted %s %s',
+                             job_type_description, job_name)
                     return
 
             err_msg = ('Reached timeout while waiting to delete %s: '
@@ -268,6 +271,7 @@ class K8s(object):
         :param release - part of namespace
         :param timeout - time before disconnecting stream
         '''
+        timeout = self._check_timeout(timeout)
 
         w = watch.Watch()
         for event in w.stream(self.client.list_pod_for_all_namespaces,
@@ -300,6 +304,8 @@ class K8s(object):
         :param k8s_wait_attempt_sleep: The time in seconds to sleep
             between attempts (minimum 1).
         '''
+        timeout = self._check_timeout(timeout)
+
         # NOTE(MarshM) 'release' is currently unused
         label_selector = label_selectors(labels) if labels else ''
 
@@ -438,3 +444,10 @@ class K8s(object):
         for pc in pod_conditions:
             if pc.type == condition_type:
                 return pc.status
+
+    def _check_timeout(self, timeout):
+        if timeout <= 0:
+            LOG.warn('Kubernetes timeout is invalid or unspecified, '
+                     'using default %ss.', DEFAULT_K8S_TIMEOUT)
+            timeout = DEFAULT_K8S_TIMEOUT
+        return timeout

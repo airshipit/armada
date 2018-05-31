@@ -16,16 +16,17 @@
 DOCUMENT_CHART = 'armada/Chart/v1'
 DOCUMENT_GROUP = 'armada/ChartGroup/v1'
 DOCUMENT_MANIFEST = 'armada/Manifest/v1'
-
-# Armada Data
 KEYWORD_ARMADA = 'armada'
 KEYWORD_PREFIX = 'release_prefix'
 KEYWORD_GROUPS = 'chart_groups'
 KEYWORD_CHARTS = 'chart_group'
 KEYWORD_RELEASE = 'release'
 
-# Tiller
+# Armada
 DEFAULT_CHART_TIMEOUT = 3600
+
+# Tiller
+DEFAULT_TILLER_TIMEOUT = 300
 STATUS_DEPLOYED = 'DEPLOYED'
 STATUS_FAILED = 'FAILED'
 

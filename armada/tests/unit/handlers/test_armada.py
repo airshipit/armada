@@ -159,7 +159,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         mock_tiller.assert_called_once_with(tiller_host=None,
                                             tiller_namespace='kube-system',
-                                            tiller_port=44134)
+                                            tiller_port=44134,
+                                            dry_run=False)
         mock_source.git_clone.assert_called_once_with(
             'git://github.com/dummy/armada', 'master', auth_method=None,
             proxy_server=None)
@@ -216,7 +217,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 "{}-{}".format(armada_obj.manifest['armada']['release_prefix'],
                                chart_1['release']),
                 chart_1['namespace'],
-                dry_run=armada_obj.dry_run,
                 values=yaml.safe_dump(chart_1['values']),
                 timeout=10,
                 wait=True),
@@ -225,7 +225,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 "{}-{}".format(armada_obj.manifest['armada']['release_prefix'],
                                chart_2['release']),
                 chart_2['namespace'],
-                dry_run=armada_obj.dry_run,
                 values=yaml.safe_dump(chart_2['values']),
                 timeout=10,
                 wait=True)

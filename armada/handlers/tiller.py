@@ -28,17 +28,16 @@ from hapi.services.tiller_pb2 import UpdateReleaseRequest
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from armada.const import STATUS_DEPLOYED, STATUS_FAILED
+from armada import const
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
 from armada.utils.release import release_prefix
 from armada.utils.release import label_selectors
 
 TILLER_VERSION = b'2.7.2'
-TILLER_TIMEOUT = 300
 GRPC_EPSILON = 60
 RELEASE_LIMIT = 128  # TODO(mark-burnett): There may be a better page size.
-RUNTEST_SUCCESS = 9
+RELEASE_RUNTEST_SUCCESS = 9
 
 # the standard gRPC max message size is 4MB
 # this expansion comes at a performance penalty
@@ -68,10 +67,13 @@ class Tiller(object):
     '''
 
     def __init__(self, tiller_host=None, tiller_port=None,
-                 tiller_namespace=None):
+                 tiller_namespace=None, dry_run=False):
         self.tiller_host = tiller_host
         self.tiller_port = tiller_port or CONF.tiller_port
         self.tiller_namespace = tiller_namespace or CONF.tiller_namespace
+
+        self.dry_run = dry_run
+
         # init k8s connectivity
         self.k8s = K8s()
 
@@ -81,7 +83,7 @@ class Tiller(object):
         # init timeout for all requests
         # and assume eventually this will
         # be fed at runtime as an override
-        self.timeout = TILLER_TIMEOUT
+        self.timeout = const.DEFAULT_TILLER_TIMEOUT
 
         LOG.debug('Armada is using Tiller at: %s:%s, namespace=%s, timeout=%s',
                   self.tiller_host, self.tiller_port, self.tiller_namespace,
@@ -183,8 +185,8 @@ class Tiller(object):
         # NOTE(MarshM): `Helm List` defaults to returning Deployed and Failed,
         # but this might not be a desireable ListReleasesRequest default.
         req = ListReleasesRequest(limit=RELEASE_LIMIT,
-                                  status_codes=[STATUS_DEPLOYED,
-                                                STATUS_FAILED],
+                                  status_codes=[const.STATUS_DEPLOYED,
+                                                const.STATUS_FAILED],
                                   sort_by='LAST_RELEASED',
                                   sort_order='DESC')
 
@@ -310,7 +312,6 @@ class Tiller(object):
         return charts
 
     def update_release(self, chart, release, namespace,
-                       dry_run=False,
                        pre_actions=None,
                        post_actions=None,
                        disable_hooks=False,
@@ -320,12 +321,12 @@ class Tiller(object):
         '''
         Update a Helm Release
         '''
-
+        timeout = self._check_timeout(wait, timeout)
         rel_timeout = self.timeout if not timeout else timeout
 
-        LOG.debug('Helm update release%s: wait=%s, timeout=%s',
-                  (' (dry run)' if dry_run else ''),
-                  wait, timeout)
+        LOG.info('Helm update release%s: wait=%s, timeout=%s',
+                 (' (dry run)' if self.dry_run else ''),
+                 wait, timeout)
 
         if values is None:
             values = Config(raw='')
@@ -340,7 +341,7 @@ class Tiller(object):
             stub = ReleaseServiceStub(self.channel)
             release_request = UpdateReleaseRequest(
                 chart=chart,
-                dry_run=dry_run,
+                dry_run=self.dry_run,
                 disable_hooks=disable_hooks,
                 values=values,
                 name=release,
@@ -368,19 +369,18 @@ class Tiller(object):
         self._post_update_actions(post_actions, namespace)
 
     def install_release(self, chart, release, namespace,
-                        dry_run=False,
                         values=None,
                         wait=False,
                         timeout=None):
         '''
         Create a Helm Release
         '''
-
+        timeout = self._check_timeout(wait, timeout)
         rel_timeout = self.timeout if not timeout else timeout
 
-        LOG.debug('Helm install release%s: wait=%s, timeout=%s',
-                  (' (dry run)' if dry_run else ''),
-                  wait, timeout)
+        LOG.info('Helm install release%s: wait=%s, timeout=%s',
+                 (' (dry run)' if self.dry_run else ''),
+                 wait, timeout)
 
         if values is None:
             values = Config(raw='')
@@ -392,7 +392,7 @@ class Tiller(object):
             stub = ReleaseServiceStub(self.channel)
             release_request = InstallReleaseRequest(
                 chart=chart,
-                dry_run=dry_run,
+                dry_run=self.dry_run,
                 values=values,
                 name=release,
                 namespace=namespace,
@@ -417,7 +417,8 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Install')
 
-    def testing_release(self, release, timeout=300, cleanup=True):
+    def testing_release(self, release, timeout=const.DEFAULT_TILLER_TIMEOUT,
+                        cleanup=True):
         '''
         :param release - name of release to test
         :param timeout - runtime before exiting
@@ -426,7 +427,7 @@ class Tiller(object):
         :returns - results of test pod
         '''
 
-        LOG.debug("Helm test release %s, timeout=%s", release, timeout)
+        LOG.info("Running Helm test: release=%s, timeout=%s", release, timeout)
 
         try:
 
@@ -441,12 +442,12 @@ class Tiller(object):
                 LOG.info('No test found')
                 return False
 
-            if content.release.hooks[0].events[0] == RUNTEST_SUCCESS:
+            if content.release.hooks[0].events[0] == RELEASE_RUNTEST_SUCCESS:
                 test = stub.RunReleaseTest(
-                    release_request, self.timeout, metadata=self.metadata)
+                    release_request, timeout, metadata=self.metadata)
 
                 if test.running():
-                    self.k8s.wait_get_completed_podphase(release)
+                    self.k8s.wait_get_completed_podphase(release, timeout)
 
                 test.cancel()
 
@@ -527,7 +528,15 @@ class Tiller(object):
         deletes a Helm chart from Tiller
         '''
 
-        # build release install request
+        # Helm client calls ReleaseContent in Delete dry-run scenario
+        if self.dry_run:
+            content = self.get_release_content(release)
+            LOG.info('Skipping delete during `dry-run`, would have deleted '
+                     'release=%s from namespace=%s.',
+                     content.release.name, content.release.namespace)
+            return
+
+        # build release uninstall request
         try:
             stub = ReleaseServiceStub(self.channel)
             LOG.info("Uninstall %s release with disable_hooks=%s, "
@@ -567,7 +576,7 @@ class Tiller(object):
 
     def delete_resources(self, release_name, resource_name, resource_type,
                          resource_labels, namespace, wait=False,
-                         timeout=TILLER_TIMEOUT):
+                         timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
         :params release_name - release name the specified resource is under
         :params resource_name - name of specific resource
@@ -577,12 +586,13 @@ class Tiller(object):
 
         Apply deletion logic based on type of resource
         '''
+        timeout = self._check_timeout(wait, timeout)
 
         label_selector = ''
         if resource_labels is not None:
             label_selector = label_selectors(resource_labels)
         LOG.debug("Deleting resources in namespace %s matching "
-                  "selectors %s.", namespace, label_selector)
+                  "selectors (%s).", namespace, label_selector)
 
         handled = False
         if resource_type == 'job':
@@ -629,7 +639,7 @@ class Tiller(object):
     def rolling_upgrade_pod_deployment(self, name, release_name, namespace,
                                        resource_labels, action_type, chart,
                                        disable_hooks, values,
-                                       timeout=TILLER_TIMEOUT):
+                                       timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
         update statefullsets (daemon, stateful)
         '''
@@ -672,3 +682,10 @@ class Tiller(object):
 
         else:
             LOG.error("Unable to exectue name: % type: %s", name, action_type)
+
+    def _check_timeout(self, wait, timeout):
+        if wait and timeout <= 0:
+            LOG.warn('Tiller timeout is invalid or unspecified, '
+                     'using default %ss.', const.DEFAULT_TILLER_TIMEOUT)
+            timeout = const.DEFAULT_TILLER_TIMEOUT
+        return timeout
