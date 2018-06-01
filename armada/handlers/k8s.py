@@ -99,6 +99,7 @@ class K8s(object):
             body = client.V1DeleteOptions()
             w = watch.Watch()
             issue_delete = True
+            found_events = False
             for event in w.stream(list_func,
                                   namespace=namespace,
                                   timeout_seconds=timeout):
@@ -112,10 +113,16 @@ class K8s(object):
                 job_name = event['object'].metadata.name
                 LOG.debug('Watch event %s on %s', event_type, job_name)
 
-                if event_type == 'DELETED' and job_name == name:
-                    LOG.info('Successfully deleted %s %s',
-                             job_type_description, job_name)
-                    return
+                if job_name == name:
+                    found_events = True
+                    if event_type == 'DELETED':
+                        LOG.info('Successfully deleted %s %s',
+                                 job_type_description, job_name)
+                        return
+
+            if not found_events:
+                LOG.warn('Saw no delete events for %s %s in namespace=%s',
+                         job_type_description, name, namespace)
 
             err_msg = ('Reached timeout while waiting to delete %s: '
                        'name=%s, namespace=%s' %
@@ -274,15 +281,20 @@ class K8s(object):
         timeout = self._check_timeout(timeout)
 
         w = watch.Watch()
+        found_events = False
         for event in w.stream(self.client.list_pod_for_all_namespaces,
                               timeout_seconds=timeout):
             pod_name = event['object'].metadata.name
 
             if release in pod_name:
+                found_events = True
                 pod_state = event['object'].status.phase
                 if pod_state == 'Succeeded':
                     w.stop()
                     break
+
+        if not found_events:
+            LOG.warn('Saw no test events for release %s', release)
 
     def wait_until_ready(self,
                          release=None,
@@ -336,9 +348,15 @@ class K8s(object):
             deadline_remaining = int(round(deadline - time.time()))
             if deadline_remaining <= 0:
                 return False
-            timed_out, modified_pods, unready_pods = self._wait_one_time(
-                namespace=namespace, label_selector=label_selector,
-                timeout=deadline_remaining)
+            timed_out, modified_pods, unready_pods, found_events = (
+                self._wait_one_time(namespace=namespace,
+                                    label_selector=label_selector,
+                                    timeout=deadline_remaining))
+
+            if not found_events:
+                LOG.warn('Saw no install/update events for release=%s, '
+                         'namespace=%s, labels=(%s)',
+                         release, namespace, label_selector)
 
             if timed_out:
                 LOG.info('Timed out waiting for pods: %s',
@@ -368,6 +386,7 @@ class K8s(object):
         modified_pods = set()
         w = watch.Watch()
         first_event = True
+        found_events = False
 
         # Watch across specific namespace, or all
         kwargs = {
@@ -395,6 +414,7 @@ class K8s(object):
                       pod_name, namespace, label_selector)
 
             if event_type in {'ADDED', 'MODIFIED'}:
+                found_events = True
                 status = event['object'].status
                 pod_phase = status.phase
 
@@ -433,12 +453,13 @@ class K8s(object):
                     % (event_type, event['object']))
 
             if all(ready_pods.values()):
-                return (False, modified_pods, [])
+                return (False, modified_pods, [], found_events)
 
         # NOTE(mark-burnett): This path is reachable if there are no pods
         # (unlikely) or in the case of the watch timing out.
         return (not all(ready_pods.values()), modified_pods,
-                [name for name, ready in ready_pods.items() if not ready])
+                [name for name, ready in ready_pods.items() if not ready],
+                found_events)
 
     def _get_pod_condition(self, pod_conditions, condition_type):
         for pc in pod_conditions:
