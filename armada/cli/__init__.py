@@ -31,7 +31,6 @@ class CliAction(object):
 
     def __init__(self):
         self.logger = LOG
-        logging.register_options(CONF)
         logging.set_defaults(default_log_levels=CONF.default_log_levels)
         logging.setup(CONF, 'armada')
 

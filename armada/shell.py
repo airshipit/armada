@@ -84,8 +84,6 @@ def main(ctx, debug, api, url, token):
                     token=token)
             )
 
-    log.register_options(CONF)
-
     if debug:
         CONF.debug = debug
 
