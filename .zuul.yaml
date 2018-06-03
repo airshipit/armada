@@ -17,14 +17,12 @@
         - airship-armada-lint-pep8
         - airship-armada-ubuntu
         - airship-armada-unit-py35
-        - airship-armada-security-bandit
 
     gate:
       jobs:
         - airship-armada-linter
         - airship-armada-lint-pep8
         - airship-armada-unit-py35
-        - airship-armada-security-bandit
 
 - job:
     name: airship-armada-linter
@@ -71,16 +69,6 @@
     run: tools/gate/playbooks/unit-py35.yaml
     timeout: 300
     nodeset: airship-armada-single-node
-
-- job:
-    name: airship-armada-security-bandit
-    description: |
-      Executes the Bandit security scanner against Python files
-    run: tools/gate/playbooks/security-bandit.yaml
-    timeout: 300
-    nodeset: airship-armada-single-node
-    files:
-      - ^.*\.py$
 
 - job:
     name: airship-armada-lint-pep8
