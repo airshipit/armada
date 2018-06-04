@@ -218,13 +218,6 @@ data:
                 'airship-armada/master/examples/simple.yaml'
         self.assertTrue(validate.validate_manifest_url(value))
 
-    def test_validate_manifest_filepath(self):
-        value = 'filepath'
-        self.assertFalse(validate.validate_manifest_filepath(value))
-        value = '{}/resources/valid_armada_document.yaml'.format(
-            self.basepath)
-        self.assertTrue(validate.validate_manifest_filepath(value))
-
 
 class ValidateNegativeTestCase(BaseValidateTest):
 

@@ -234,10 +234,5 @@ def validate_manifest_url(value):
         return False
 
 
-# TODO(MarshM) unused except in unit tests, is this useful?
-def validate_manifest_filepath(value):
-    return os.path.isfile(value)
-
-
 # Fill the cache.
 _load_schemas()
