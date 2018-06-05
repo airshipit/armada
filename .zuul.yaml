@@ -54,7 +54,10 @@
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$
+      - ^etc/.*$
       - ^releasenotes/.*$
+      - ^setup.cfg$
+      - ^armada/tests/unit/.*$
 
 - nodeset:
     name: airship-armada-single-node
@@ -69,6 +72,12 @@
     run: tools/gate/playbooks/unit-py35.yaml
     timeout: 300
     nodeset: airship-armada-single-node
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^etc/.*$
+      - ^releasenotes/.*$
+      - ^setup.cfg$
 
 - job:
     name: airship-armada-lint-pep8
