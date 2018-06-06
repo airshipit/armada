@@ -279,3 +279,26 @@ class TillerTestCase(base.ArmadaTestCase):
         uninstall_release_stub.assert_called_once_with(
             mock_uninstall_release_request.return_value, tiller_obj.timeout,
             metadata=tiller_obj.metadata)
+
+    @mock.patch('armada.handlers.tiller.K8s')
+    @mock.patch('armada.handlers.tiller.grpc')
+    @mock.patch.object(tiller, 'RollbackReleaseRequest')
+    @mock.patch.object(tiller, 'ReleaseServiceStub')
+    def test_rollback_release(self, mock_release_service_stub,
+                              mock_rollback_release_request, _, __):
+        mock_release_service_stub.return_value.RollbackRelease\
+            .return_value = {}
+
+        tiller_obj = tiller.Tiller('host', '8080', None)
+
+        self.assertIsNone(tiller_obj.rollback_release('release', 0))
+
+        mock_release_service_stub.assert_called_once_with(
+            tiller_obj.channel)
+        rollback_release_stub = mock_release_service_stub.return_value. \
+            RollbackRelease
+
+        rollback_release_stub.assert_called_once_with(
+            mock_rollback_release_request.return_value, tiller_obj.timeout +
+            tiller.GRPC_EPSILON,
+            metadata=tiller_obj.metadata)

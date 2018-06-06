@@ -153,7 +153,7 @@ paths:
   /api/v1.0/test/{release_name}:
     post:
       description: Test specified release name
-      operationId: postReleaseName
+      operationId: postTestReleaseName
       parameters:
         - name: release_name
           in: path
@@ -167,6 +167,39 @@ paths:
       responses:
         '200':
           $ref: "#/responses/response-post-test-release"
+        '401':
+          $ref: "#/responses/err-no-auth"
+        '403':
+          $ref: "#/responses/err-forbidden"
+        '500':
+          $ref: "#/responses/err-server-error"
+  /api/v1.0/rollback/{release_name}:
+    post:
+      description: Rollback the specified release name
+      operationId: postRollbackReleaseName
+      parameters:
+        - name: release_name
+          in: path
+          required: true
+          description: Name of the release to be rolled back
+          type: string
+        - name: version
+          in: query
+          required: false
+          type: integer
+          description: Version number of release to rollback to. 0 represents
+            the previous version
+          default: 0
+        - $ref: "#/parameters/x-auth-token"
+        - $ref: "#/parameters/tiller-host"
+        - $ref: "#/parameters/tiller-port"
+        - $ref: "#/parameters/tiller-namespace"
+        - $ref: "#/parameters/dry-run"
+        - $ref: "#/parameters/wait"
+        - $ref: "#/parameters/timeout"
+      responses:
+        '200':
+          $ref: "#/responses/response-post-rollback-release"
         '401':
           $ref: "#/responses/err-no-auth"
         '403':
@@ -257,20 +290,22 @@ parameters:
     name: dry_run
     required: false
     type: boolean
-    description: Flag to simulate an install if set to True
+    description: Flag to simulate an action if set to True
     default: False
   wait:
     in: query
     name: wait
     required: false
     type: boolean
-    description: Specifies whether Tiller should wait until all charts are deployed.
+    description: Specifies whether Tiller should wait until the action is
+      complete before returning.
   timeout:
     in: query
     name: timeout
     required: false
     type: integer
-    description: Specifies time in seconds Tiller should wait for charts to deploy until timing out.
+    description: Specifies time in seconds Tiller should wait for the action to
+      complete before timing out.
     default: 3600
 responses:
   # HTTP error responses
@@ -297,6 +332,13 @@ responses:
     schema:
       allOf:
         - $ref: "#/definitions/applyresult"
+  response-post-rollback-release:
+    description: Response of a rollback of a specified release name
+    schema:
+      allOf:
+        - $ref: "#/definitions/rollbackresult"
+      example:
+        message: "Rollback of release xyz complete"
   response-post-test-release:
     description: Response of a test of a specified release name
     schema:
@@ -405,6 +447,11 @@ definitions:
             type: object
             additionalProperties:
               type: string
+  rollbackresult:
+    type: object
+    properties:
+      message:
+        type: string
   testresult:
     type: object
     properties:

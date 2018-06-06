@@ -93,6 +93,8 @@ class Armada(object):
         self.dry_run = dry_run
         self.force_wait = force_wait
         self.timeout = timeout
+        # TODO: Use dependency injection i.e. pass in a Tiller instead of
+        #       creating it here.
         self.tiller = Tiller(
             tiller_host=tiller_host, tiller_port=tiller_port,
             tiller_namespace=tiller_namespace, dry_run=dry_run)

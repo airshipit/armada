@@ -20,6 +20,7 @@ from oslo_log import log
 
 from armada.cli.apply import apply_create
 from armada.cli.delete import delete_charts
+from armada.cli.rollback import rollback_charts
 from armada.cli.test import test_charts
 from armada.cli.tiller import tiller_service
 from armada.cli.validate import validate_manifest
@@ -54,6 +55,7 @@ def main(ctx, debug, api, url, token):
     \b
     $ armada apply
     $ armada delete
+    $ armada rollback
     $ armada test
     $ armada tiller
     $ armada validate
@@ -93,6 +95,7 @@ def main(ctx, debug, api, url, token):
 
 main.add_command(apply_create)
 main.add_command(delete_charts)
+main.add_command(rollback_charts)
 main.add_command(test_charts)
 main.add_command(tiller_service)
 main.add_command(validate_manifest)

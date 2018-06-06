@@ -180,7 +180,7 @@ paths:
       tags:
         - Tests
       description: Test specified release name
-      operationId: postReleaseName
+      operationId: postTestReleaseName
       parameters:
         - $ref: "#/components/parameters/release-name"
         - $ref: "#/components/parameters/x-auth-token"
@@ -199,7 +199,43 @@ paths:
     options:
       tags:
         - Tests
-      operationId: optReleaseName
+      operationId: optTestReleaseName
+      parameters:
+        - $ref: "#/components/parameters/release-name"
+      responses:
+        '200':
+          $ref: "#/components/responses/response-options"
+  /api/v1.0/rollback/{release_name}:
+    post:
+      tags:
+        - Rollback
+      description: Rollback the specified release name
+      operationId: postRollbackReleaseName
+      parameters:
+        - $ref: "#/components/parameters/release-name"
+        - $ref: "#/components/parameters/release-version"
+        - $ref: "#/components/parameters/x-auth-token"
+        - $ref: "#/components/parameters/tiller-host"
+        - $ref: "#/components/parameters/tiller-port"
+        - $ref: "#/components/parameters/tiller-namespace"
+        - $ref: "#/components/parameters/dry-run"
+        - $ref: "#/components/parameters/wait"
+        - $ref: "#/components/parameters/timeout"
+      responses:
+        '200':
+          $ref: "#/components/responses/response-post-rollback-release"
+        '401':
+          $ref: "#/components/responses/err-no-auth"
+        '403':
+          $ref: "#/components/responses/err-forbidden"
+        '500':
+          $ref: "#/components/responses/err-server-error"
+    options:
+      tags:
+        - Rollback
+      operationId: optRollbackReleaseName
+      parameters:
+        - $ref: "#/components/parameters/release-name"
       responses:
         '200':
           $ref: "#/components/responses/response-options"
@@ -242,9 +278,16 @@ components:
       in: path
       name: release_name
       required: true
-      description: Name of the release to be tested
+      description: Name of the release to be acted upon
       schema:
         type: string
+    release-version:
+      in: query
+      name: version
+      required: false
+      description: "Version number of release to rollback to. 0 represents the previous version. Default: `0`"
+      schema:
+        type: integer
     tiller-host:
       in: query
       name: tiller_host
@@ -369,6 +412,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/result-apply"
+    response-post-rollback-release:
+      description: Response of a rollback of a specified release name
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/result-rollback"
     response-post-test-release:
       description: Response of a test of a specified release name
       content:
@@ -488,6 +537,13 @@ components:
             diff:
               key1: val1
               key2: val2
+    result-rollback:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: "Rollback of release xyz complete"
     result-test:
       type: object
       properties:

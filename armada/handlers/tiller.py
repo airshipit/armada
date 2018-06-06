@@ -22,6 +22,7 @@ from hapi.services.tiller_pb2 import GetVersionRequest
 from hapi.services.tiller_pb2 import InstallReleaseRequest
 from hapi.services.tiller_pb2 import ListReleasesRequest
 from hapi.services.tiller_pb2_grpc import ReleaseServiceStub
+from hapi.services.tiller_pb2 import RollbackReleaseRequest
 from hapi.services.tiller_pb2 import TestReleaseRequest
 from hapi.services.tiller_pb2 import UninstallReleaseRequest
 from hapi.services.tiller_pb2 import UpdateReleaseRequest
@@ -322,7 +323,6 @@ class Tiller(object):
         Update a Helm Release
         '''
         timeout = self._check_timeout(wait, timeout)
-        rel_timeout = self.timeout if not timeout else timeout
 
         LOG.info('Helm update release%s: wait=%s, timeout=%s',
                  (' (dry run)' if self.dry_run else ''),
@@ -349,7 +349,7 @@ class Tiller(object):
                 timeout=timeout)
 
             update_msg = stub.UpdateRelease(
-                release_request, rel_timeout + GRPC_EPSILON,
+                release_request, timeout + GRPC_EPSILON,
                 metadata=self.metadata)
 
             tiller_result = TillerResult(
@@ -376,7 +376,6 @@ class Tiller(object):
         Create a Helm Release
         '''
         timeout = self._check_timeout(wait, timeout)
-        rel_timeout = self.timeout if not timeout else timeout
 
         LOG.info('Helm install release%s: wait=%s, timeout=%s',
                  (' (dry run)' if self.dry_run else ''),
@@ -400,7 +399,7 @@ class Tiller(object):
                 timeout=timeout)
 
             install_msg = stub.InstallRelease(
-                release_request, rel_timeout + GRPC_EPSILON,
+                release_request, timeout + GRPC_EPSILON,
                 metadata=self.metadata)
 
             tiller_result = TillerResult(
@@ -683,9 +682,44 @@ class Tiller(object):
         else:
             LOG.error("Unable to exectue name: % type: %s", name, action_type)
 
+    def rollback_release(self,
+                         release_name,
+                         version,
+                         wait=False,
+                         timeout=None):
+        '''
+        Rollback a helm release.
+        '''
+
+        timeout = self._check_timeout(wait, timeout)
+
+        LOG.debug('Helm rollback%s of release=%s, version=%s, '
+                  'wait=%s, timeout=%s',
+                  (' (dry run)' if self.dry_run else ''),
+                  release_name, version, wait, timeout)
+        try:
+            stub = ReleaseServiceStub(self.channel)
+            rollback_request = RollbackReleaseRequest(
+                name=release_name,
+                version=version,
+                dry_run=self.dry_run,
+                wait=wait,
+                timeout=timeout)
+
+            rollback_msg = stub.RollbackRelease(
+                rollback_request,
+                timeout + GRPC_EPSILON,
+                metadata=self.metadata)
+            LOG.debug('RollbackRelease= %s', rollback_msg)
+            return
+
+        except Exception:
+            raise ex.RollbackReleaseException(release_name, version)
+
     def _check_timeout(self, wait, timeout):
-        if wait and timeout <= 0:
-            LOG.warn('Tiller timeout is invalid or unspecified, '
-                     'using default %ss.', const.DEFAULT_TILLER_TIMEOUT)
-            timeout = const.DEFAULT_TILLER_TIMEOUT
+        if timeout is None or timeout <= 0:
+            if wait:
+                LOG.warn('Tiller timeout is invalid or unspecified, '
+                         'using default %ss.', self.timeout)
+            timeout = self.timeout
         return timeout

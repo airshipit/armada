@@ -235,6 +235,63 @@ Unable to Authorize or Permission
 
 Failed to perform action
 
+POST ``/rollback/{release}``
+----------------------------
+
+
+Summary
++++++++
+
+Rollback release name
+
+
+Parameters
+++++++++++
+
+.. csv-table::
+    :delim: |
+    :header: "Name", "Located in", "Required", "Type", "Format", "Properties", "Description"
+    :widths: 20, 15, 10, 10, 10, 20, 30
+
+        release | path  | Yes | string  |  |  | name of the release to rollback
+        version | query | No  | integer |  |  | version of the release to rollback to
+        dry_run | query | No  | boolean |  |  | perform dry run
+        wait    | query | No  | boolean |  |  | whether to wait for rollback to complete before returning
+        timeout | query | No  | integer |  |  | time to wait for rollback to complete before timing out
+
+Request
++++++++
+
+
+Responses
++++++++++
+
+**200**
+^^^^^^^
+
+Succesfully Test release response
+
+**Example:**
+
+.. code-block:: javascript
+
+    {
+        "message": {
+            "message": "Rollback of release xyz complete"
+        }
+    }
+
+**403**
+^^^^^^^
+
+Unable to Authorize or Permission
+
+
+**405**
+^^^^^^^
+
+Failed to perform action
+
 
 POST ``/test/{release}``
 ------------------------

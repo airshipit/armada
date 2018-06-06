@@ -11,6 +11,10 @@
 # POST  api/v1.0/apply/
 #"armada:create_endpoints": "rule:admin_required"
 
+# rollback release
+# POST  api/v1.0/rollback/{release}
+#"armada:rollback_release": "rule:admin_required"
+
 # validate installed manifest
 # POST  /api/v1.0/validate/
 #"armada:validate_manifest": "rule:admin_required"

@@ -108,6 +108,12 @@ b. Helm Install
 
     docker exec armada armada test --file=/examples/openstack-helm.yaml
 
+8. Rolling back Releases:
+
+.. code:: bash
+
+    docker exec armada armada rollback --release=armada-keystone
+
 Overriding Manifest Values
 --------------------------
 It is possible to override manifest values from the command line using the
