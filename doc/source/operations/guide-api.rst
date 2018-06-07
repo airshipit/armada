@@ -269,7 +269,7 @@ Responses
 **200**
 ^^^^^^^
 
-Succesfully Test release response
+Successfully Test release response
 
 **Example:**
 
@@ -323,7 +323,7 @@ Responses
 **200**
 ^^^^^^^
 
-Succesfully Test release response
+Successfully Test release response
 
 **Example:**
 
