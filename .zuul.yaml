@@ -17,12 +17,18 @@
         - airship-armada-lint-pep8
         - airship-armada-ubuntu
         - airship-armada-unit-py35
+        - airship-armada-docker-build-gate
 
     gate:
       jobs:
         - airship-armada-linter
         - airship-armada-lint-pep8
         - airship-armada-unit-py35
+        - airship-armada-docker-build-gate
+
+    post:
+      jobs:
+        - airship-armada-docker-publish
 
 - job:
     name: airship-armada-linter
@@ -88,4 +94,55 @@
     nodeset: airship-armada-single-node
     files:
         - ^.*\.py$
+- job:
+    name: airship-armada-docker-build-gate
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: airship-armada-single-node
+    vars:
+      publish: false
+      tags:
+        dynamic:
+          patch_set: true
 
+- job:
+    name: airship-armada-docker-publish
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: airship-armada-single-node
+    secrets:
+      - airship_armada_quay_creds
+    vars:
+      publish: true
+      tags:
+        dynamic:
+          branch: true
+          commit: true
+        static:
+          - latest
+
+- secret:
+    name: airship_armada_quay_creds
+    data:
+      username: !encrypted/pkcs1-oaep
+        - mQ5xMKaU6+ug5Zp+LK5hfwbFamnW9hK2QVQOA7ylcoTMh8yz66YcgDjGJjbT2c66NF8eg
+          f279ODNmGe5pYepdR8/fU/aQ2pTVVvrF1bt0fcon8xxEZGuWnCftYZjO6Ogq+HWWwwnW0
+          HLcvnFK3GhGBJkYCG9742PxuLpDOYDSiK3jRCN1tgdY+vcHpm7bwqyhzywj7ar4lsk8Gk
+          d9Z57xkcURuw/GEBf8tHzd2PTAj3Oao6hKMTdCVhYZejjNNR34GPhGIvipb7m/dNIzT2c
+          j4a/Kq3HcqVog1OiCkSn4jRlIcD1Jgl/cyJyEz6dZCP2W16X/qwzDD8YUSsTPt4Jc6s/U
+          hD/aye5f1Jwoiyy23BM7BJ8s8eoioYsubV3TUGNQv64UxRnd4nPyWW2QssfAlA2fsww2v
+          D9nLjmYuj4t8IzfQVd4ZLwBUKrb1q1au8bR3jYd8x2RaYjAVr4aPXQLzeXR7k0kZ9QgYO
+          PetkCkf2vly8UYtonaM0odf7X1KfKgCOU+urXWMnDVU3SEaMH5f51NnW8Xb5NmCk/S9vz
+          MVl6IR/ZCa9q7sIH40B2Tt61AsU1RjIyAahU6fkg/pW19uBv7zI6BDSZUiEh662MnK4z1
+          O5n0771VjSa2aqpP1+iTkDWqobcSvgvHWQCM4Cv4fBO//E7s/LV0FIayQYbm2k=
+      password: !encrypted/pkcs1-oaep
+        - nATf8olUzHg6pBmRJ2KF9NI48axKYtuFn7j8R8iKRfV3R7NW3eq89gsk5m9DVq4+GUEGw
+          ZxLRjy2/F31Xnw2snGf7Pj+33O1NRSZ7D/UqKSu07tS0qkRn4rWK6U4tO1crHb7NPqd3I
+          rziVgOCTBpaKNLBlEEYqYF/HYHQuQACAFqClavskGc3AGhzyd7Ti4DDrvQ8N2dgnhyiy3
+          k8+xoqVq5dkraoYhGyFzekpL/XE9v0sOr8cpHNHieKyOmJDbQohfWiris5GQYC9q0DmIN
+          eHrdiSAgVZhjKw97Z8HZibOH2gFPD/TSk7Lw2SG0JYFQpWdHDYlTiBbBKszfiVZA755Ha
+          aBBGRudRDkYDLaIojsPLp5C65Dx41inUJMg/gMGm0SzJuAcGZgaaBdrjUyCGB1zFP/J6+
+          ghl3K/yAiU7V1r+PxY9hmL/tNZ+c32Q623aS4muqjZ1iNQGeS+8lnCGTf2x5uaIRG7veH
+          q1aBs85YhFSQ4ogvwqI0DABXjXwM2eDLj0s6aBp717sIwUk7roTtbVgkRaWs5WILrwE4G
+          xELJhFCWVJ4enONX8Kb9kYxue1Kd6Ku9JaE+UrUDgyxKLOPDgg7S3dnchbUeg38UurKa+
+          c5srPrJs5JL00hb3GVJ7ORIX4dFdYvJRAZNqExyx15kq6iPYv8QHQg5ai/XAGQ=
