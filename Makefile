@@ -18,6 +18,9 @@ IMAGE_PREFIX    ?= attcomdev
 IMAGE_NAME      ?= armada
 IMAGE_TAG       ?= latest
 HELM            ?= helm
+PROXY           ?= http://proxy.foo.com:8000
+USE_PROXY       ?= false
+PUSH_IMAGE      ?= false
 LABEL           ?= commit-id
 PYTHON          = python3
 CHARTS          := $(patsubst charts/%/.,%,$(wildcard charts/*/.))
@@ -98,7 +101,14 @@ build_docs:
 
 .PHONY: build_armada
 build_armada:
-	docker build -t $(IMAGE) --label $(LABEL) .
+ifeq ($(USE_PROXY), true)
+	docker build --network host -t $(IMAGE) --label $(LABEL) -f ./Dockerfile . --build-arg http_proxy=$(PROXY) --build-arg https_proxy=$(PROXY)
+else
+	docker build --network host -t $(IMAGE) --label $(LABEL) -f ./Dockerfile .
+endif
+ifeq ($(PUSH_IMAGE), true)
+	docker push $(IMAGE)
+endif
 
 # make tools
 .PHONY: protoc
