@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = armada
+omit = armada/tests/*
+
+[report]
+ignore_errors = True
