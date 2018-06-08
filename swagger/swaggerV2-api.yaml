@@ -197,6 +197,8 @@ paths:
         - $ref: "#/parameters/dry-run"
         - $ref: "#/parameters/wait"
         - $ref: "#/parameters/timeout"
+        - $ref: "#/parameters/force"
+        - $ref: "#/parameters/recreate-pods"
       responses:
         '200':
           $ref: "#/responses/response-post-rollback-release"
@@ -307,6 +309,22 @@ parameters:
     description: Specifies time in seconds Tiller should wait for the action to
       complete before timing out.
     default: 3600
+  force:
+    in: query
+    name: force
+    required: false
+    type: boolean
+    description: Specifies whether to force resource update through
+      delete/recreate if needed.
+    default: False
+  recreate-pods:
+    in: query
+    name: recreate_pods
+    required: false
+    type: boolean
+    description: Specifies whether to restart pods for the resource if
+      applicable.
+    default: False
 responses:
   # HTTP error responses
   err-bad-request:

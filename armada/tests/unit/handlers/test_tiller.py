@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import mock
+from mock import MagicMock
 
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers import tiller
@@ -289,9 +290,29 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_release_service_stub.return_value.RollbackRelease\
             .return_value = {}
 
-        tiller_obj = tiller.Tiller('host', '8080', None)
+        dry_run = True
 
-        self.assertIsNone(tiller_obj.rollback_release('release', 0))
+        tiller_obj = tiller.Tiller('host', '8080', None, dry_run=dry_run)
+
+        release = 'release'
+        version = 0
+        wait = True
+        timeout = 123
+        recreate_pods = True
+        force = True
+
+        self.assertIsNone(tiller_obj.rollback_release(
+            release, version, wait=wait, timeout=timeout, force=force,
+            recreate_pods=recreate_pods))
+
+        mock_rollback_release_request.assert_called_once_with(
+            name=release,
+            version=version,
+            dry_run=dry_run,
+            wait=wait,
+            timeout=timeout,
+            force=force,
+            recreate=recreate_pods)
 
         mock_release_service_stub.assert_called_once_with(
             tiller_obj.channel)
@@ -299,6 +320,109 @@ class TillerTestCase(base.ArmadaTestCase):
             RollbackRelease
 
         rollback_release_stub.assert_called_once_with(
-            mock_rollback_release_request.return_value, tiller_obj.timeout +
+            mock_rollback_release_request.return_value, timeout +
             tiller.GRPC_EPSILON,
             metadata=tiller_obj.metadata)
+
+    @mock.patch('armada.handlers.tiller.K8s')
+    @mock.patch('armada.handlers.tiller.grpc')
+    @mock.patch('armada.handlers.tiller.Config')
+    @mock.patch.object(tiller, 'UpdateReleaseRequest')
+    @mock.patch.object(tiller, 'ReleaseServiceStub')
+    def test_update_release(self, mock_release_service_stub,
+                            mock_update_release_request, mock_config,
+                            _, __):
+        release = 'release'
+        chart = {}
+        namespace = 'namespace'
+        code = 0
+        status = 'DEPLOYED'
+        description = 'desc'
+        version = 2
+        values = mock_config(raw=None)
+        mock_release_service_stub.return_value.UpdateRelease.return_value =\
+            AttrDict(**{
+                'release': AttrDict(**{
+                    'name': release,
+                    'namespace': namespace,
+                    'info': AttrDict(**{
+                        'status': AttrDict(**{
+                            'Code': AttrDict(**{
+                                'Name': lambda c:
+                                    status if c == code else None
+                            }),
+                            'code': code
+                        }),
+                        'Description': description
+                    }),
+                    'version': version
+                })
+            })
+
+        tiller_obj = tiller.Tiller('host', '8080', None, dry_run=False)
+
+        # TODO: Test these methods as well, either by unmocking, or adding
+        #       separate tests for them.
+        tiller_obj._pre_update_actions = MagicMock()
+        tiller_obj._post_update_actions = MagicMock()
+
+        pre_actions = {}
+        post_actions = {}
+        disable_hooks = False
+        wait = True
+        timeout = 123
+        force = True
+        recreate_pods = True
+
+        result = tiller_obj.update_release(
+            chart, release, namespace,
+            pre_actions=pre_actions,
+            post_actions=post_actions,
+            disable_hooks=disable_hooks,
+            values=values,
+            wait=wait,
+            timeout=timeout,
+            force=force,
+            recreate_pods=recreate_pods)
+
+        tiller_obj._pre_update_actions.assert_called_once_with(
+            pre_actions, release, namespace, chart, disable_hooks, values,
+            timeout)
+        tiller_obj._post_update_actions.assert_called_once_with(
+            post_actions, namespace)
+
+        mock_update_release_request.assert_called_once_with(
+            chart=chart,
+            name=release,
+            dry_run=tiller_obj.dry_run,
+            disable_hooks=False,
+            values=values,
+            wait=wait,
+            timeout=timeout,
+            force=force,
+            recreate=recreate_pods)
+
+        mock_release_service_stub.assert_called_once_with(
+            tiller_obj.channel)
+        update_release_stub = mock_release_service_stub.return_value. \
+            UpdateRelease
+
+        update_release_stub.assert_called_once_with(
+            mock_update_release_request.return_value, timeout +
+            tiller.GRPC_EPSILON,
+            metadata=tiller_obj.metadata)
+
+        expected_result = tiller.TillerResult(
+            release,
+            namespace,
+            status,
+            description,
+            version)
+
+        self.assertEqual(expected_result, result)
+
+
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self

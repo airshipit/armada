@@ -221,6 +221,8 @@ paths:
         - $ref: "#/components/parameters/dry-run"
         - $ref: "#/components/parameters/wait"
         - $ref: "#/components/parameters/timeout"
+        - $ref: "#/components/parameters/force"
+        - $ref: "#/components/parameters/recreate-pods"
       responses:
         '200':
           $ref: "#/components/responses/response-post-rollback-release"
@@ -356,6 +358,24 @@ components:
       description: Specifies whether Tiller should wait until all charts are deployed
       schema:
         type: boolean
+    force:
+      in: query
+      name: force
+      required: false
+      description: Specifies whether to force resource update through
+        delete/recreate if needed.
+      schema:
+        type: boolean
+        default: false
+    recreate-pods:
+      in: query
+      name: recreate_pods
+      required: false
+      description: Specifies whether to restart pods for the resource if
+        applicable.
+      schema:
+        type: boolean
+        default: false
   requestBodies:
     apply-body:
       required: true

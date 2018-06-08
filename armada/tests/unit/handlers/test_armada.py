@@ -59,6 +59,11 @@ data:
     dependencies: []
     wait:
       timeout: 10
+    upgrade:
+      no_hooks: false
+      options:
+        force: true
+        recreate_pods: true
 ---
 schema: armada/Chart/v1
 metadata:
@@ -129,6 +134,13 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     'values': {},
                                     'wait': {
                                         'timeout': 10
+                                    },
+                                    'upgrade': {
+                                        'no_hooks': False,
+                                        'options': {
+                                            'force': True,
+                                            'recreate_pods': True
+                                        }
                                     }
                                 }
                             }
@@ -279,6 +291,11 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                         )
                     )
                 else:
+                    upgrade = chart.get('upgrade', {})
+                    disable_hooks = upgrade.get('no_hooks', False)
+                    force = upgrade.get('force', False)
+                    recreate_pods = upgrade.get('recreate_pods', False)
+
                     expected_update_release_calls.append(
                         mock.call(
                             mock_chartbuilder().get_helm_chart(),
@@ -288,7 +305,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                             chart['namespace'],
                             pre_actions={},
                             post_actions={},
-                            disable_hooks=False,
+                            disable_hooks=disable_hooks,
+                            force=force,
+                            recreate_pods=recreate_pods,
                             values=yaml.safe_dump(chart['values']),
                             wait=this_chart_should_wait,
                             timeout=chart['wait']['timeout']
