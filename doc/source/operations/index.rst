@@ -10,7 +10,6 @@ Operations Guide
    :maxdepth: 2
    :caption: Contents:
 
-   guide-api
    guide-build-armada-yaml
    guide-configure
    guide-troubleshooting
