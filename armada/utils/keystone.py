@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from keystoneauth1 import loading
+from keystoneauth1 import session
 from oslo_config import cfg
 
 
 def get_keystone_session():
-    return loading.load_session_from_conf_options(
-        cfg.CONF, group="keystone_authtoken")
+    auth = loading.load_auth_from_conf_options(cfg.CONF, "keystone_authtoken")
+    return session.Session(auth=auth)

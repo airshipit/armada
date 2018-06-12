@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keystoneauth1 import loading
+from keystoneauth1 import loading as ks_loading
 from oslo_config import cfg
 
 from armada.conf import utils
@@ -94,12 +94,17 @@ path to the private key that includes the name of the key itself.""")),
 
 def register_opts(conf):
     conf.register_opts(default_options)
-    conf.register_opts(
-        loading.get_auth_plugin_conf_options('password'),
-        group='keystone_authtoken')
+    ks_loading.register_auth_conf_options(conf, group='keystone_authtoken')
+    ks_loading.register_session_conf_options(conf, group='keystone_authtoken')
 
 
 def list_opts():
     return {
         'DEFAULT': default_options,
-        'keystone_authtoken': loading.get_auth_plugin_conf_options('password')}
+        'keystone_authtoken': (
+            ks_loading.get_session_conf_options() +
+            ks_loading.get_auth_common_conf_options() +
+            ks_loading.get_auth_plugin_conf_options('password') +
+            ks_loading.get_auth_plugin_conf_options('v3password')
+        )
+    }

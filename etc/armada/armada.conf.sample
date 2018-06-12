@@ -26,26 +26,22 @@
 # The Keystone project name used for authentication. (string value)
 #project_name = admin
 
-# Path to SSH private key. (string value)
+# Optional path to an SSH private key used for authenticating against a Git
+# source repository. The path must be an absolute path to the private key that
+# includes the name of the key itself. (string value)
 #ssh_key_path = /home/user/.ssh/
 
-# Labels for the tiller pod. (string value)
+# Labels for the Tiller pod. (string value)
 #tiller_pod_labels = app=helm,name=tiller
 
-# Host for the tiller pod. (string value)
-#tiller_host = localhost
-
-# Namespace for the tiller pod. (string value)
+# Namespace for the Tiller pod. (string value)
 #tiller_namespace = kube-system
 
-# Port for the tiller pod. (integer value)
+# Port for the Tiller pod. (integer value)
 #tiller_port = 44134
 
 # IDs of approved API access roles. (list value)
 #tiller_release_roles = admin
-
-# IDs of approved API access roles. (list value)
-#tiller_status_roles = admin
 
 #
 # From oslo.log
@@ -224,6 +220,29 @@
 # From armada.conf
 #
 
+# PEM encoded Certificate Authority to use when verifying HTTPs connections.
+# (string value)
+#cafile = <None>
+
+# PEM encoded client certificate cert file (string value)
+#certfile = <None>
+
+# PEM encoded client certificate key file (string value)
+#keyfile = <None>
+
+# Verify HTTPS connections. (boolean value)
+#insecure = false
+
+# Timeout value for http requests (integer value)
+#timeout = <None>
+
+# Authentication type to load (string value)
+# Deprecated group/name - [keystone_authtoken]/auth_plugin
+#auth_type = <None>
+
+# Config Section from which to load plugin specific options (string value)
+#auth_section = <None>
+
 # Authentication URL (string value)
 #auth_url = <None>
 
@@ -234,11 +253,9 @@
 #domain_name = <None>
 
 # Project ID to scope to (string value)
-# Deprecated group/name - [keystone_authtoken]/tenant_id
 #project_id = <None>
 
 # Project name to scope to (string value)
-# Deprecated group/name - [keystone_authtoken]/tenant_name
 #project_name = <None>
 
 # Domain ID containing project (string value)
@@ -260,7 +277,7 @@
 # (string value)
 #default_domain_name = <None>
 
-# User id (string value)
+# User ID (string value)
 #user_id = <None>
 
 # Username (string value)
