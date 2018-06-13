@@ -109,6 +109,14 @@ data:
           properties:
             create:
               $ref: '#/definitions/hook_action'
+        options:
+          type: object
+          properties:
+            force:
+              type: boolean
+            recreate_pods:
+              type: boolean
+          additionalProperties: false
       required:
         - no_hooks
       additionalProperties: false

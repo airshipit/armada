@@ -333,6 +333,8 @@ class Armada(object):
 
                     upgrade = chart.get('upgrade', {})
                     disable_hooks = upgrade.get('no_hooks', False)
+                    force = upgrade.get('force', False)
+                    recreate_pods = upgrade.get('recreate_pods', False)
 
                     LOG.info("Checking Pre/Post Actions")
                     if upgrade:
@@ -374,7 +376,9 @@ class Armada(object):
                         disable_hooks=disable_hooks,
                         values=yaml.safe_dump(values),
                         wait=this_chart_should_wait,
-                        timeout=timer)
+                        timeout=timer,
+                        force=force,
+                        recreate_pods=recreate_pods)
 
                     if this_chart_should_wait:
                         self._wait_until_ready(

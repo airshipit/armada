@@ -45,7 +45,9 @@ class Rollback(api.BaseResource):
                 release,
                 req.get_param_as_int('version') or 0,
                 wait=req.get_param_as_bool('wait'),
-                timeout=req.get_param_as_int('timeout') or 0)
+                timeout=req.get_param_as_int('timeout') or 0,
+                force=req.get_param_as_bool('force'),
+                recreate_pods=req.get_param_as_bool('recreate_pods'))
 
             resp.body = json.dumps(
                 {

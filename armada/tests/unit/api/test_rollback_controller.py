@@ -32,7 +32,45 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
         rollback_release = mock_tiller.return_value.rollback_release
         rollback_release.return_value = None
 
-        resp = self.app.simulate_post('/api/v1.0/rollback/test-release')
+        tiller_host = 'host'
+        tiller_port = '8080'
+        tiller_namespace = 'tn'
+        release = 'test-release'
+        version = '2'
+        dry_run = 'false'
+        wait = 'true'
+        timeout = '123'
+        force = 'true'
+        recreate_pods = 'true'
+
+        resp = self.app.simulate_post(
+            '/api/v1.0/rollback/{}'.format(release),
+            params={
+                'tiller_host': tiller_host,
+                'tiller_port': tiller_port,
+                'tiller_namespace': tiller_namespace,
+                'dry_run': dry_run,
+                'version': version,
+                'wait': wait,
+                'timeout': timeout,
+                'force': force,
+                'recreate_pods': recreate_pods
+            })
+
+        mock_tiller.assert_called_once_with(
+            tiller_host=tiller_host,
+            tiller_port=8080,
+            tiller_namespace=tiller_namespace,
+            dry_run=False)
+
+        rollback_release.assert_called_once_with(
+            release,
+            2,
+            wait=True,
+            timeout=123,
+            force=True,
+            recreate_pods=True)
+
         self.assertEqual(200, resp.status_code)
         self.assertEqual('Rollback of test-release complete.',
                          json.loads(resp.text)['message'])

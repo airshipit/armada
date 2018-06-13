@@ -51,8 +51,18 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-class TillerResult(object):
+class CommonEqualityMixin(object):
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class TillerResult(CommonEqualityMixin):
     '''Object to hold Tiller results for Armada.'''
+
     def __init__(self, release, namespace, status, description, version):
         self.release = release
         self.namespace = namespace
@@ -318,15 +328,18 @@ class Tiller(object):
                        disable_hooks=False,
                        values=None,
                        wait=False,
-                       timeout=None):
+                       timeout=None,
+                       force=False,
+                       recreate_pods=False):
         '''
         Update a Helm Release
         '''
         timeout = self._check_timeout(wait, timeout)
 
-        LOG.info('Helm update release%s: wait=%s, timeout=%s',
+        LOG.info('Helm update release%s: wait=%s, timeout=%s, force=%s, '
+                 'recreate_pods=%s',
                  (' (dry run)' if self.dry_run else ''),
-                 wait, timeout)
+                 wait, timeout, force, recreate_pods)
 
         if values is None:
             values = Config(raw='')
@@ -336,6 +349,7 @@ class Tiller(object):
         self._pre_update_actions(pre_actions, release, namespace, chart,
                                  disable_hooks, values, timeout)
 
+        update_msg = None
         # build release install request
         try:
             stub = ReleaseServiceStub(self.channel)
@@ -346,27 +360,30 @@ class Tiller(object):
                 values=values,
                 name=release,
                 wait=wait,
-                timeout=timeout)
+                timeout=timeout,
+                force=force,
+                recreate=recreate_pods)
 
             update_msg = stub.UpdateRelease(
                 release_request, timeout + GRPC_EPSILON,
                 metadata=self.metadata)
 
-            tiller_result = TillerResult(
-                update_msg.release.name,
-                update_msg.release.namespace,
-                update_msg.release.info.status.Code.Name(
-                    update_msg.release.info.status.code),
-                update_msg.release.info.Description,
-                update_msg.release.version)
-
-            return tiller_result
         except Exception:
             LOG.exception('Error while updating release %s', release)
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Upgrade')
 
         self._post_update_actions(post_actions, namespace)
+
+        tiller_result = TillerResult(
+            update_msg.release.name,
+            update_msg.release.namespace,
+            update_msg.release.info.status.Code.Name(
+                update_msg.release.info.status.code),
+            update_msg.release.info.Description,
+            update_msg.release.version)
+
+        return tiller_result
 
     def install_release(self, chart, release, namespace,
                         values=None,
@@ -686,7 +703,9 @@ class Tiller(object):
                          release_name,
                          version,
                          wait=False,
-                         timeout=None):
+                         timeout=None,
+                         force=False,
+                         recreate_pods=False):
         '''
         Rollback a helm release.
         '''
@@ -704,7 +723,9 @@ class Tiller(object):
                 version=version,
                 dry_run=self.dry_run,
                 wait=wait,
-                timeout=timeout)
+                timeout=timeout,
+                force=force,
+                recreate=recreate_pods)
 
             rollback_msg = stub.RollbackRelease(
                 rollback_request,
