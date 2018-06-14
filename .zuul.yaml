@@ -16,14 +16,12 @@
         - airship-armada-linter
         - airship-armada-lint-pep8
         - airship-armada-ubuntu
-        - airship-armada-unit-py35
         - airship-armada-docker-build-gate
 
     gate:
       jobs:
         - airship-armada-linter
         - airship-armada-lint-pep8
-        - airship-armada-unit-py35
         - airship-armada-docker-build-gate
 
     post:
@@ -70,20 +68,6 @@
     nodes:
       - name: primary
         label: ubuntu-xenial
-
-- job:
-    name: airship-armada-unit-py35
-    description: |
-      Executes unit tests under Python 3.5
-    run: tools/gate/playbooks/unit-py35.yaml
-    timeout: 300
-    nodeset: airship-armada-single-node
-    irrelevant-files:
-      - ^.*\.rst$
-      - ^doc/.*$
-      - ^etc/.*$
-      - ^releasenotes/.*$
-      - ^setup.cfg$
 
 - job:
     name: airship-armada-lint-pep8
