@@ -95,7 +95,6 @@ path to the private key that includes the name of the key itself.""")),
 def register_opts(conf):
     conf.register_opts(default_options)
     ks_loading.register_auth_conf_options(conf, group='keystone_authtoken')
-    ks_loading.register_session_conf_options(conf, group='keystone_authtoken')
 
 
 def list_opts():
