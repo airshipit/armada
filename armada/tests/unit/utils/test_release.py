@@ -21,18 +21,18 @@ class ReleaseTestCase(unittest.TestCase):
 
     def test_release_prefix_pass(self):
         expected = 'armada-test'
-        prefix, chart = ('armada', 'test')
+        prefix, release = ('armada', 'test')
 
-        assert rel.release_prefix(prefix, chart) == expected
+        assert rel.release_prefixer(prefix, release) == expected
 
     def test_release_prefix_int_string(self):
         expected = 'armada-4'
-        prefix, chart = ('armada', 4)
+        prefix, release = ('armada', 4)
 
-        assert rel.release_prefix(prefix, chart) == expected
+        assert rel.release_prefixer(prefix, release) == expected
 
     def test_release_prefix_int_int(self):
         expected = '4-4'
-        prefix, chart = (4, 4)
+        prefix, release = (4, 4)
 
-        assert rel.release_prefix(prefix, chart) == expected
+        assert rel.release_prefixer(prefix, release) == expected

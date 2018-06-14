@@ -28,7 +28,7 @@ from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
 from armada.handlers.tiller import Tiller
-from armada.utils.release import release_prefix
+from armada.utils.release import release_prefixer
 from armada.utils import source
 from armada.utils import validate
 
@@ -107,12 +107,12 @@ class Armada(object):
             self.documents,
             target_manifest=target_manifest).get_manifest()
 
-    def find_release_chart(self, known_releases, name):
+    def find_release_chart(self, known_releases, release_name):
         '''
         Find a release given a list of known_releases and a release name
         '''
-        for chart_name, _, chart, values, _ in known_releases:
-            if chart_name == name:
+        for release, _, chart, values, _ in known_releases:
+            if release == release_name:
                 return chart, values
 
     def pre_flight_ops(self):
@@ -150,17 +150,12 @@ class Armada(object):
         for release in failed_releases:
             for group in manifest_data.get(const.KEYWORD_GROUPS, []):
                 for ch in group.get(const.KEYWORD_CHARTS, []):
-                    ch_release_name = release_prefix(
-                        prefix, ch.get('chart', {}).get('chart_name'))
+                    ch_release_name = release_prefixer(
+                        prefix, ch.get('chart', {}).get('release'))
                     if release[0] == ch_release_name:
-                        if self.dry_run:
-                            LOG.info('Skipping purge during `dry-run`, would '
-                                     'have purged failed release %s before '
-                                     'deployment,', release[0])
-                        else:
-                            LOG.info('Purging failed release %s '
-                                     'before deployment', release[0])
-                            self.tiller.uninstall_release(release[0])
+                        LOG.info('Purging failed release %s '
+                                 'before deployment.', release[0])
+                        self.tiller.uninstall_release(release[0])
 
         # Clone the chart sources
         #
@@ -282,7 +277,7 @@ class Armada(object):
                 wait_timeout = self.timeout
                 wait_labels = {}
 
-                release_name = release_prefix(prefix, release)
+                release_name = release_prefixer(prefix, release)
 
                 # Retrieve appropriate timeout value
                 if wait_timeout <= 0:
@@ -473,7 +468,7 @@ class Armada(object):
         self.post_flight_ops()
 
         if self.enable_chart_cleanup:
-            self.tiller.chart_cleanup(
+            self._chart_cleanup(
                 prefix,
                 self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS])
 
@@ -572,3 +567,21 @@ class Armada(object):
         result = (len(chart_diff) > 0) or (len(values_diff) > 0)
 
         return result
+
+    def _chart_cleanup(self, prefix, charts):
+        LOG.info('Processing chart cleanup to remove unspecified releases.')
+
+        valid_releases = []
+        for gchart in charts:
+            for chart in gchart.get(const.KEYWORD_CHARTS, []):
+                valid_releases.append(release_prefixer(
+                    prefix, chart.get('chart', {}).get('release')))
+
+        actual_releases = [x.name for x in self.tiller.list_releases()]
+        release_diff = list(set(actual_releases) - set(valid_releases))
+
+        for release in release_diff:
+            if release.startswith(prefix):
+                LOG.info('Purging release %s as part of chart cleanup.',
+                         release)
+                self.tiller.uninstall_release(release)

@@ -23,7 +23,7 @@ from armada.common import policy
 from armada import const
 from armada.handlers.tiller import Tiller
 from armada.handlers.manifest import Manifest
-from armada.utils.release import release_prefix
+from armada.utils.release import release_prefixer
 from armada.utils import validate
 
 CONF = cfg.CONF
@@ -169,8 +169,8 @@ class TestReleasesManifestController(api.BaseResource):
         for group in armada_obj.get(const.KEYWORD_ARMADA).get(
                 const.KEYWORD_GROUPS):
             for ch in group.get(const.KEYWORD_CHARTS):
-                release_name = release_prefix(
-                    prefix, ch.get('chart').get('chart_name'))
+                release_name = release_prefixer(
+                    prefix, ch.get('chart').get('release'))
 
                 if release_name in known_releases:
                     self.logger.info('RUNNING: %s tests', release_name)

@@ -32,7 +32,6 @@ from oslo_log import log as logging
 from armada import const
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
-from armada.utils.release import release_prefix
 from armada.utils.release import label_selectors
 
 TILLER_VERSION = b'2.7.2'
@@ -309,8 +308,10 @@ class Tiller(object):
         for latest_release in self.list_releases():
             try:
                 release = (
-                    latest_release.name, latest_release.version,
-                    latest_release.chart, latest_release.config.raw,
+                    latest_release.name,
+                    latest_release.version,
+                    latest_release.chart,
+                    latest_release.config.raw,
                     latest_release.info.status.Code.Name(
                         latest_release.info.status.code))
                 charts.append(release)
@@ -567,28 +568,6 @@ class Tiller(object):
             LOG.exception('Error while uninstalling release %s', release)
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Delete')
-
-    def chart_cleanup(self, prefix, charts):
-        '''
-        :params charts - list of yaml charts
-        :params known_release - list of releases in tiller
-
-        :result - will remove any chart that is not present in yaml
-        '''
-
-        valid_charts = []
-        for gchart in charts:
-            for chart in gchart.get('chart_group'):
-                valid_charts.append(release_prefix(
-                    prefix, chart.get('chart').get('name')))
-
-        actual_charts = [x.name for x in self.list_releases()]
-        chart_diff = list(set(actual_charts) - set(valid_charts))
-
-        for chart in chart_diff:
-            if chart.startswith(prefix):
-                LOG.debug("Release: %s will be removed", chart)
-                self.uninstall_release(chart)
 
     def delete_resources(self, release_name, resource_name, resource_type,
                          resource_labels, namespace, wait=False,
