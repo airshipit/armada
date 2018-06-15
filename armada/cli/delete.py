@@ -21,7 +21,7 @@ from armada.cli import CliAction
 from armada import const
 from armada.handlers.manifest import Manifest
 from armada.handlers.tiller import Tiller
-from armada.utils.release import release_prefix
+from armada.utils.release import release_prefixer
 
 CONF = cfg.CONF
 
@@ -130,8 +130,8 @@ class DeleteChartManifest(CliAction):
                 for group in armada_obj.get(const.KEYWORD_ARMADA).get(
                         const.KEYWORD_GROUPS):
                     for ch in group.get(const.KEYWORD_CHARTS):
-                        release_name = release_prefix(
-                            prefix, ch.get('chart').get('chart_name'))
+                        release_name = release_prefixer(
+                            prefix, ch.get('chart').get('release'))
                         if release_name in known_release_names:
                             target_releases.append(release_name)
             except yaml.YAMLError as e:

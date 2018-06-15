@@ -51,7 +51,7 @@ To override a specific value in a Manifest, run:
 
     \b
     $ armada apply examples/simple.yaml \
---set manifest:simple-armada:release_name="wordpress"
+--set manifest:simple-armada:release="wordpress"
 
 Or to override several values in a Manifest, reference a values.yaml-formatted
 file:

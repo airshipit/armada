@@ -13,11 +13,11 @@
 # limitations under the License.
 
 
-def release_prefix(prefix, chart):
+def release_prefixer(prefix, release):
     '''
-    how to attach prefix to chart
+    attach prefix to release name
     '''
-    return "{}-{}".format(prefix, chart)
+    return "{}-{}".format(prefix, release)
 
 
 def label_selectors(labels):

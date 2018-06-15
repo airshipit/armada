@@ -18,7 +18,7 @@ import yaml
 from armada import const
 from armada.handlers import armada
 from armada.tests.unit import base
-from armada.utils.release import release_prefix
+from armada.utils.release import release_prefixer
 
 
 TEST_YAML = """
@@ -270,14 +270,14 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
             for c in charts:
                 chart = c['chart']
-                chart_name = chart['chart_name']
+                release = chart['release']
                 prefix = armada_obj.manifest['armada']['release_prefix']
-                release = release_prefix(prefix, chart_name)
+                release_name = release_prefixer(prefix, release)
                 # Simplified check because the actual code uses logical-or's
                 # multiple conditions, so this is enough.
                 this_chart_should_wait = chart['wait']['timeout'] > 0
 
-                if release not in [x[0] for x in known_releases]:
+                if release_name not in [x[0] for x in known_releases]:
                     expected_install_release_calls.append(
                         mock.call(
                             mock_chartbuilder().get_helm_chart(),

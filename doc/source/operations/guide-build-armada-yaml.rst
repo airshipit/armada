@@ -89,7 +89,7 @@ Chart
 +=================+==========+=======================================================================================+
 | chart\_name     | string   | name for the chart                                                                    |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| release\_name   | string   | name of the release                                                                   |
+| release         | string   | name of the release (Armada will prepend with ``release-prefix`` during processing)   |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | namespace       | string   | namespace of your chart                                                               |
 +-----------------+----------+---------------------------------------------------------------------------------------+
@@ -172,7 +172,7 @@ Chart Example
       name: blog-1
     data:
       chart_name: blog-1
-      release_name: blog-1
+      release: blog-1
       namespace: default
       wait:
         timeout: 100
@@ -232,7 +232,7 @@ Source Example
       name: blog-1
     data:
       chart_name: blog-1
-      release_name: blog-1
+      release: blog-1
       namespace: default
       wait:
         timeout: 100
@@ -258,7 +258,7 @@ Source Example
       name: blog-1
     data:
       chart_name: blog-1
-      release_name: blog-1
+      release: blog-1
       namespace: default
       wait:
         timeout: 100
@@ -282,7 +282,7 @@ Source Example
       name: blog-1
     data:
       chart_name: blog-1
-      release_name: blog-1
+      release: blog-1
       namespace: default
       wait:
         timeout: 100
