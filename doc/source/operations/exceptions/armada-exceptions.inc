@@ -25,3 +25,8 @@
          :members:
          :show-inheritance:
          :undoc-members:
+  * - ProtectedReleaseException
+    - .. autoexception:: armada.exceptions.armada_exceptions.ProtectedReleaseException
+         :members:
+         :show-inheritance:
+         :undoc-members:

@@ -95,6 +95,9 @@ Chart
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | wait            | object   | contains wait information such as (timeout, labels)                                   |
 +-----------------+----------+---------------------------------------------------------------------------------------+
+| protected       | object   | do not delete FAILED releases when encountered from previous run (provide the         |
+|                 |          | 'continue_processing' bool to continue or halt execution (default: halt))             |
++-----------------+----------+---------------------------------------------------------------------------------------+
 | test            | bool     | run pre-defined helm tests helm in a chart                                            |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | install         | object   | install the chart into your Kubernetes cluster                                        |
@@ -176,6 +179,8 @@ Chart Example
       namespace: default
       wait:
         timeout: 100
+      protected:
+        continue_processing: false
       install:
         no_hooks: false
       upgrade:
@@ -237,7 +242,7 @@ Source Example
       wait:
         timeout: 100
         labels:
-         component: blog
+          component: blog
       install:
         no_hooks: false
       upgrade:

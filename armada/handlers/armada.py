@@ -20,7 +20,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from armada import const
-from armada.exceptions.armada_exceptions import ArmadaTimeoutException
+from armada.exceptions import armada_exceptions
 from armada.exceptions import source_exceptions
 from armada.exceptions import tiller_exceptions
 from armada.exceptions import validate_exceptions
@@ -99,13 +99,11 @@ class Armada(object):
             tiller_host=tiller_host, tiller_port=tiller_port,
             tiller_namespace=tiller_namespace, dry_run=dry_run)
         self.documents = Override(
-            documents, overrides=set_ovr,
-            values=values).update_manifests()
+            documents, overrides=set_ovr, values=values).update_manifests()
         self.k8s_wait_attempts = k8s_wait_attempts
         self.k8s_wait_attempt_sleep = k8s_wait_attempt_sleep
         self.manifest = Manifest(
-            self.documents,
-            target_manifest=target_manifest).get_manifest()
+            self.documents, target_manifest=target_manifest).get_manifest()
 
     def find_release_chart(self, known_releases, release_name):
         '''
@@ -137,31 +135,16 @@ class Armada(object):
                 raise validate_exceptions.InvalidManifestException(
                     error_messages=details)
 
+        # TODO(MarshM): this is duplicated inside validate_armada_documents()
+        #               L126, and should be unreachable code if it has errors
         result, msg_list = validate.validate_armada_manifests(self.documents)
         if not result:
             raise validate_exceptions.InvalidArmadaObjectException(
                 details=','.join([m.get('message') for m in msg_list]))
 
-        # Purge known releases that have failed and are in the current yaml
-        manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
-        prefix = manifest_data.get(const.KEYWORD_PREFIX, '')
-        failed_releases = self.get_releases_by_status(const.STATUS_FAILED)
-
-        for release in failed_releases:
-            for group in manifest_data.get(const.KEYWORD_GROUPS, []):
-                for ch in group.get(const.KEYWORD_CHARTS, []):
-                    ch_release_name = release_prefixer(
-                        prefix, ch.get('chart', {}).get('release'))
-                    if release[0] == ch_release_name:
-                        LOG.info('Purging failed release %s '
-                                 'before deployment.', release[0])
-                        self.tiller.uninstall_release(release[0])
-
         # Clone the chart sources
-        #
-        # We only support a git source type right now, which can also
-        # handle git:// local paths as well
         repos = {}
+        manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
         for group in manifest_data.get(const.KEYWORD_GROUPS, []):
             for ch in group.get(const.KEYWORD_CHARTS, []):
                 self.tag_cloned_repo(ch, repos)
@@ -217,19 +200,25 @@ class Armada(object):
             chart_name = chart.get('chart_name')
             raise source_exceptions.ChartSourceException(ct_type, chart_name)
 
-    def get_releases_by_status(self, status):
+    def _get_releases_by_status(self):
         '''
-        :params status - status string to filter releases on
-
-        Return a list of current releases with a specified status
+        Return a list of current releases with DEPLOYED or FAILED status
         '''
-        filtered_releases = []
+        deployed_releases = []
+        failed_releases = []
         known_releases = self.tiller.list_charts()
         for release in known_releases:
-            if release[4] == status:
-                filtered_releases.append(release)
+            if release[4] == const.STATUS_DEPLOYED:
+                deployed_releases.append(release)
+            elif release[4] == const.STATUS_FAILED:
+                failed_releases.append(release)
+            else:
+                # tiller.list_charts() only looks at DEPLOYED/FAILED so
+                # this should be unreachable
+                LOG.debug('Ignoring release %s in status %s.',
+                          release[0], release[4])
 
-        return filtered_releases
+        return deployed_releases, failed_releases
 
     def sync(self):
         '''
@@ -238,16 +227,23 @@ class Armada(object):
         if self.dry_run:
             LOG.info('Armada is in DRY RUN mode, no changes being made.')
 
-        msg = {'install': [], 'upgrade': [], 'diff': []}
+        msg = {
+            'install': [],
+            'upgrade': [],
+            'diff': [],
+            'purge': [],
+            'protected': []
+        }
 
         # TODO: (gardlt) we need to break up this func into
         # a more cleaner format
         self.pre_flight_ops()
 
         # extract known charts on tiller right now
-        known_releases = self.tiller.list_charts()
+        deployed_releases, failed_releases = self._get_releases_by_status()
+
         manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
-        prefix = manifest_data.get(const.KEYWORD_PREFIX, '')
+        prefix = manifest_data.get(const.KEYWORD_PREFIX)
 
         for chartgroup in manifest_data.get(const.KEYWORD_GROUPS, []):
             cg_name = chartgroup.get('name', '<missing name>')
@@ -270,15 +266,39 @@ class Armada(object):
                 chart = chart_entry.get('chart', {})
                 namespace = chart.get('namespace')
                 release = chart.get('release')
+                release_name = release_prefixer(prefix, release)
                 values = chart.get('values', {})
                 pre_actions = {}
                 post_actions = {}
 
+                protected = chart.get('protected', {})
+                p_continue = protected.get('continue_processing', False)
+
+                # Check for existing FAILED release, and purge
+                if release_name in [rel[0] for rel in failed_releases]:
+                    LOG.info('Purging FAILED release %s before deployment.',
+                             release_name)
+                    if protected:
+                        if p_continue:
+                            LOG.warn('Release %s is `protected`, '
+                                     'continue_processing=True. Operator must '
+                                     'handle FAILED release manually.',
+                                     release_name)
+                            msg['protected'].append(release_name)
+                            continue
+                        else:
+                            LOG.error('Release %s is `protected`, '
+                                      'continue_processing=False.',
+                                      release_name)
+                            raise armada_exceptions.ProtectedReleaseException(
+                                release_name)
+                    else:
+                        # Purge the release
+                        self.tiller.uninstall_release(release_name)
+                        msg['purge'].append(release_name)
+
                 wait_timeout = self.timeout
                 wait_labels = {}
-
-                release_name = release_prefixer(prefix, release)
-
                 # Retrieve appropriate timeout value
                 if wait_timeout <= 0:
                     # TODO(MarshM): chart's `data.timeout` should be deprecated
@@ -308,15 +328,13 @@ class Armada(object):
                 chartbuilder = ChartBuilder(chart)
                 protoc_chart = chartbuilder.get_helm_chart()
 
-                deployed_releases = [x[0] for x in known_releases]
-
                 # Begin Chart timeout deadline
                 deadline = time.time() + wait_timeout
 
                 # TODO(mark-burnett): It may be more robust to directly call
                 # tiller status to decide whether to install/upgrade rather
                 # than checking for list membership.
-                if release_name in deployed_releases:
+                if release_name in [rel[0] for rel in deployed_releases]:
 
                     # indicate to the end user what path we are taking
                     LOG.info("Upgrading release %s in namespace %s",
@@ -324,7 +342,7 @@ class Armada(object):
                     # extract the installed chart and installed values from the
                     # latest release so we can compare to the intended state
                     apply_chart, apply_values = self.find_release_chart(
-                        known_releases, release_name)
+                        deployed_releases, release_name)
 
                     upgrade = chart.get('upgrade', {})
                     disable_hooks = upgrade.get('no_hooks', False)
@@ -424,7 +442,7 @@ class Armada(object):
                         reason = ('Timeout expired before testing sequenced '
                                   'release %s' % release_name)
                         LOG.error(reason)
-                        raise ArmadaTimeoutException(reason)
+                        raise armada_exceptions.ArmadaTimeoutException(reason)
                     self._test_chart(release_name, timer)
                     # TODO(MarshM): handle test failure or timeout
 
@@ -453,7 +471,7 @@ class Armada(object):
                     reason = ('Timeout expired waiting on namespace: %s, '
                               'labels: (%s)' % (ns, labels_dict))
                     LOG.error(reason)
-                    raise ArmadaTimeoutException(reason)
+                    raise armada_exceptions.ArmadaTimeoutException(reason)
 
                 self._wait_until_ready(
                     release_name=None, wait_labels=labels_dict,
@@ -470,7 +488,8 @@ class Armada(object):
         if self.enable_chart_cleanup:
             self._chart_cleanup(
                 prefix,
-                self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS])
+                self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS],
+                msg)
 
         LOG.info('Done applying manifest.')
         return msg
@@ -568,7 +587,7 @@ class Armada(object):
 
         return result
 
-    def _chart_cleanup(self, prefix, charts):
+    def _chart_cleanup(self, prefix, charts, msg):
         LOG.info('Processing chart cleanup to remove unspecified releases.')
 
         valid_releases = []
@@ -585,3 +604,4 @@ class Armada(object):
                 LOG.info('Purging release %s as part of chart cleanup.',
                          release)
                 self.tiller.uninstall_release(release)
+                msg['purge'].append(release)

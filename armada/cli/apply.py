@@ -190,6 +190,10 @@ class ApplyManifest(CliAction):
             for ch in resp[result]:
                 if not result == 'diff':
                     msg = 'Chart {} took action: {}'.format(ch, result)
+                    if result == 'protected':
+                        msg += ' and requires operator attention.'
+                    elif result == 'purge':
+                        msg += ' before install/upgrade.'
                     self.logger.info(msg)
                 else:
                     self.logger.info('Chart/values diff: %s', ch)

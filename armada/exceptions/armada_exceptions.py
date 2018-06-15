@@ -27,3 +27,16 @@ class ArmadaTimeoutException(ArmadaException):
     def __init__(self, reason):
         self._message = 'Armada timed out waiting on: %s' % (reason)
         super(ArmadaTimeoutException, self).__init__(self._message)
+
+
+class ProtectedReleaseException(ArmadaException):
+    '''
+    Exception that occurs when Armada encounters a FAILED release that is
+    designated `protected` in the Chart and `continue_processing` is False.
+    '''
+
+    def __init__(self, reason):
+        self._message = (
+            'Armada encountered protected release %s in FAILED status' % reason
+        )
+        super(ProtectedReleaseException, self).__init__(self._message)

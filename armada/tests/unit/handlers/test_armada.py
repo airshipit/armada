@@ -19,7 +19,7 @@ from armada import const
 from armada.handlers import armada
 from armada.tests.unit import base
 from armada.utils.release import release_prefixer
-
+from armada.exceptions.armada_exceptions import ProtectedReleaseException
 
 TEST_YAML = """
 ---
@@ -42,6 +42,31 @@ data:
   chart_group:
     - example-chart-1
     - example-chart-2
+    - example-chart-3
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: example-chart-3
+data:
+    chart_name: test_chart_3
+    release: test_chart_3
+    namespace: test
+    values: {}
+    source:
+      type: local
+      location: /tmp/dummy/armada
+      subpath: chart_3
+    dependencies: []
+    protected:
+      continue_processing: false
+    wait:
+      timeout: 10
+    upgrade:
+      no_hooks: false
+      options:
+        force: true
+        recreate_pods: true
 ---
 schema: armada/Chart/v1
 metadata:
@@ -57,6 +82,8 @@ data:
       location: /tmp/dummy/armada
       subpath: chart_2
     dependencies: []
+    protected:
+      continue_processing: true
     wait:
       timeout: 10
     upgrade:
@@ -85,7 +112,8 @@ data:
 """
 
 CHART_SOURCES = [('git://github.com/dummy/armada', 'chart_1'),
-                 ('/tmp/dummy/armada', 'chart_2')]
+                 ('/tmp/dummy/armada', 'chart_2'),
+                 ('/tmp/dummy/armada', 'chart_3')]
 
 
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
@@ -124,6 +152,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     'dependencies': [],
                                     'chart_name': 'test_chart_2',
                                     'namespace': 'test',
+                                    'protected': {
+                                        'continue_processing': True
+                                    },
                                     'release': 'test_chart_2',
                                     'source': {
                                         'location': '/tmp/dummy/armada',
@@ -131,6 +162,34 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         'type': 'local'
                                     },
                                     'source_dir': CHART_SOURCES[1],
+                                    'values': {},
+                                    'wait': {
+                                        'timeout': 10
+                                    },
+                                    'upgrade': {
+                                        'no_hooks': False,
+                                        'options': {
+                                            'force': True,
+                                            'recreate_pods': True
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                'chart': {
+                                    'dependencies': [],
+                                    'chart_name': 'test_chart_3',
+                                    'namespace': 'test',
+                                    'protected': {
+                                        'continue_processing': False
+                                    },
+                                    'release': 'test_chart_3',
+                                    'source': {
+                                        'location': '/tmp/dummy/armada',
+                                        'subpath': 'chart_3',
+                                        'type': 'local'
+                                    },
+                                    'source_dir': CHART_SOURCES[2],
                                     'values': {},
                                     'wait': {
                                         'timeout': 10
@@ -171,43 +230,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         mock_source.git_clone.return_value = CHART_SOURCES[0][0]
 
         self._test_pre_flight_ops(armada_obj)
-
-        mock_tiller.assert_called_once_with(tiller_host=None,
-                                            tiller_namespace='kube-system',
-                                            tiller_port=44134,
-                                            dry_run=False)
-        mock_source.git_clone.assert_called_once_with(
-            'git://github.com/dummy/armada', 'master', auth_method=None,
-            proxy_server=None)
-
-    @mock.patch.object(armada, 'source')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_pre_flight_ops_with_failed_releases(self, mock_tiller,
-                                                 mock_source):
-        """Test pre-flight functions uninstalls failed Tiller releases."""
-        yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        armada_obj = armada.Armada(yaml_documents)
-
-        # Mock methods called by `pre_flight_ops()`.
-        m_tiller = mock_tiller.return_value
-        m_tiller.tiller_status.return_value = True
-        mock_source.git_clone.return_value = CHART_SOURCES[0][0]
-
-        # Only the first two releases failed and should be uninstalled. Armada
-        # looks at index [4] for each release to determine the status.
-        m_tiller.list_charts.return_value = [
-            ['armada-test_chart_1', None, None, None, const.STATUS_FAILED],
-            ['armada-test_chart_2', None, None, None, const.STATUS_FAILED],
-            [None, None, None, None, const.STATUS_DEPLOYED]
-        ]
-
-        self._test_pre_flight_ops(armada_obj)
-
-        # Assert both failed releases were uninstalled.
-        m_tiller.uninstall_release.assert_has_calls([
-            mock.call('armada-test_chart_1'),
-            mock.call('armada-test_chart_2')
-        ])
 
         mock_tiller.assert_called_once_with(tiller_host=None,
                                             tiller_namespace='kube-system',
@@ -267,6 +289,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
             expected_install_release_calls = []
             expected_update_release_calls = []
+            expected_uninstall_release_calls = []
 
             for c in charts:
                 chart = c['chart']
@@ -291,28 +314,63 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                         )
                     )
                 else:
-                    upgrade = chart.get('upgrade', {})
-                    disable_hooks = upgrade.get('no_hooks', False)
-                    force = upgrade.get('force', False)
-                    recreate_pods = upgrade.get('recreate_pods', False)
+                    target_release = None
+                    for known_release in known_releases:
+                        if known_release[0] == release_name:
+                            target_release = known_release
+                            break
+                    if target_release:
+                        status = target_release[4]
+                        if status == const.STATUS_FAILED:
+                            protected = chart.get('protected', {})
+                            if not protected:
+                                expected_uninstall_release_calls.append(
+                                    mock.call(release_name))
+                                expected_install_release_calls.append(
+                                    mock.call(
+                                        mock_chartbuilder().get_helm_chart(),
+                                        "{}-{}".format(
+                                            armada_obj.manifest['armada'][
+                                                'release_prefix'],
+                                            chart['release']),
+                                        chart['namespace'],
+                                        values=yaml.safe_dump(chart['values']),
+                                        wait=this_chart_should_wait,
+                                        timeout=chart['wait']['timeout']
+                                    )
+                                )
+                            else:
+                                p_continue = protected.get(
+                                    'continue_processing', False)
+                                if p_continue:
+                                    continue
+                                else:
+                                    break
 
-                    expected_update_release_calls.append(
-                        mock.call(
-                            mock_chartbuilder().get_helm_chart(),
-                            "{}-{}".format(armada_obj.manifest['armada'][
-                                           'release_prefix'],
-                                           chart['release']),
-                            chart['namespace'],
-                            pre_actions={},
-                            post_actions={},
-                            disable_hooks=disable_hooks,
-                            force=force,
-                            recreate_pods=recreate_pods,
-                            values=yaml.safe_dump(chart['values']),
-                            wait=this_chart_should_wait,
-                            timeout=chart['wait']['timeout']
-                        )
-                    )
+                        if status == const.STATUS_DEPLOYED:
+                            upgrade = chart.get('upgrade', {})
+                            disable_hooks = upgrade.get('no_hooks', False)
+                            force = upgrade.get('force', False)
+                            recreate_pods = upgrade.get('recreate_pods', False)
+
+                            expected_update_release_calls.append(
+                                mock.call(
+                                    mock_chartbuilder().get_helm_chart(),
+                                    "{}-{}".format(
+                                        armada_obj.manifest['armada'][
+                                            'release_prefix'],
+                                        chart['release']),
+                                    chart['namespace'],
+                                    pre_actions={},
+                                    post_actions={},
+                                    disable_hooks=disable_hooks,
+                                    force=force,
+                                    recreate_pods=recreate_pods,
+                                    values=yaml.safe_dump(chart['values']),
+                                    wait=this_chart_should_wait,
+                                    timeout=chart['wait']['timeout']
+                                )
+                            )
 
             # Verify that at least 1 release is either installed or updated.
             self.assertTrue(
@@ -363,6 +421,42 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
              const.STATUS_DEPLOYED]
         ]
         self._test_sync(known_releases)
+
+    def test_armada_sync_with_unprotected_releases(self):
+        c1 = 'armada-test_chart_1'
+
+        known_releases = [
+            [c1, None, self._get_chart_by_name(c1), None,
+             const.STATUS_FAILED]
+        ]
+        self._test_sync(known_releases)
+
+    def test_armada_sync_with_protected_releases_continue(self):
+        c1 = 'armada-test_chart_1'
+        c2 = 'armada-test_chart_2'
+
+        known_releases = [
+            [c2, None, self._get_chart_by_name(c2), None,
+             const.STATUS_FAILED],
+            [c1, None, self._get_chart_by_name(c1), None,
+             const.STATUS_FAILED]
+        ]
+        self._test_sync(known_releases)
+
+    def test_armada_sync_with_protected_releases_halt(self):
+        c3 = 'armada-test_chart_3'
+
+        known_releases = [
+            [c3, None, self._get_chart_by_name(c3), None,
+             const.STATUS_FAILED]
+        ]
+
+        def _test_method():
+            self._test_sync(known_releases)
+
+        self.assertRaises(
+            ProtectedReleaseException,
+            _test_method)
 
     @mock.patch.object(armada.Armada, 'post_flight_ops')
     @mock.patch.object(armada.Armada, 'pre_flight_ops')

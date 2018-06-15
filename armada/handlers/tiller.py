@@ -594,6 +594,13 @@ class Tiller(object):
             get_jobs = self.k8s.get_namespace_job(namespace, label_selector)
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
+
+                if self.dry_run:
+                    LOG.info('Skipping delete job during `dry-run`, would '
+                             'have deleted job %s in namespace=%s.',
+                             jb_name, namespace)
+                    continue
+
                 LOG.info("Deleting job %s in namespace: %s",
                          jb_name, namespace)
                 self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
@@ -604,22 +611,36 @@ class Tiller(object):
                 namespace, label_selector)
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
-                LOG.info("Deleting cron job %s in namespace: %s",
-                         jb_name, namespace)
+
                 if resource_type == 'job':
                     # TODO: Eventually disallow this, allowing initially since
                     #       some existing clients were expecting this behavior.
-                    LOG.warning("Deleting cron jobs via `type: job` is "
-                                "deprecated, use `type: cronjob` instead")
+                    LOG.warn("Deleting cronjobs via `type: job` is "
+                             "deprecated, use `type: cronjob` instead")
+
+                if self.dry_run:
+                    LOG.info('Skipping delete cronjob during `dry-run`, would '
+                             'have deleted cronjob %s in namespace=%s.',
+                             jb_name, namespace)
+                    continue
+
+                LOG.info("Deleting cronjob %s in namespace: %s",
+                         jb_name, namespace)
                 self.k8s.delete_cron_job_action(jb_name, namespace)
             handled = True
 
         if resource_type == 'pod':
             release_pods = self.k8s.get_namespace_pod(
                 namespace, label_selector)
-
             for pod in release_pods.items:
                 pod_name = pod.metadata.name
+
+                if self.dry_run:
+                    LOG.info('Skipping delete pod during `dry-run`, would '
+                             'have deleted pod %s in namespace=%s.',
+                             pod_name, namespace)
+                    continue
+
                 LOG.info("Deleting pod %s in namespace: %s",
                          pod_name, namespace)
                 self.k8s.delete_namespace_pod(pod_name, namespace)

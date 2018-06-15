@@ -52,6 +52,12 @@ data:
       type: array
       items:
         type: string
+    protected:
+      type: object
+      properties:
+        continue_processing:
+          type: boolean
+      additionalProperties: false
     test:
       type: boolean
     timeout:
