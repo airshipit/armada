@@ -18,7 +18,9 @@ import yaml
 from armada import const
 from armada.handlers import armada
 from armada.tests.unit import base
+from armada.tests.test_utils import AttrDict
 from armada.utils.release import release_prefixer
+from armada.exceptions import tiller_exceptions
 from armada.exceptions.armada_exceptions import ProtectedReleaseException
 
 TEST_YAML = """
@@ -43,6 +45,27 @@ data:
     - example-chart-1
     - example-chart-2
     - example-chart-3
+    - example-chart-4
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: example-chart-4
+data:
+    chart_name: test_chart_4
+    release: test_chart_4
+    namespace: test
+    values: {}
+    source:
+      type: local
+      location: /tmp/dummy/armada
+      subpath: chart_4
+    dependencies: []
+    test: true
+    wait:
+      timeout: 10
+    upgrade:
+      no_hooks: false
 ---
 schema: armada/Chart/v1
 metadata:
@@ -64,9 +87,6 @@ data:
       timeout: 10
     upgrade:
       no_hooks: false
-      options:
-        force: true
-        recreate_pods: true
 ---
 schema: armada/Chart/v1
 metadata:
@@ -113,7 +133,8 @@ data:
 
 CHART_SOURCES = [('git://github.com/dummy/armada', 'chart_1'),
                  ('/tmp/dummy/armada', 'chart_2'),
-                 ('/tmp/dummy/armada', 'chart_3')]
+                 ('/tmp/dummy/armada', 'chart_3'),
+                 ('/tmp/dummy/armada', 'chart_4')]
 
 
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
@@ -195,12 +216,30 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         'timeout': 10
                                     },
                                     'upgrade': {
-                                        'no_hooks': False,
-                                        'options': {
-                                            'force': True,
-                                            'recreate_pods': True
-                                        }
+                                        'no_hooks': False
                                     }
+                                }
+                            },
+                            {
+                                'chart': {
+                                    'dependencies': [],
+                                    'chart_name': 'test_chart_4',
+                                    'namespace': 'test',
+                                    'release': 'test_chart_4',
+                                    'source': {
+                                        'location': '/tmp/dummy/armada',
+                                        'subpath': 'chart_4',
+                                        'type': 'local'
+                                    },
+                                    'source_dir': CHART_SOURCES[3],
+                                    'values': {},
+                                    'wait': {
+                                        'timeout': 10
+                                    },
+                                    'upgrade': {
+                                        'no_hooks': False
+                                    },
+                                    'test': True
                                 }
                             }
                         ],
@@ -261,25 +300,40 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     mock_source.source_cleanup.assert_called_with(
                         CHART_SOURCES[counter][0])
 
-    def _test_sync(self, known_releases):
+    def _test_sync(self, known_releases, test_success=True,
+                   test_failure_to_run=False):
         """Test install functionality from the sync() method."""
 
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada.Armada, 'pre_flight_ops')
         @mock.patch('armada.handlers.armada.ChartBuilder')
         @mock.patch('armada.handlers.armada.Tiller')
-        def _do_test(mock_tiller, mock_chartbuilder, mock_pre_flight,
-                     mock_post_flight):
+        @mock.patch.object(armada, 'test_release_for_success')
+        def _do_test(mock_test_release_for_success, mock_tiller,
+                     mock_chartbuilder, mock_pre_flight, mock_post_flight):
             # Instantiate Armada object.
             yaml_documents = list(yaml.safe_load_all(TEST_YAML))
             armada_obj = armada.Armada(yaml_documents)
             armada_obj.show_diff = mock.Mock()
 
-            charts = armada_obj.manifest['armada']['chart_groups'][0][
-                'chart_group']
+            chart_group = armada_obj.manifest['armada']['chart_groups'][0]
+            charts = chart_group['chart_group']
 
             m_tiller = mock_tiller.return_value
             m_tiller.list_charts.return_value = known_releases
+
+            if test_failure_to_run:
+                def fail(tiller, release, timeout=None):
+                    status = AttrDict(**{
+                        'info': AttrDict(**{
+                            'Description': 'Failed'
+                        })
+                    })
+                    raise tiller_exceptions.ReleaseException(
+                        release, status, 'Test')
+                mock_test_release_for_success.side_effect = fail
+            else:
+                mock_test_release_for_success.return_value = test_success
 
             # Stub out irrelevant methods called by `armada.sync()`.
             mock_chartbuilder.get_source_path.return_value = None
@@ -290,6 +344,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             expected_install_release_calls = []
             expected_update_release_calls = []
             expected_uninstall_release_calls = []
+            expected_test_release_for_success_calls = []
 
             for c in charts:
                 chart = c['chart']
@@ -371,6 +426,18 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     timeout=chart['wait']['timeout']
                                 )
                             )
+                test_this_chart = chart.get(
+                    'test',
+                    chart_group.get('test_charts', False))
+
+                if test_this_chart:
+                    expected_test_release_for_success_calls.append(
+                        mock.call(
+                            m_tiller,
+                            release_name,
+                            timeout=mock.ANY
+                        )
+                    )
 
             # Verify that at least 1 release is either installed or updated.
             self.assertTrue(
@@ -388,6 +455,18 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                              m_tiller.update_release.call_count)
             m_tiller.update_release.assert_has_calls(
                 expected_update_release_calls)
+            # Verify that the expected number of deployed releases are
+            # uninstalled with expected arguments.
+            self.assertEqual(len(expected_uninstall_release_calls),
+                             m_tiller.uninstall_release.call_count)
+            m_tiller.uninstall_release.assert_has_calls(
+                expected_uninstall_release_calls)
+            # Verify that the expected number of deployed releases are
+            # tested with expected arguments.
+            self.assertEqual(len(expected_test_release_for_success_calls),
+                             mock_test_release_for_success.call_count)
+            mock_test_release_for_success.assert_has_calls(
+                expected_test_release_for_success_calls)
 
         _do_test()
 
@@ -456,6 +535,22 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         self.assertRaises(
             ProtectedReleaseException,
+            _test_method)
+
+    def test_armada_sync_test_failure(self):
+        def _test_method():
+            self._test_sync([], test_success=False)
+
+        self.assertRaises(
+            tiller_exceptions.TestFailedException,
+            _test_method)
+
+    def test_armada_sync_test_failure_to_run(self):
+        def _test_method():
+            self._test_sync([], test_failure_to_run=True)
+
+        self.assertRaises(
+            tiller_exceptions.ReleaseException,
             _test_method)
 
     @mock.patch.object(armada.Armada, 'post_flight_ops')

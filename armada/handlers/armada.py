@@ -27,6 +27,7 @@ from armada.exceptions import validate_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
+from armada.handlers.test import test_release_for_success
 from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
 from armada.utils import source
@@ -435,21 +436,22 @@ class Armada(object):
 
                 # Sequenced ChartGroup should run tests after each Chart
                 timer = int(round(deadline - time.time()))
-                if test_this_chart and cg_sequenced:
-                    LOG.info('Running sequenced test, timeout remaining: %ss.',
-                             timer)
-                    if timer <= 0:
-                        reason = ('Timeout expired before testing sequenced '
-                                  'release %s' % release_name)
-                        LOG.error(reason)
-                        raise armada_exceptions.ArmadaTimeoutException(reason)
-                    self._test_chart(release_name, timer)
-                    # TODO(MarshM): handle test failure or timeout
+                if test_this_chart:
+                    if cg_sequenced:
+                        LOG.info('Running sequenced test, timeout remaining: '
+                                 '%ss.', timer)
+                        if timer <= 0:
+                            reason = ('Timeout expired before testing '
+                                      'sequenced release %s' % release_name)
+                            LOG.error(reason)
+                            raise armada_exceptions.ArmadaTimeoutException(
+                                reason)
+                        self._test_chart(release_name, timer)
 
-                # Un-sequenced ChartGroup should run tests at the end
-                elif test_this_chart:
-                    # Keeping track of time remaining
-                    tests_to_run.append((release_name, timer))
+                    # Un-sequenced ChartGroup should run tests at the end
+                    else:
+                        # Keeping track of time remaining
+                        tests_to_run.append((release_name, timer))
 
             # End of Charts in ChartGroup
             LOG.info('All Charts applied in ChartGroup %s.', cg_name)
@@ -481,7 +483,6 @@ class Armada(object):
             # After entire ChartGroup is healthy, run any pending tests
             for (test, test_timer) in tests_to_run:
                 self._test_chart(test, test_timer)
-                # TODO(MarshM): handle test failure or timeout
 
         self.post_flight_ops()
 
@@ -532,16 +533,13 @@ class Armada(object):
                      'release=%s with timeout %ss.', release_name, timeout)
             return True
 
-        # TODO(MarshM): Fix testing, it's broken, and track timeout
-        resp = self.tiller.testing_release(release_name, timeout=timeout)
-        status = getattr(resp.info.status, 'last_test_suite_run', 'FAILED')
-        LOG.info("Test info.status: %s", status)
-        if resp:
+        success = test_release_for_success(
+            self.tiller, release_name, timeout=timeout)
+        if success:
             LOG.info("Test passed for release: %s", release_name)
-            return True
         else:
             LOG.info("Test failed for release: %s", release_name)
-            return False
+            raise tiller_exceptions.TestFailedException(release_name)
 
     def show_diff(self, chart, installed_chart, installed_values, target_chart,
                   target_values, msg):

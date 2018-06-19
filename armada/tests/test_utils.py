@@ -107,3 +107,12 @@ def attr(**kwargs):
         return f
 
     return decorator
+
+
+class AttrDict(dict):
+    """Allows defining objects with attributes without defining a class
+
+    """
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self

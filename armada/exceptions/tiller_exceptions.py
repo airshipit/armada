@@ -118,6 +118,20 @@ class ReleaseException(TillerException):
         super(ReleaseException, self).__init__(message)
 
 
+class TestFailedException(TillerException):
+    '''
+    Exception that occurs when a release test fails.
+
+    **Troubleshoot:**
+    *Coming Soon*
+    '''
+
+    def __init__(self, release):
+        message = 'Test failed for release: {}'.format(release)
+
+        super(TestFailedException, self).__init__(message)
+
+
 class ChannelException(TillerException):
     '''
     Exception that occurs during a failed gRPC channel creation
