@@ -17,15 +17,14 @@
         - airship-armada-lint-pep8
         - airship-armada-ubuntu
         - airship-armada-docker-build-gate
-
     gate:
       jobs:
         - airship-armada-linter
         - airship-armada-lint-pep8
         - airship-armada-docker-build-gate
-
     post:
       jobs:
+        - airship-armada-doc-publish
         - airship-armada-docker-publish
 
 - job:
@@ -78,6 +77,7 @@
     nodeset: airship-armada-single-node
     files:
         - ^.*\.py$
+
 - job:
     name: airship-armada-docker-build-gate
     timeout: 1800
@@ -104,6 +104,39 @@
           commit: true
         static:
           - latest
+
+- job:
+    name: airship-armada-doc-publish
+    timeout: 60
+    run: tools/gate/playbooks/rtd-build-trigger.yaml
+    secrets:
+      - rtd_credential
+
+- secret:
+    name: rtd_credential
+    data:
+      id: !encrypted/pkcs1-oaep
+        - CUGL2+J0WfXsx2xyJRWs9QJHkEMlJkILygoYwJNlhotRm67UDhD1XZINU99BUkdwhow8F
+          uaFj14frfwH/lUDmXZWr5bZoAC5tDaaePABbdsSFrvCFXqdj+h0kw+0RVuIB1f2SQWCDH
+          J1geOd7kzqCGsrbUqGO1hBkkAVUItNN2GGZ/AdxUl/J4aFVbfHTdtXMiZ+WDw3dUhvF+m
+          xDHeSoHrbeLZCFrJIa+SJWgYIyA3uKSkRGMRZGrowkvo+rJXU0dZdWTXf12Vfzl4XLcit
+          EmAPm5g2bLT/IiOfqME+pTI2uTBSbPDkLiPI2foj+FU1Cpnzwc0aZyEzThm99z7InRJAM
+          aODu1yBEoyufa9FxE7X92pzi9L0fj0ehjLUPlurd04w/41pWj8kvv+joREXxq4b8UXWCk
+          0XFgnhNqYEnodSTzxTG7iL1n7KHrulI1SHOeyaWZCyFFHvkIV2a5x9it09uR7Mvs3X9ZE
+          Zf1nkvY4qttQXYmgrQm4IoJ3P0Z5pKwF6rma+bUUYuBJ/PdESJ1CUX8WnjvSLUVmxvlW/
+          dUz+x9eTOGIkvdr/l2kyYFGV3jrRJnNvWN170InbyujB0Oj5do5HyqPqyZ2RcQs+Tlk8n
+          1bIsPVdS0d6dvfJjVqbb06W57ar173jJ1BIW6D1p+YyRPyg1D6FTVRCcReFHu0=
+      token: !encrypted/pkcs1-oaep
+        - pR4aUNome/tdBk+HM8uNZOAOqiuMn6dWoeOTqehrtC1pf2WwQU/Cx0lqochjDfdIBSjI0
+          25zEdrr8/Jl2HhMx7jX/Swm6xySQ0LEkiZ8DR+I1C//qTrazwKgUR1s52h1W/HCN1a7nD
+          zwlboH46XPrD04JCl266XmtYL7gQb+9h9jPzpXaatQUplqRpDDOg7jhc8FuSVYiRFaVc1
+          GxKDvcnMEZT5H9pPGHzn4uJHyv8p/3pKNLROSWY/W7TP6V6ydXXG30jsPSPFUT45Z7PZ5
+          SE6+9WFqkxD6/GKj0YH4t9cu7oHmltX2TMbkdZHlDa2mtq7R31c9gPiianP3bTu3RRSdT
+          B2KdMrDaJD08+Lz4DnuX0NAl5LKTxyybHN21zHLhEiAsP/ZX46xhLNpvYTkCjGGKKA7JT
+          2K6YLrzLoTUuQV0C0/0xX49l6aRHG4mOtlHC1OUXecQPHh7mzDX9Ro/mzKynknsXsFiaD
+          uT1PKnoN8Lj0rWk50/7uB6ycw2LJVCt3RtFimBVvkJtI2RJ7FjePnNZF9tVZ0FFyiGpwO
+          0pKkh4jV/8VuS+vpY5ehigvzGR1nC3ymF+10kNLiOutzRXFssbR0eDeW8T816is81azea
+          FU8taphOcrrw4rB6g5qdEO6wierpuO6uOFfOMeSrSxx2hhMvROTJA2OuwxpB/8=
 
 - secret:
     name: airship_armada_quay_creds
