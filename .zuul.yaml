@@ -107,14 +107,15 @@
 
 - job:
     name: airship-armada-doc-publish
-    timeout: 1800
-    run: tools/gate/playbooks/rtd-build-trigger.yaml
+    description: |
+      Publish documentation on airship-armada.readthedocs.io
+    run: tools/gate/playbooks/readthedocs.yaml
     nodeset: airship-armada-single-node
     secrets:
-      - rtd_credential
+      - airship_armada_rtd_credential
 
 - secret:
-    name: rtd_credential
+    name: airship_armada_rtd_credential
     data:
       id: !encrypted/pkcs1-oaep
         - CUGL2+J0WfXsx2xyJRWs9QJHkEMlJkILygoYwJNlhotRm67UDhD1XZINU99BUkdwhow8F

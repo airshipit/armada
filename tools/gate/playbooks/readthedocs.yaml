@@ -17,6 +17,6 @@
     - name: Trigger RTD job
       uri:
         method: POST
-        body: 'token={{ rtd_credential.token }}'
-        url: 'https://readthedocs.org/api/v2/webhook/{{ zuul.project.short_name }}/{{ rtd_credential.id }}/'
+        body: 'token={{ airship_armada_rtd_credential.token }}'
+        url: 'https://readthedocs.org/api/v2/webhook/{{ zuul.project.short_name }}/{{ airship_armada_rtd_credential.id }}/'
         follow_redirects: all
