@@ -107,8 +107,9 @@
 
 - job:
     name: airship-armada-doc-publish
-    timeout: 60
+    timeout: 1800
     run: tools/gate/playbooks/rtd-build-trigger.yaml
+    nodeset: airship-armada-single-node
     secrets:
       - rtd_credential
 
