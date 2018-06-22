@@ -55,46 +55,32 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
 
 class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
 
+    @mock.patch.object(test, 'test_release_for_success')
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_test_pass(self, mock_tiller):
+    def test_test_controller_test_pass(
+            self, mock_tiller, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
-        testing_release = mock_tiller.return_value.testing_release
-        testing_release.return_value = mock.Mock(
-            **{'info.status.last_test_suite_run.result': [
-                mock.Mock(status='PASSED')]})
+        mock_test_release_for_success.return_value = True
 
         resp = self.app.simulate_get('/api/v1.0/test/fake-release')
         self.assertEqual(200, resp.status_code)
         self.assertEqual('MESSAGE: Test Pass',
                          json.loads(resp.text)['message'])
 
+    @mock.patch.object(test, 'test_release_for_success')
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_test_fail(self, mock_tiller):
+    def test_test_controller_test_fail(
+            self, mock_tiller, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
-        testing_release = mock_tiller.return_value.testing_release
-        testing_release.return_value = mock.Mock(
-            **{'info.status.last_test_suite_run.result': [
-                mock.Mock(status='FAILED')]})
+        mock_test_release_for_success.return_value = False
 
         resp = self.app.simulate_get('/api/v1.0/test/fake-release')
         self.assertEqual(200, resp.status_code)
         self.assertEqual('MESSAGE: Test Fail',
-                         json.loads(resp.text)['message'])
-
-    @mock.patch.object(test, 'Tiller')
-    def test_test_controller_no_test_found(self, mock_tiller):
-        rules = {'armada:test_release': '@'}
-        self.policy.set_rules(rules)
-
-        mock_tiller.return_value.testing_release.return_value = None
-
-        resp = self.app.simulate_get('/api/v1.0/test/fake-release')
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual('MESSAGE: No test found',
                          json.loads(resp.text)['message'])
 
 
@@ -103,11 +89,14 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'Manifest')
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_tiller_exc_returns_500(self, mock_tiller, _):
+    @mock.patch.object(test, 'test_release_for_success')
+    def test_test_controller_tiller_exc_returns_500(
+            self, mock_test_release_for_success, mock_tiller, _):
         rules = {'armada:tests_manifest': '@'}
         self.policy.set_rules(rules)
 
         mock_tiller.side_effect = Exception
+        mock_test_release_for_success.side_effect = Exception
 
         resp = self.app.simulate_post('/api/v1.0/tests')
         self.assertEqual(500, resp.status_code)
@@ -187,11 +176,14 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
 class TestReleasesReleaseNameControllerNegativeTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_tiller_exc_returns_500(self, mock_tiller):
+    @mock.patch.object(test, 'test_release_for_success')
+    def test_test_controller_tiller_exc_returns_500(
+            self, mock_test_release_for_success, mock_tiller):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
         mock_tiller.side_effect = Exception
+        mock_test_release_for_success.side_effect = Exception
 
         resp = self.app.simulate_get('/api/v1.0/test/fake-release')
         self.assertEqual(500, resp.status_code)

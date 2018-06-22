@@ -32,12 +32,12 @@ from oslo_log import log as logging
 from armada import const
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
+from armada.handlers import test
 from armada.utils.release import label_selectors
 
 TILLER_VERSION = b'2.7.2'
 GRPC_EPSILON = 60
 RELEASE_LIMIT = 128  # TODO(mark-burnett): There may be a better page size.
-RELEASE_RUNTEST_SUCCESS = 9
 
 # the standard gRPC max message size is 4MB
 # this expansion comes at a performance penalty
@@ -434,41 +434,43 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Install')
 
-    def testing_release(self, release, timeout=const.DEFAULT_TILLER_TIMEOUT,
-                        cleanup=True):
+    def test_release(self, release, timeout=const.DEFAULT_TILLER_TIMEOUT,
+                     cleanup=True):
         '''
         :param release - name of release to test
         :param timeout - runtime before exiting
         :param cleanup - removes testing pod created
 
-        :returns - results of test pod
+        :returns - test suite run object
         '''
 
         LOG.info("Running Helm test: release=%s, timeout=%s", release, timeout)
 
         try:
-
             stub = ReleaseServiceStub(self.channel)
 
+            # TODO: This timeout is redundant since we already have the grpc
+            # timeout below, and it's actually used by tiller for individual
+            # k8s operations not the overall request, should we:
+            #     1. Remove this timeout
+            #     2. Add `k8s_timeout=const.DEFAULT_K8S_TIMEOUT` arg and use
             release_request = TestReleaseRequest(
-                name=release, timeout=timeout, cleanup=cleanup)
+                name=release, timeout=timeout,
+                cleanup=cleanup)
 
-            content = self.get_release_content(release)
+            test_message_stream = stub.RunReleaseTest(
+                release_request, timeout, metadata=self.metadata)
 
-            if not len(content.release.hooks):
-                LOG.info('No test found')
-                return False
+            failed = 0
+            for test_message in test_message_stream:
+                if test_message.status == test.TESTRUN_STATUS_FAILURE:
+                    failed += 1
+                LOG.info(test_message.msg)
+            if failed:
+                LOG.info('{} test(s) failed'.format(failed))
 
-            if content.release.hooks[0].events[0] == RELEASE_RUNTEST_SUCCESS:
-                test = stub.RunReleaseTest(
-                    release_request, timeout, metadata=self.metadata)
-
-                if test.running():
-                    self.k8s.wait_get_completed_podphase(release, timeout)
-
-                test.cancel()
-
-                return self.get_release_status(release)
+            status = self.get_release_status(release)
+            return status.info.status.last_test_suite_run
 
         except Exception:
             LOG.exception('Error while testing release %s', release)

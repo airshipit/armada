@@ -19,6 +19,7 @@ from oslo_config import cfg
 
 from armada.cli import CliAction
 from armada import const
+from armada.handlers.test import test_release_for_success
 from armada.handlers.manifest import Manifest
 from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
@@ -112,15 +113,8 @@ class TestChartManifest(CliAction):
         if self.release:
             if not self.ctx.obj.get('api', False):
                 self.logger.info("RUNNING: %s tests", self.release)
-                resp = tiller.testing_release(self.release)
-
-                if not resp:
-                    self.logger.info("FAILED: %s", self.release)
-                    return
-
-                test_status = getattr(resp.info.status, 'last_test_suite_run',
-                                      'FAILED')
-                if test_status.results[0].status:
+                success = test_release_for_success(tiller, self.release)
+                if success:
                     self.logger.info("PASSED: %s", self.release)
                 else:
                     self.logger.info("FAILED: %s", self.release)
@@ -154,15 +148,9 @@ class TestChartManifest(CliAction):
 
                         if release_name in known_release_names:
                             self.logger.info('RUNNING: %s tests', release_name)
-                            resp = tiller.testing_release(release_name)
-
-                            if not resp:
-                                continue
-
-                            test_status = getattr(
-                                resp.info.status, 'last_test_suite_run',
-                                'FAILED')
-                            if test_status.results[0].status:
+                            success = test_release_for_success(
+                                tiller, release_name)
+                            if success:
                                 self.logger.info("PASSED: %s", release_name)
                             else:
                                 self.logger.info("FAILED: %s", release_name)

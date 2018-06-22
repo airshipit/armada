@@ -21,6 +21,7 @@ from oslo_config import cfg
 from armada import api
 from armada.common import policy
 from armada import const
+from armada.handlers.test import test_release_for_success
 from armada.handlers.tiller import Tiller
 from armada.handlers.manifest import Manifest
 from armada.utils.release import release_prefixer
@@ -44,7 +45,7 @@ class TestReleasesReleaseNameController(api.BaseResource):
                     'tiller_port') or CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace))
-            tiller_resp = tiller.testing_release(release)
+            success = test_release_for_success(tiller, release)
         # TODO(fmontei): Provide more sensible exception(s) here.
         except Exception as e:
             err_message = 'Failed to test {}: {}'.format(release, e)
@@ -52,26 +53,18 @@ class TestReleasesReleaseNameController(api.BaseResource):
             return self.return_error(
                 resp, falcon.HTTP_500, message=err_message)
 
-        msg = {
-            'result': '',
-            'message': ''
-        }
-
-        if tiller_resp:
-            test_status = getattr(
-                tiller_resp.info.status, 'last_test_suite_run', 'FAILED')
-
-            if test_status.result[0].status == 'PASSED':
-                msg['result'] = 'PASSED: {}'.format(release)
-                msg['message'] = 'MESSAGE: Test Pass'
-                self.logger.info(msg)
-            else:
-                msg['result'] = 'FAILED: {}'.format(release)
-                msg['message'] = 'MESSAGE: Test Fail'
-                self.logger.info(msg)
+        if success:
+            msg = {
+                'result': 'PASSED: {}'.format(release),
+                'message': 'MESSAGE: Test Pass'
+            }
         else:
-            msg['result'] = 'FAILED: {}'.format(release)
-            msg['message'] = 'MESSAGE: No test found'
+            msg = {
+                'result': 'FAILED: {}'.format(release),
+                'message': 'MESSAGE: Test Fail'
+            }
+
+        self.logger.info(msg)
 
         resp.body = json.dumps(msg)
         resp.status = falcon.HTTP_200
@@ -174,15 +167,8 @@ class TestReleasesManifestController(api.BaseResource):
 
                 if release_name in known_releases:
                     self.logger.info('RUNNING: %s tests', release_name)
-                    resp = tiller.testing_release(release_name)
-
-                    if not resp:
-                        continue
-
-                    test_status = getattr(
-                        resp.info.status, 'last_test_suite_run',
-                        'FAILED')
-                    if test_status.results[0].status:
+                    success = test_release_for_success(tiller, release_name)
+                    if success:
                         self.logger.info("PASSED: %s", release_name)
                         message['test']['passed'].append(release_name)
                     else:

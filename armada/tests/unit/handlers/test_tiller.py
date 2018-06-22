@@ -17,7 +17,9 @@ from mock import MagicMock
 
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers import tiller
+from armada.handlers import test
 from armada.tests.unit import base
+from armada.tests.test_utils import AttrDict
 
 
 class TillerTestCase(base.ArmadaTestCase):
@@ -421,8 +423,80 @@ class TillerTestCase(base.ArmadaTestCase):
 
         self.assertEqual(expected_result, result)
 
+    def _test_test_release(self, grpc_response_mock):
 
-class AttrDict(dict):
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
+        @mock.patch('armada.handlers.tiller.K8s')
+        @mock.patch('armada.handlers.tiller.grpc')
+        @mock.patch('armada.handlers.tiller.Config')
+        @mock.patch.object(tiller, 'TestReleaseRequest')
+        @mock.patch.object(tiller, 'ReleaseServiceStub')
+        def do_test(self, mock_release_service_stub,
+                    mock_test_release_request, mock_config,
+                    _, __):
+            tiller_obj = tiller.Tiller('host', '8080', None)
+            release = 'release'
+            test_suite_run = {}
+
+            mock_release_service_stub.return_value.RunReleaseTest\
+                .return_value = grpc_response_mock
+
+            tiller_obj.get_release_status = mock.Mock()
+            tiller_obj.get_release_status.return_value = AttrDict(**{
+                'info': AttrDict(**{
+                    'status': AttrDict(**{
+                        'last_test_suite_run': test_suite_run
+                    }),
+                    'Description': 'Failed'
+                })
+            })
+
+            result = tiller_obj.test_release(release)
+
+            self.assertEqual(test_suite_run, result)
+
+        do_test(self)
+
+    def test_test_release_no_tests(self):
+        self._test_test_release([
+            AttrDict(**{
+                'msg': 'No Tests Found',
+                'status': test.TESTRUN_STATUS_UNKNOWN
+            })
+        ])
+
+    def test_test_release_success(self):
+        self._test_test_release([
+            AttrDict(**{
+                'msg': 'RUNNING: ...',
+                'status': test.TESTRUN_STATUS_RUNNING
+            }),
+            AttrDict(**{
+                'msg': 'SUCCESS: ...',
+                'status': test.TESTRUN_STATUS_SUCCESS
+            })
+        ])
+
+    def test_test_release_failure(self):
+        self._test_test_release([
+            AttrDict(**{
+                'msg': 'RUNNING: ...',
+                'status': test.TESTRUN_STATUS_RUNNING
+            }),
+            AttrDict(**{
+                'msg': 'FAILURE: ...',
+                'status': test.TESTRUN_STATUS_FAILURE
+            })
+        ])
+
+    def test_test_release_failure_to_run(self):
+        class Iterator:
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                raise Exception
+
+        def test():
+            self._test_test_release(Iterator())
+
+        self.assertRaises(ex.ReleaseException, test)
