@@ -33,6 +33,8 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
         rules = {'armada:tests_manifest': '@'}
         self.policy.set_rules(rules)
 
+        # TODO: Don't use example charts in tests.
+        # TODO: Test cleanup arg is taken from url, then manifest.
         manifest_path = os.path.join(os.getcwd(), 'examples',
                                      'keystone-manifest.yaml')
         with open(manifest_path, 'r') as f:
@@ -61,7 +63,10 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
 
         mock_test_release_for_success.return_value = True
 
-        resp = self.app.simulate_get('/api/v1.0/test/fake-release')
+        release = 'fake-release'
+        resp = self.app.simulate_get('/api/v1.0/test/{}'.format(release))
+        mock_test_release_for_success.assert_has_calls(
+            [mock.call(mock_tiller.return_value, release, cleanup=False)])
         self.assertEqual(200, resp.status_code)
         self.assertEqual('MESSAGE: Test Pass',
                          json.loads(resp.text)['message'])
@@ -74,10 +79,27 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
         self.policy.set_rules(rules)
 
         mock_test_release_for_success.return_value = False
-
-        resp = self.app.simulate_get('/api/v1.0/test/fake-release')
+        release = 'fake-release'
+        resp = self.app.simulate_get('/api/v1.0/test/{}'.format(release))
         self.assertEqual(200, resp.status_code)
         self.assertEqual('MESSAGE: Test Fail',
+                         json.loads(resp.text)['message'])
+
+    @mock.patch.object(test, 'test_release_for_success')
+    @mock.patch.object(test, 'Tiller')
+    def test_test_controller_cleanup(self, mock_tiller,
+                                     mock_test_release_for_success):
+        rules = {'armada:test_release': '@'}
+        self.policy.set_rules(rules)
+
+        mock_test_release_for_success.return_value = True
+        release = 'fake-release'
+        resp = self.app.simulate_get(
+            '/api/v1.0/test/{}'.format(release), query_string='cleanup=true')
+        mock_test_release_for_success.assert_has_calls(
+            [mock.call(mock_tiller.return_value, release, cleanup=True)])
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual('MESSAGE: Test Pass',
                          json.loads(resp.text)['message'])
 
 

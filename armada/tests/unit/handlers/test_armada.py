@@ -111,6 +111,10 @@ data:
       options:
         force: true
         recreate_pods: true
+    test:
+      enabled: true
+      options:
+        cleanup: true
 ---
 schema: armada/Chart/v1
 metadata:
@@ -129,6 +133,8 @@ data:
     dependencies: []
     wait:
       timeout: 10
+    test:
+      enabled: true
 """
 
 CHART_SOURCES = [('git://github.com/dummy/armada',
@@ -163,6 +169,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                             'values': {},
                             'wait': {
                                 'timeout': 10
+                            },
+                            'test': {
+                                'enabled': True
                             }
                         }
                     }, {
@@ -189,6 +198,12 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                 'options': {
                                     'force': True,
                                     'recreate_pods': True
+                                }
+                            },
+                            'test': {
+                                'enabled': True,
+                                'options': {
+                                    'cleanup': True
                                 }
                             }
                         }
@@ -319,13 +334,14 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
             chart_group = armada_obj.manifest['armada']['chart_groups'][0]
             charts = chart_group['chart_group']
+            cg_test_all_charts = chart_group.get('test_charts', False)
 
             m_tiller = mock_tiller.return_value
             m_tiller.list_charts.return_value = known_releases
 
             if test_failure_to_run:
 
-                def fail(tiller, release, timeout=None):
+                def fail(tiller, release, timeout=None, cleanup=False):
                     status = AttrDict(
                         **{'info': AttrDict(**{'Description': 'Failed'})})
                     raise tiller_exceptions.ReleaseException(
@@ -419,12 +435,26 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     values=yaml.safe_dump(chart['values']),
                                     wait=this_chart_should_wait,
                                     timeout=chart['wait']['timeout']))
-                test_this_chart = chart.get(
-                    'test', chart_group.get('test_charts', False))
+
+                test_chart_override = chart.get('test')
+                # Use old default value when not using newer `test` key
+                test_cleanup = True
+                if test_chart_override is None:
+                    test_this_chart = cg_test_all_charts
+                elif isinstance(test_chart_override, bool):
+                    test_this_chart = test_chart_override
+                else:
+                    test_this_chart = test_chart_override.get('enabled', True)
+                    test_cleanup = test_chart_override.get('options', {}).get(
+                        'cleanup', False)
 
                 if test_this_chart:
                     expected_test_release_for_success_calls.append(
-                        mock.call(m_tiller, release_name, timeout=mock.ANY))
+                        mock.call(
+                            m_tiller,
+                            release_name,
+                            timeout=mock.ANY,
+                            cleanup=test_cleanup))
 
             # Verify that at least 1 release is either installed or updated.
             self.assertTrue(

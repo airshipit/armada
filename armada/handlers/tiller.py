@@ -440,7 +440,7 @@ class Tiller(object):
     def test_release(self,
                      release,
                      timeout=const.DEFAULT_TILLER_TIMEOUT,
-                     cleanup=True):
+                     cleanup=False):
         '''
         :param release - name of release to test
         :param timeout - runtime before exiting

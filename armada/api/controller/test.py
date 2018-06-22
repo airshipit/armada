@@ -45,7 +45,11 @@ class TestReleasesReleaseNameController(api.BaseResource):
                 CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace))
-            success = test_release_for_success(tiller, release)
+            cleanup = req.get_param_as_bool('cleanup')
+            if cleanup is None:
+                cleanup = False
+            success = test_release_for_success(
+                tiller, release, cleanup=cleanup)
         # TODO(fmontei): Provide more sensible exception(s) here.
         except Exception as e:
             err_message = 'Failed to test {}: {}'.format(release, e)
@@ -154,12 +158,24 @@ class TestReleasesManifestController(api.BaseResource):
         for group in armada_obj.get(const.KEYWORD_ARMADA).get(
                 const.KEYWORD_GROUPS):
             for ch in group.get(const.KEYWORD_CHARTS):
-                release_name = release_prefixer(prefix,
-                                                ch.get('chart').get('release'))
-
+                chart = ch['chart']
+                release_name = release_prefixer(prefix, chart.get('release'))
+                cleanup = req.get_param_as_bool('cleanup')
+                if cleanup is None:
+                    test_chart_override = chart.get('test', {})
+                    if isinstance(test_chart_override, bool):
+                        self.logger.warn(
+                            'Boolean value for chart `test` key is deprecated '
+                            'and will be removed. Use `test.enabled` instead.')
+                        # Use old default value.
+                        cleanup = True
+                    else:
+                        cleanup = test_chart_override.get('options', {}).get(
+                            'cleanup', False)
                 if release_name in known_releases:
                     self.logger.info('RUNNING: %s tests', release_name)
-                    success = test_release_for_success(tiller, release_name)
+                    success = test_release_for_success(
+                        tiller, release_name, cleanup=cleanup)
                     if success:
                         self.logger.info("PASSED: %s", release_name)
                         message['test']['passed'].append(release_name)
