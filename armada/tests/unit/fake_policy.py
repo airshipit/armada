@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 policy_data = """
 "admin_required": "role:admin"
 "armada:create_endpoints": "rule:admin_required"

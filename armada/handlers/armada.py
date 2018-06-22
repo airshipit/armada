@@ -33,7 +33,6 @@ from armada.utils.release import release_prefixer
 from armada.utils import source
 from armada.utils import validate
 
-
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
@@ -97,8 +96,10 @@ class Armada(object):
         # TODO: Use dependency injection i.e. pass in a Tiller instead of
         #       creating it here.
         self.tiller = Tiller(
-            tiller_host=tiller_host, tiller_port=tiller_port,
-            tiller_namespace=tiller_namespace, dry_run=dry_run)
+            tiller_host=tiller_host,
+            tiller_port=tiller_port,
+            tiller_namespace=tiller_namespace,
+            dry_run=dry_run)
         self.documents = Override(
             documents, overrides=set_ovr, values=values).update_manifests()
         self.k8s_wait_attempts = k8s_wait_attempts
@@ -166,8 +167,7 @@ class Armada(object):
             LOG.info('Downloading tarball from: %s', location)
 
             if not CONF.certs:
-                LOG.warn(
-                    'Disabling server validation certs to extract charts')
+                LOG.warn('Disabling server validation certs to extract charts')
                 tarball_dir = source.get_tarball(location, verify=False)
             else:
                 tarball_dir = source.get_tarball(location, verify=CONF.cert)
@@ -189,9 +189,10 @@ class Armada(object):
                     logstr += ' auth method: {}'.format(auth_method)
                 LOG.info(logstr)
 
-                repo_dir = source.git_clone(*repo_branch,
-                                            proxy_server=proxy_server,
-                                            auth_method=auth_method)
+                repo_dir = source.git_clone(
+                    *repo_branch,
+                    proxy_server=proxy_server,
+                    auth_method=auth_method)
                 repos[repo_branch] = repo_dir
 
                 chart['source_dir'] = (repo_dir, subpath)
@@ -216,8 +217,8 @@ class Armada(object):
             else:
                 # tiller.list_charts() only looks at DEPLOYED/FAILED so
                 # this should be unreachable
-                LOG.debug('Ignoring release %s in status %s.',
-                          release[0], release[4])
+                LOG.debug('Ignoring release %s in status %s.', release[0],
+                          release[4])
 
         return deployed_releases, failed_releases
 
@@ -251,9 +252,10 @@ class Armada(object):
             cg_desc = chartgroup.get('description', '<missing description>')
             cg_sequenced = chartgroup.get('sequenced', False)
             cg_test_all_charts = chartgroup.get('test_charts', False)
-            LOG.info('Processing ChartGroup: %s (%s), sequenced=%s, '
-                     'test_charts=%s', cg_name, cg_desc, cg_sequenced,
-                     cg_test_all_charts)
+            LOG.info(
+                'Processing ChartGroup: %s (%s), sequenced=%s, '
+                'test_charts=%s', cg_name, cg_desc, cg_sequenced,
+                cg_test_all_charts)
 
             ns_label_set = set()
             tests_to_run = []
@@ -281,16 +283,17 @@ class Armada(object):
                              release_name)
                     if protected:
                         if p_continue:
-                            LOG.warn('Release %s is `protected`, '
-                                     'continue_processing=True. Operator must '
-                                     'handle FAILED release manually.',
-                                     release_name)
+                            LOG.warn(
+                                'Release %s is `protected`, '
+                                'continue_processing=True. Operator must '
+                                'handle FAILED release manually.',
+                                release_name)
                             msg['protected'].append(release_name)
                             continue
                         else:
-                            LOG.error('Release %s is `protected`, '
-                                      'continue_processing=False.',
-                                      release_name)
+                            LOG.error(
+                                'Release %s is `protected`, '
+                                'continue_processing=False.', release_name)
                             raise armada_exceptions.ProtectedReleaseException(
                                 release_name)
                     else:
@@ -310,9 +313,9 @@ class Armada(object):
                     wait_labels = wait_values.get('labels', {})
 
                 # Determine wait logic
-                this_chart_should_wait = (
-                    cg_sequenced or self.force_wait or
-                    wait_timeout > 0 or len(wait_labels) > 0)
+                this_chart_should_wait = (cg_sequenced or self.force_wait or
+                                          wait_timeout > 0 or
+                                          len(wait_labels) > 0)
 
                 if this_chart_should_wait and wait_timeout <= 0:
                     LOG.warn('No Chart timeout specified, using default: %ss',
@@ -366,9 +369,10 @@ class Armada(object):
                     # TODO(alanmeadows) account for .files differences
                     # once we support those
                     LOG.info('Checking upgrade chart diffs.')
-                    upgrade_diff = self.show_diff(
-                        chart, apply_chart, apply_values,
-                        chartbuilder.dump(), values, msg)
+                    upgrade_diff = self.show_diff(chart, apply_chart,
+                                                  apply_values,
+                                                  chartbuilder.dump(), values,
+                                                  msg)
 
                     if not upgrade_diff:
                         LOG.info("There are no updates found in this chart")
@@ -395,9 +399,8 @@ class Armada(object):
                         recreate_pods=recreate_pods)
 
                     if this_chart_should_wait:
-                        self._wait_until_ready(
-                            release_name, wait_labels, namespace, timer
-                        )
+                        self._wait_until_ready(release_name, wait_labels,
+                                               namespace, timer)
 
                     # Track namespace+labels touched by upgrade
                     ns_label_set.add((namespace, tuple(wait_labels.items())))
@@ -423,9 +426,8 @@ class Armada(object):
                         timeout=timer)
 
                     if this_chart_should_wait:
-                        self._wait_until_ready(
-                            release_name, wait_labels, namespace, timer
-                        )
+                        self._wait_until_ready(release_name, wait_labels,
+                                               namespace, timer)
 
                     # Track namespace+labels touched by install
                     ns_label_set.add((namespace, tuple(wait_labels.items())))
@@ -438,8 +440,9 @@ class Armada(object):
                 timer = int(round(deadline - time.time()))
                 if test_this_chart:
                     if cg_sequenced:
-                        LOG.info('Running sequenced test, timeout remaining: '
-                                 '%ss.', timer)
+                        LOG.info(
+                            'Running sequenced test, timeout remaining: '
+                            '%ss.', timer)
                         if timer <= 0:
                             reason = ('Timeout expired before testing '
                                       'sequenced release %s' % release_name)
@@ -466,9 +469,10 @@ class Armada(object):
             for (ns, labels) in ns_label_set:
                 labels_dict = dict(labels)
                 timer = int(round(deadline - time.time()))
-                LOG.info('Final ChartGroup wait for healthy namespace (%s), '
-                         'labels=(%s), timeout remaining: %ss.',
-                         ns, labels_dict, timer)
+                LOG.info(
+                    'Final ChartGroup wait for healthy namespace (%s), '
+                    'labels=(%s), timeout remaining: %ss.', ns, labels_dict,
+                    timer)
                 if timer <= 0:
                     reason = ('Timeout expired waiting on namespace: %s, '
                               'labels: (%s)' % (ns, labels_dict))
@@ -476,9 +480,10 @@ class Armada(object):
                     raise armada_exceptions.ArmadaTimeoutException(reason)
 
                 self._wait_until_ready(
-                    release_name=None, wait_labels=labels_dict,
-                    namespace=ns, timeout=timer
-                )
+                    release_name=None,
+                    wait_labels=labels_dict,
+                    namespace=ns,
+                    timeout=timer)
 
             # After entire ChartGroup is healthy, run any pending tests
             for (test, test_timer) in tests_to_run:
@@ -489,8 +494,7 @@ class Armada(object):
         if self.enable_chart_cleanup:
             self._chart_cleanup(
                 prefix,
-                self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS],
-                msg)
+                self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS], msg)
 
         LOG.info('Done applying manifest.')
         return msg
@@ -513,9 +517,10 @@ class Armada(object):
 
     def _wait_until_ready(self, release_name, wait_labels, namespace, timeout):
         if self.dry_run:
-            LOG.info('Skipping wait during `dry-run`, would have waited on '
-                     'namespace=%s, labels=(%s) for %ss.',
-                     namespace, wait_labels, timeout)
+            LOG.info(
+                'Skipping wait during `dry-run`, would have waited on '
+                'namespace=%s, labels=(%s) for %ss.', namespace, wait_labels,
+                timeout)
             return
 
         self.tiller.k8s.wait_until_ready(
@@ -524,13 +529,13 @@ class Armada(object):
             namespace=namespace,
             k8s_wait_attempts=self.k8s_wait_attempts,
             k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
-            timeout=timeout
-        )
+            timeout=timeout)
 
     def _test_chart(self, release_name, timeout):
         if self.dry_run:
-            LOG.info('Skipping test during `dry-run`, would have tested '
-                     'release=%s with timeout %ss.', release_name, timeout)
+            LOG.info(
+                'Skipping test during `dry-run`, would have tested '
+                'release=%s with timeout %ss.', release_name, timeout)
             return True
 
         success = test_release_for_success(
@@ -591,8 +596,9 @@ class Armada(object):
         valid_releases = []
         for gchart in charts:
             for chart in gchart.get(const.KEYWORD_CHARTS, []):
-                valid_releases.append(release_prefixer(
-                    prefix, chart.get('chart', {}).get('release')))
+                valid_releases.append(
+                    release_prefixer(prefix,
+                                     chart.get('chart', {}).get('release')))
 
         actual_releases = [x.name for x in self.tiller.list_releases()]
         release_diff = list(set(actual_releases) - set(valid_releases))

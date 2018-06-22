@@ -30,9 +30,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
             release = 'release'
 
             tiller_obj.test_release = mock.Mock()
-            tiller_obj.test_release.return_value = AttrDict(**{
-                'results': results
-            })
+            tiller_obj.test_release.return_value = AttrDict(
+                **{'results': results})
             success = test.test_release_for_success(tiller_obj, release)
 
             self.assertEqual(expected_success, success)
@@ -44,37 +43,22 @@ class TestHandlerTestCase(base.ArmadaTestCase):
 
     def test_unknown(self):
         self._test_test_release_for_success(False, [
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_SUCCESS
-            }),
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_UNKNOWN
-            })
+            AttrDict(**{'status': test.TESTRUN_STATUS_SUCCESS}),
+            AttrDict(**{'status': test.TESTRUN_STATUS_UNKNOWN})
         ])
 
     def test_success(self):
-        self._test_test_release_for_success(True, [
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_SUCCESS
-            })
-        ])
+        self._test_test_release_for_success(
+            True, [AttrDict(**{'status': test.TESTRUN_STATUS_SUCCESS})])
 
     def test_failure(self):
         self._test_test_release_for_success(False, [
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_SUCCESS
-            }),
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_FAILURE
-            })
+            AttrDict(**{'status': test.TESTRUN_STATUS_SUCCESS}),
+            AttrDict(**{'status': test.TESTRUN_STATUS_FAILURE})
         ])
 
     def test_running(self):
         self._test_test_release_for_success(False, [
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_SUCCESS
-            }),
-            AttrDict(**{
-                'status': test.TESTRUN_STATUS_RUNNING
-            })
+            AttrDict(**{'status': test.TESTRUN_STATUS_SUCCESS}),
+            AttrDict(**{'status': test.TESTRUN_STATUS_RUNNING})
         ])

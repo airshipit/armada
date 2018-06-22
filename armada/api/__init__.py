@@ -72,11 +72,8 @@ class BaseResource(object):
         try:
             return json.loads(raw_body.decode())
         except json.JSONDecodeError as jex:
-            self.error(
-                req.context,
-                "Invalid JSON in request: %s" % str(jex))
-            raise Exception(
-                "%s: Invalid JSON in body: %s" % (req.path, jex))
+            self.error(req.context, "Invalid JSON in request: %s" % str(jex))
+            raise Exception("%s: Invalid JSON in body: %s" % (req.path, jex))
 
     def return_error(self, resp, status_code, message="", retry=False):
         resp.body = json.dumps({
@@ -112,6 +109,7 @@ class BaseResource(object):
 
 
 class ArmadaRequestContext(object):
+
     def __init__(self):
         self.log_level = 'ERROR'
         self.user = None  # Username

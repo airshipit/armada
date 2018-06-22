@@ -14,5 +14,4 @@
 
 from armada.exceptions.manifest_exceptions import ManifestException
 
-
 __all__ = ['ManifestException']

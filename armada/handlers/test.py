@@ -20,10 +20,10 @@ TESTRUN_STATUS_FAILURE = 2
 TESTRUN_STATUS_RUNNING = 3
 
 
-def test_release_for_success(tiller, release,
+def test_release_for_success(tiller,
+                             release,
                              timeout=const.DEFAULT_TILLER_TIMEOUT):
     test_suite_run = tiller.test_release(release, timeout)
     results = getattr(test_suite_run, 'results', [])
-    failed_results = [r for r in results if
-                      r.status != TESTRUN_STATUS_SUCCESS]
+    failed_results = [r for r in results if r.status != TESTRUN_STATUS_SUCCESS]
     return len(failed_results) == 0

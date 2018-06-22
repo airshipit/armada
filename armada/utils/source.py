@@ -61,28 +61,31 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
     ssh_cmd = None
 
     if auth_method and auth_method.lower() == 'ssh':
-        LOG.debug('Attempting to clone the repo at %s using reference %s '
-                  'with SSH authentication.', repo_url, ref)
+        LOG.debug(
+            'Attempting to clone the repo at %s using reference %s '
+            'with SSH authentication.', repo_url, ref)
 
         if not os.path.exists(CONF.ssh_key_path):
             LOG.error('SSH auth method was specified for cloning repo but '
                       'the SSH key under CONF.ssh_key_path was not found.')
             raise source_exceptions.GitSSHException(CONF.ssh_key_path)
 
-        ssh_cmd = (
-            'ssh -i {} -o ConnectionAttempts=20 -o ConnectTimeout=10'
-            .format(os.path.expanduser(CONF.ssh_key_path))
-        )
+        ssh_cmd = ('ssh -i {} -o ConnectionAttempts=20 -o ConnectTimeout=10'
+                   .format(os.path.expanduser(CONF.ssh_key_path)))
         env_vars.update({'GIT_SSH_COMMAND': ssh_cmd})
     else:
-        LOG.debug('Attempting to clone the repo at %s using reference %s '
-                  'with no authentication.', repo_url, ref)
+        LOG.debug(
+            'Attempting to clone the repo at %s using reference %s '
+            'with no authentication.', repo_url, ref)
 
     try:
         if proxy_server:
             LOG.debug('Cloning [%s] with proxy [%s]', repo_url, proxy_server)
-            repo = Repo.clone_from(repo_url, temp_dir, env=env_vars,
-                                   config='http.proxy=%s' % proxy_server)
+            repo = Repo.clone_from(
+                repo_url,
+                temp_dir,
+                env=env_vars,
+                config='http.proxy=%s' % proxy_server)
         else:
             LOG.debug('Cloning [%s]', repo_url)
             repo = Repo.clone_from(repo_url, temp_dir, env=env_vars)

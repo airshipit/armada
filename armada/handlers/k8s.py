@@ -49,7 +49,9 @@ class K8s(object):
         self.batch_v1beta1_api = client.BatchV1beta1Api()
         self.extension_api = client.ExtensionsV1beta1Api()
 
-    def delete_job_action(self, name, namespace="default",
+    def delete_job_action(self,
+                          name,
+                          namespace="default",
                           propagation_policy='Foreground',
                           timeout=DEFAULT_K8S_TIMEOUT):
         '''
@@ -59,16 +61,13 @@ class K8s(object):
             to the delete. Default 'Foreground' means that child pods to the
             job will be deleted before the job is marked as deleted.
         '''
-        self._delete_job_action(
-            self.batch_api.list_namespaced_job,
-            self.batch_api.delete_namespaced_job,
-            "job",
-            name,
-            namespace,
-            propagation_policy,
-            timeout)
+        self._delete_job_action(self.batch_api.list_namespaced_job,
+                                self.batch_api.delete_namespaced_job, "job",
+                                name, namespace, propagation_policy, timeout)
 
-    def delete_cron_job_action(self, name, namespace="default",
+    def delete_cron_job_action(self,
+                               name,
+                               namespace="default",
                                propagation_policy='Foreground',
                                timeout=DEFAULT_K8S_TIMEOUT):
         '''
@@ -80,15 +79,15 @@ class K8s(object):
         '''
         self._delete_job_action(
             self.batch_v1beta1_api.list_namespaced_cron_job,
-            self.batch_v1beta1_api.delete_namespaced_cron_job,
-            "cron job",
-            name,
-            namespace,
-            propagation_policy,
-            timeout)
+            self.batch_v1beta1_api.delete_namespaced_cron_job, "cron job",
+            name, namespace, propagation_policy, timeout)
 
-    def _delete_job_action(self, list_func, delete_func, job_type_description,
-                           name, namespace="default",
+    def _delete_job_action(self,
+                           list_func,
+                           delete_func,
+                           job_type_description,
+                           name,
+                           namespace="default",
                            propagation_policy='Foreground',
                            timeout=DEFAULT_K8S_TIMEOUT):
         try:
@@ -100,12 +99,13 @@ class K8s(object):
             w = watch.Watch()
             issue_delete = True
             found_events = False
-            for event in w.stream(list_func,
-                                  namespace=namespace,
-                                  timeout_seconds=timeout):
+            for event in w.stream(
+                    list_func, namespace=namespace, timeout_seconds=timeout):
                 if issue_delete:
                     delete_func(
-                        name=name, namespace=namespace, body=body,
+                        name=name,
+                        namespace=namespace,
+                        body=body,
                         propagation_policy=propagation_policy)
                     issue_delete = False
 
@@ -125,15 +125,14 @@ class K8s(object):
                          job_type_description, name, namespace)
 
             err_msg = ('Reached timeout while waiting to delete %s: '
-                       'name=%s, namespace=%s' %
-                       (job_type_description, name, namespace))
+                       'name=%s, namespace=%s' % (job_type_description, name,
+                                                  namespace))
             LOG.error(err_msg)
             raise exceptions.KubernetesWatchTimeoutException(err_msg)
 
         except ApiException as e:
-            LOG.exception(
-                "Exception when deleting %s: name=%s, namespace=%s",
-                job_type_description, name, namespace)
+            LOG.exception("Exception when deleting %s: name=%s, namespace=%s",
+                          job_type_description, name, namespace)
             raise e
 
     def get_namespace_job(self, namespace="default", label_selector=''):
@@ -282,8 +281,9 @@ class K8s(object):
 
         w = watch.Watch()
         found_events = False
-        for event in w.stream(self.client.list_pod_for_all_namespaces,
-                              timeout_seconds=timeout):
+        for event in w.stream(
+                self.client.list_pod_for_all_namespaces,
+                timeout_seconds=timeout):
             pod_name = event['object'].metadata.name
 
             if release in pod_name:
@@ -322,13 +322,13 @@ class K8s(object):
         label_selector = label_selectors(labels) if labels else ''
 
         wait_attempts = (k8s_wait_attempts if k8s_wait_attempts >= 1 else 1)
-        sleep_time = (k8s_wait_attempt_sleep if k8s_wait_attempt_sleep >= 1
-                      else 1)
+        sleep_time = (k8s_wait_attempt_sleep
+                      if k8s_wait_attempt_sleep >= 1 else 1)
 
-        LOG.debug("Wait on namespace=(%s) labels=(%s) for %s sec "
-                  "(k8s wait %s times, sleep %ss)",
-                  namespace, label_selector, timeout,
-                  wait_attempts, sleep_time)
+        LOG.debug(
+            "Wait on namespace=(%s) labels=(%s) for %s sec "
+            "(k8s wait %s times, sleep %ss)", namespace, label_selector,
+            timeout, wait_attempts, sleep_time)
 
         if not namespace:
             # This shouldn't be reachable
@@ -349,14 +349,16 @@ class K8s(object):
             if deadline_remaining <= 0:
                 return False
             timed_out, modified_pods, unready_pods, found_events = (
-                self._wait_one_time(namespace=namespace,
-                                    label_selector=label_selector,
-                                    timeout=deadline_remaining))
+                self._wait_one_time(
+                    namespace=namespace,
+                    label_selector=label_selector,
+                    timeout=deadline_remaining))
 
             if not found_events:
-                LOG.warn('Saw no install/update events for release=%s, '
-                         'namespace=%s, labels=(%s)',
-                         release, namespace, label_selector)
+                LOG.warn(
+                    'Saw no install/update events for release=%s, '
+                    'namespace=%s, labels=(%s)', release, namespace,
+                    label_selector)
 
             if timed_out:
                 LOG.info('Timed out waiting for pods: %s',
@@ -380,8 +382,9 @@ class K8s(object):
         return True
 
     def _wait_one_time(self, namespace, label_selector, timeout=100):
-        LOG.debug('Starting to wait: namespace=%s, label_selector=(%s), '
-                  'timeout=%s', namespace, label_selector, timeout)
+        LOG.debug(
+            'Starting to wait: namespace=%s, label_selector=(%s), '
+            'timeout=%s', namespace, label_selector, timeout)
         ready_pods = {}
         modified_pods = set()
         w = watch.Watch()
@@ -420,15 +423,15 @@ class K8s(object):
 
                 pod_ready = True
                 if (pod_phase == 'Succeeded' or
-                    (pod_phase == 'Running' and
-                        self._get_pod_condition(status.conditions,
-                                                'Ready') == 'True')):
+                    (pod_phase == 'Running' and self._get_pod_condition(
+                        status.conditions, 'Ready') == 'True')):
                     LOG.debug('Pod %s is ready!', pod_name)
                 else:
                     pod_ready = False
-                    LOG.debug('Pod %s not ready: conditions:\n%s\n'
-                              'container_statuses:\n%s', pod_name,
-                              status.conditions, status.container_statuses)
+                    LOG.debug(
+                        'Pod %s not ready: conditions:\n%s\n'
+                        'container_statuses:\n%s', pod_name, status.conditions,
+                        status.container_statuses)
 
                 ready_pods[pod_name] = pod_ready
 
@@ -440,8 +443,8 @@ class K8s(object):
                 ready_pods.pop(pod_name)
 
             elif event_type == 'ERROR':
-                LOG.error('Pod %s: Got error event %s',
-                          pod_name, event['object'].to_dict())
+                LOG.error('Pod %s: Got error event %s', pod_name,
+                          event['object'].to_dict())
                 raise exceptions.KubernetesErrorEventException(
                     'Got error event for pod: %s' % event['object'])
 
@@ -449,8 +452,8 @@ class K8s(object):
                 LOG.error('Unrecognized event type (%s) for pod: %s',
                           event_type, event['object'])
                 raise exceptions.KubernetesUnknownStreamingEventTypeException(
-                    'Got unknown event type (%s) for pod: %s'
-                    % (event_type, event['object']))
+                    'Got unknown event type (%s) for pod: %s' %
+                    (event_type, event['object']))
 
             if all(ready_pods.values()):
                 return (False, modified_pods, [], found_events)
@@ -468,7 +471,8 @@ class K8s(object):
 
     def _check_timeout(self, timeout):
         if timeout <= 0:
-            LOG.warn('Kubernetes timeout is invalid or unspecified, '
-                     'using default %ss.', DEFAULT_K8S_TIMEOUT)
+            LOG.warn(
+                'Kubernetes timeout is invalid or unspecified, '
+                'using default %ss.', DEFAULT_K8S_TIMEOUT)
             timeout = DEFAULT_K8S_TIMEOUT
         return timeout

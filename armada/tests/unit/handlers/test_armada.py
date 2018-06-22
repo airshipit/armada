@@ -131,10 +131,10 @@ data:
       timeout: 10
 """
 
-CHART_SOURCES = [('git://github.com/dummy/armada', 'chart_1'),
-                 ('/tmp/dummy/armada', 'chart_2'),
-                 ('/tmp/dummy/armada', 'chart_3'),
-                 ('/tmp/dummy/armada', 'chart_4')]
+CHART_SOURCES = [('git://github.com/dummy/armada',
+                  'chart_1'), ('/tmp/dummy/armada', 'chart_2'),
+                 ('/tmp/dummy/armada', 'chart_3'), ('/tmp/dummy/armada',
+                                                    'chart_4')]
 
 
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
@@ -144,110 +144,106 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         expected_config = {
             'armada': {
-                'release_prefix': 'armada',
-                'chart_groups': [
-                    {
-                        'chart_group': [
-                            {
-                                'chart': {
-                                    'dependencies': [],
-                                    'chart_name': 'test_chart_1',
-                                    'namespace': 'test',
-                                    'release': 'test_chart_1',
-                                    'source': {
-                                        'location': (
-                                            'git://github.com/dummy/armada'),
-                                        'reference': 'master',
-                                        'subpath': 'chart_1',
-                                        'type': 'git'
-                                    },
-                                    'source_dir': CHART_SOURCES[0],
-                                    'values': {},
-                                    'wait': {
-                                        'timeout': 10
-                                    }
-                                }
+                'release_prefix':
+                'armada',
+                'chart_groups': [{
+                    'chart_group': [{
+                        'chart': {
+                            'dependencies': [],
+                            'chart_name': 'test_chart_1',
+                            'namespace': 'test',
+                            'release': 'test_chart_1',
+                            'source': {
+                                'location': ('git://github.com/dummy/armada'),
+                                'reference': 'master',
+                                'subpath': 'chart_1',
+                                'type': 'git'
                             },
-                            {
-                                'chart': {
-                                    'dependencies': [],
-                                    'chart_name': 'test_chart_2',
-                                    'namespace': 'test',
-                                    'protected': {
-                                        'continue_processing': True
-                                    },
-                                    'release': 'test_chart_2',
-                                    'source': {
-                                        'location': '/tmp/dummy/armada',
-                                        'subpath': 'chart_2',
-                                        'type': 'local'
-                                    },
-                                    'source_dir': CHART_SOURCES[1],
-                                    'values': {},
-                                    'wait': {
-                                        'timeout': 10
-                                    },
-                                    'upgrade': {
-                                        'no_hooks': False,
-                                        'options': {
-                                            'force': True,
-                                            'recreate_pods': True
-                                        }
-                                    }
-                                }
+                            'source_dir': CHART_SOURCES[0],
+                            'values': {},
+                            'wait': {
+                                'timeout': 10
+                            }
+                        }
+                    }, {
+                        'chart': {
+                            'dependencies': [],
+                            'chart_name': 'test_chart_2',
+                            'namespace': 'test',
+                            'protected': {
+                                'continue_processing': True
                             },
-                            {
-                                'chart': {
-                                    'dependencies': [],
-                                    'chart_name': 'test_chart_3',
-                                    'namespace': 'test',
-                                    'protected': {
-                                        'continue_processing': False
-                                    },
-                                    'release': 'test_chart_3',
-                                    'source': {
-                                        'location': '/tmp/dummy/armada',
-                                        'subpath': 'chart_3',
-                                        'type': 'local'
-                                    },
-                                    'source_dir': CHART_SOURCES[2],
-                                    'values': {},
-                                    'wait': {
-                                        'timeout': 10
-                                    },
-                                    'upgrade': {
-                                        'no_hooks': False
-                                    }
-                                }
+                            'release': 'test_chart_2',
+                            'source': {
+                                'location': '/tmp/dummy/armada',
+                                'subpath': 'chart_2',
+                                'type': 'local'
                             },
-                            {
-                                'chart': {
-                                    'dependencies': [],
-                                    'chart_name': 'test_chart_4',
-                                    'namespace': 'test',
-                                    'release': 'test_chart_4',
-                                    'source': {
-                                        'location': '/tmp/dummy/armada',
-                                        'subpath': 'chart_4',
-                                        'type': 'local'
-                                    },
-                                    'source_dir': CHART_SOURCES[3],
-                                    'values': {},
-                                    'wait': {
-                                        'timeout': 10
-                                    },
-                                    'upgrade': {
-                                        'no_hooks': False
-                                    },
-                                    'test': True
+                            'source_dir': CHART_SOURCES[1],
+                            'values': {},
+                            'wait': {
+                                'timeout': 10
+                            },
+                            'upgrade': {
+                                'no_hooks': False,
+                                'options': {
+                                    'force': True,
+                                    'recreate_pods': True
                                 }
                             }
-                        ],
-                        'description': 'this is a test',
-                        'name': 'example-group',
-                        'sequenced': False
-                    }
-                ]
+                        }
+                    }, {
+                        'chart': {
+                            'dependencies': [],
+                            'chart_name': 'test_chart_3',
+                            'namespace': 'test',
+                            'protected': {
+                                'continue_processing': False
+                            },
+                            'release': 'test_chart_3',
+                            'source': {
+                                'location': '/tmp/dummy/armada',
+                                'subpath': 'chart_3',
+                                'type': 'local'
+                            },
+                            'source_dir': CHART_SOURCES[2],
+                            'values': {},
+                            'wait': {
+                                'timeout': 10
+                            },
+                            'upgrade': {
+                                'no_hooks': False
+                            }
+                        }
+                    }, {
+                        'chart': {
+                            'dependencies': [],
+                            'chart_name': 'test_chart_4',
+                            'namespace': 'test',
+                            'release': 'test_chart_4',
+                            'source': {
+                                'location': '/tmp/dummy/armada',
+                                'subpath': 'chart_4',
+                                'type': 'local'
+                            },
+                            'source_dir': CHART_SOURCES[3],
+                            'values': {},
+                            'wait': {
+                                'timeout': 10
+                            },
+                            'upgrade': {
+                                'no_hooks': False
+                            },
+                            'test': True
+                        }
+                    }],
+                    'description':
+                    'this is a test',
+                    'name':
+                    'example-group',
+                    'sequenced':
+                    False
+                }]
             }
         }
 
@@ -270,12 +266,15 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         self._test_pre_flight_ops(armada_obj)
 
-        mock_tiller.assert_called_once_with(tiller_host=None,
-                                            tiller_namespace='kube-system',
-                                            tiller_port=44134,
-                                            dry_run=False)
+        mock_tiller.assert_called_once_with(
+            tiller_host=None,
+            tiller_namespace='kube-system',
+            tiller_port=44134,
+            dry_run=False)
         mock_source.git_clone.assert_called_once_with(
-            'git://github.com/dummy/armada', 'master', auth_method=None,
+            'git://github.com/dummy/armada',
+            'master',
+            auth_method=None,
             proxy_server=None)
 
     @mock.patch.object(armada, 'source')
@@ -300,7 +299,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     mock_source.source_cleanup.assert_called_with(
                         CHART_SOURCES[counter][0])
 
-    def _test_sync(self, known_releases, test_success=True,
+    def _test_sync(self,
+                   known_releases,
+                   test_success=True,
                    test_failure_to_run=False):
         """Test install functionality from the sync() method."""
 
@@ -323,14 +324,13 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             m_tiller.list_charts.return_value = known_releases
 
             if test_failure_to_run:
+
                 def fail(tiller, release, timeout=None):
-                    status = AttrDict(**{
-                        'info': AttrDict(**{
-                            'Description': 'Failed'
-                        })
-                    })
+                    status = AttrDict(
+                        **{'info': AttrDict(**{'Description': 'Failed'})})
                     raise tiller_exceptions.ReleaseException(
                         release, status, 'Test')
+
                 mock_test_release_for_success.side_effect = fail
             else:
                 mock_test_release_for_success.return_value = test_success
@@ -359,15 +359,13 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     expected_install_release_calls.append(
                         mock.call(
                             mock_chartbuilder().get_helm_chart(),
-                            "{}-{}".format(armada_obj.manifest['armada'][
-                                           'release_prefix'],
-                                           chart['release']),
+                            "{}-{}".format(
+                                armada_obj.manifest['armada'][
+                                    'release_prefix'], chart['release']),
                             chart['namespace'],
                             values=yaml.safe_dump(chart['values']),
                             wait=this_chart_should_wait,
-                            timeout=chart['wait']['timeout']
-                        )
-                    )
+                            timeout=chart['wait']['timeout']))
                 else:
                     target_release = None
                     for known_release in known_releases:
@@ -391,9 +389,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         chart['namespace'],
                                         values=yaml.safe_dump(chart['values']),
                                         wait=this_chart_should_wait,
-                                        timeout=chart['wait']['timeout']
-                                    )
-                                )
+                                        timeout=chart['wait']['timeout']))
                             else:
                                 p_continue = protected.get(
                                     'continue_processing', False)
@@ -412,9 +408,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                 mock.call(
                                     mock_chartbuilder().get_helm_chart(),
                                     "{}-{}".format(
-                                        armada_obj.manifest['armada'][
-                                            'release_prefix'],
-                                        chart['release']),
+                                        armada_obj.manifest['armada']
+                                        ['release_prefix'], chart['release']),
                                     chart['namespace'],
                                     pre_actions={},
                                     post_actions={},
@@ -423,21 +418,13 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     recreate_pods=recreate_pods,
                                     values=yaml.safe_dump(chart['values']),
                                     wait=this_chart_should_wait,
-                                    timeout=chart['wait']['timeout']
-                                )
-                            )
+                                    timeout=chart['wait']['timeout']))
                 test_this_chart = chart.get(
-                    'test',
-                    chart_group.get('test_charts', False))
+                    'test', chart_group.get('test_charts', False))
 
                 if test_this_chart:
                     expected_test_release_for_success_calls.append(
-                        mock.call(
-                            m_tiller,
-                            release_name,
-                            timeout=mock.ANY
-                        )
-                    )
+                        mock.call(m_tiller, release_name, timeout=mock.ANY))
 
             # Verify that at least 1 release is either installed or updated.
             self.assertTrue(
@@ -445,26 +432,30 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 len(expected_update_release_calls) >= 1)
             # Verify that the expected number of non-deployed releases are
             # installed with expected arguments.
-            self.assertEqual(len(expected_install_release_calls),
-                             m_tiller.install_release.call_count)
+            self.assertEqual(
+                len(expected_install_release_calls),
+                m_tiller.install_release.call_count)
             m_tiller.install_release.assert_has_calls(
                 expected_install_release_calls)
             # Verify that the expected number of deployed releases are
             # updated with expected arguments.
-            self.assertEqual(len(expected_update_release_calls),
-                             m_tiller.update_release.call_count)
+            self.assertEqual(
+                len(expected_update_release_calls),
+                m_tiller.update_release.call_count)
             m_tiller.update_release.assert_has_calls(
                 expected_update_release_calls)
             # Verify that the expected number of deployed releases are
             # uninstalled with expected arguments.
-            self.assertEqual(len(expected_uninstall_release_calls),
-                             m_tiller.uninstall_release.call_count)
+            self.assertEqual(
+                len(expected_uninstall_release_calls),
+                m_tiller.uninstall_release.call_count)
             m_tiller.uninstall_release.assert_has_calls(
                 expected_uninstall_release_calls)
             # Verify that the expected number of deployed releases are
             # tested with expected arguments.
-            self.assertEqual(len(expected_test_release_for_success_calls),
-                             mock_test_release_for_success.call_count)
+            self.assertEqual(
+                len(expected_test_release_for_success_calls),
+                mock_test_release_for_success.call_count)
             mock_test_release_for_success.assert_has_calls(
                 expected_test_release_for_success_calls)
 
@@ -473,8 +464,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
     def _get_chart_by_name(self, name):
         name = name.split('armada-')[-1]
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        return [c for c in yaml_documents
-                if c['data'].get('chart_name') == name][0]
+        return [
+            c for c in yaml_documents if c['data'].get('chart_name') == name
+        ][0]
 
     def test_armada_sync_with_no_deployed_releases(self):
         known_releases = []
@@ -483,75 +475,71 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
     def test_armada_sync_with_one_deployed_release(self):
         c1 = 'armada-test_chart_1'
 
-        known_releases = [
-            [c1, None, self._get_chart_by_name(c1), None,
-             const.STATUS_DEPLOYED]
-        ]
+        known_releases = [[
+            c1, None,
+            self._get_chart_by_name(c1), None, const.STATUS_DEPLOYED
+        ]]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_both_deployed_releases(self):
         c1 = 'armada-test_chart_1'
         c2 = 'armada-test_chart_2'
 
-        known_releases = [
-            [c1, None, self._get_chart_by_name(c1), None,
-             const.STATUS_DEPLOYED],
-            [c2, None, self._get_chart_by_name(c2), None,
-             const.STATUS_DEPLOYED]
-        ]
+        known_releases = [[
+            c1, None,
+            self._get_chart_by_name(c1), None, const.STATUS_DEPLOYED
+        ], [
+            c2, None,
+            self._get_chart_by_name(c2), None, const.STATUS_DEPLOYED
+        ]]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_unprotected_releases(self):
         c1 = 'armada-test_chart_1'
 
-        known_releases = [
-            [c1, None, self._get_chart_by_name(c1), None,
-             const.STATUS_FAILED]
-        ]
+        known_releases = [[
+            c1, None,
+            self._get_chart_by_name(c1), None, const.STATUS_FAILED
+        ]]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_protected_releases_continue(self):
         c1 = 'armada-test_chart_1'
         c2 = 'armada-test_chart_2'
 
-        known_releases = [
-            [c2, None, self._get_chart_by_name(c2), None,
-             const.STATUS_FAILED],
-            [c1, None, self._get_chart_by_name(c1), None,
-             const.STATUS_FAILED]
-        ]
+        known_releases = [[
+            c2, None,
+            self._get_chart_by_name(c2), None, const.STATUS_FAILED
+        ], [c1, None,
+            self._get_chart_by_name(c1), None, const.STATUS_FAILED]]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_protected_releases_halt(self):
         c3 = 'armada-test_chart_3'
 
-        known_releases = [
-            [c3, None, self._get_chart_by_name(c3), None,
-             const.STATUS_FAILED]
-        ]
+        known_releases = [[
+            c3, None,
+            self._get_chart_by_name(c3), None, const.STATUS_FAILED
+        ]]
 
         def _test_method():
             self._test_sync(known_releases)
 
-        self.assertRaises(
-            ProtectedReleaseException,
-            _test_method)
+        self.assertRaises(ProtectedReleaseException, _test_method)
 
     def test_armada_sync_test_failure(self):
+
         def _test_method():
             self._test_sync([], test_success=False)
 
-        self.assertRaises(
-            tiller_exceptions.TestFailedException,
-            _test_method)
+        self.assertRaises(tiller_exceptions.TestFailedException, _test_method)
 
     def test_armada_sync_test_failure_to_run(self):
+
         def _test_method():
             self._test_sync([], test_failure_to_run=True)
 
-        self.assertRaises(
-            tiller_exceptions.ReleaseException,
-            _test_method)
+        self.assertRaises(tiller_exceptions.ReleaseException, _test_method)
 
     @mock.patch.object(armada.Armada, 'post_flight_ops')
     @mock.patch.object(armada.Armada, 'pre_flight_ops')

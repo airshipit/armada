@@ -19,7 +19,6 @@ import falcon
 from oslo_config import cfg
 from oslo_log import log as logging
 
-
 LOG = logging.getLogger(__name__)
 
 CONF = cfg.CONF
@@ -97,8 +96,10 @@ def format_error_resp(req,
     # message list as well.  In both cases, if the error flag is not
     # set, set it appropriately.
     if error_list is None:
-        error_list = [{'message': 'An error occurred, but was not specified',
-                       'error': True}]
+        error_list = [{
+            'message': 'An error occurred, but was not specified',
+            'error': True
+        }]
     else:
         for error_item in error_list:
             if 'error' not in error_item:
@@ -145,9 +146,11 @@ def default_error_serializer(req, resp, exception):
         message=exception.description,
         reason=exception.title,
         error_type=exception.__class__.__name__,
-        error_list=[{'message': exception.description, 'error': True}],
-        info_list=None
-    )
+        error_list=[{
+            'message': exception.description,
+            'error': True
+        }],
+        info_list=None)
 
 
 def default_exception_handler(ex, req, resp, params):
@@ -168,8 +171,7 @@ def default_exception_handler(ex, req, resp, params):
             falcon.HTTP_500,
             error_type=ex.__class__.__name__,
             message="Unhandled Exception raised: %s" % str(ex),
-            retry=True
-        )
+            retry=True)
 
 
 class AppError(Exception):
@@ -180,13 +182,15 @@ class AppError(Exception):
     title = 'Internal Server Error'
     status = falcon.HTTP_500
 
-    def __init__(self,
-                 title=None,
-                 description=None,
-                 error_list=None,
-                 info_list=None,
-                 status=None,
-                 retry=False,):
+    def __init__(
+            self,
+            title=None,
+            description=None,
+            error_list=None,
+            info_list=None,
+            status=None,
+            retry=False,
+    ):
         """
         :param description: The internal error description
         :param error_list: The list of errors

@@ -48,9 +48,10 @@ class HelmChartBuildException(ChartBuilderException):
     def __init__(self, chart_name, details):
         self._chart_name = chart_name
         self._message = ('Failed to build Helm chart for {chart_name}. '
-                         'Details: {details}'.format(
-                             **{'chart_name': chart_name,
-                                'details': details}))
+                         'Details: {details}'.format(**{
+                             'chart_name': chart_name,
+                             'details': details
+                         }))
 
         super(HelmChartBuildException, self).__init__(self._message)
 

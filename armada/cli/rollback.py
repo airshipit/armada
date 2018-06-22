@@ -41,48 +41,46 @@ To rollback a release, run:
 SHORT_DESC = "Command performs a release rollback."
 
 
-@rollback.command(name='rollback',
-                  help=DESC,
-                  short_help=SHORT_DESC)
-@click.option('--release',
-              help="Release to rollback.",
-              type=str)
-@click.option('--version',
-              help="Version of release to rollback to. 0 represents the "
-                   "previous release",
-              type=int,
-              default=0)
-@click.option('--dry-run',
-              help="Perform a dry-run rollback.",
-              is_flag=True)
-@click.option('--tiller-host',
-              help="Tiller host IP.",
-              default=None)
-@click.option('--tiller-port',
-              help="Tiller host port.",
-              type=int,
-              default=CONF.tiller_port)
-@click.option('--tiller-namespace', '-tn',
-              help="Tiller namespace.",
-              type=str,
-              default=CONF.tiller_namespace)
-@click.option('--timeout',
-              help="Specifies time to wait for rollback to complete.",
-              type=int,
-              default=0)
-@click.option('--wait',
-              help=("Wait until rollback is complete before returning."),
-              is_flag=True)
-@click.option('--force',
-              help=("Force resource update through delete/recreate if"
-                    " needed."),
-              is_flag=True)
-@click.option('--recreate-pods',
-              help=("Restarts pods for the resource if applicable."),
-              is_flag=True)
-@click.option('--debug',
-              help="Enable debug logging.",
-              is_flag=True)
+@rollback.command(name='rollback', help=DESC, short_help=SHORT_DESC)
+@click.option('--release', help="Release to rollback.", type=str)
+@click.option(
+    '--version',
+    help="Version of release to rollback to. 0 represents the "
+    "previous release",
+    type=int,
+    default=0)
+@click.option('--dry-run', help="Perform a dry-run rollback.", is_flag=True)
+@click.option('--tiller-host', help="Tiller host IP.", default=None)
+@click.option(
+    '--tiller-port',
+    help="Tiller host port.",
+    type=int,
+    default=CONF.tiller_port)
+@click.option(
+    '--tiller-namespace',
+    '-tn',
+    help="Tiller namespace.",
+    type=str,
+    default=CONF.tiller_namespace)
+@click.option(
+    '--timeout',
+    help="Specifies time to wait for rollback to complete.",
+    type=int,
+    default=0)
+@click.option(
+    '--wait',
+    help=("Wait until rollback is complete before returning."),
+    is_flag=True)
+@click.option(
+    '--force',
+    help=("Force resource update through delete/recreate if"
+          " needed."),
+    is_flag=True)
+@click.option(
+    '--recreate-pods',
+    help=("Restarts pods for the resource if applicable."),
+    is_flag=True)
+@click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def rollback_charts(ctx, release, version, dry_run, tiller_host, tiller_port,
                     tiller_namespace, timeout, wait, force, recreate_pods,
@@ -94,17 +92,9 @@ def rollback_charts(ctx, release, version, dry_run, tiller_host, tiller_port,
 
 
 class Rollback(CliAction):
-    def __init__(self,
-                 ctx,
-                 release,
-                 version,
-                 dry_run,
-                 tiller_host,
-                 tiller_port,
-                 tiller_namespace,
-                 timeout,
-                 wait,
-                 force,
+
+    def __init__(self, ctx, release, version, dry_run, tiller_host,
+                 tiller_port, tiller_namespace, timeout, wait, force,
                  recreate_pods):
         super(Rollback, self).__init__()
         self.ctx = ctx
@@ -121,8 +111,10 @@ class Rollback(CliAction):
 
     def invoke(self):
         tiller = Tiller(
-            tiller_host=self.tiller_host, tiller_port=self.tiller_port,
-            tiller_namespace=self.tiller_namespace, dry_run=self.dry_run)
+            tiller_host=self.tiller_host,
+            tiller_port=self.tiller_port,
+            tiller_namespace=self.tiller_namespace,
+            dry_run=self.dry_run)
 
         response = tiller.rollback_release(
             self.release,
@@ -135,5 +127,7 @@ class Rollback(CliAction):
         self.output(response)
 
     def output(self, response):
-        self.logger.info(('(dry run) ' if self.dry_run else '') +
-                         'Rollback of %s complete.', self.release)
+        self.logger.info(
+            ('(dry run) '
+             if self.dry_run else '') + 'Rollback of %s complete.',
+            self.release)

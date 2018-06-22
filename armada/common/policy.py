@@ -18,7 +18,6 @@ from oslo_policy import policy
 from armada.common import policies
 from armada.exceptions import base_exception as exc
 
-
 CONF = cfg.CONF
 _ENFORCER = None
 
@@ -46,14 +45,18 @@ def _enforce_policy(action, target, credentials, do_raise=True):
 
 
 def enforce(rule):
+
     def decorator(func):
+
         @functools.wraps(func)
         def handler(*args, **kwargs):
             setup_policy()
             context = args[1].context
             _enforce_policy(rule, {}, context, do_raise=True)
             return func(*args, **kwargs)
+
         return handler
+
     return decorator
 
 

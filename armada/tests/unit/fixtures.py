@@ -82,8 +82,7 @@ class RealPolicyFixture(fixtures.Fixture):
     def _setUp(self):
         super(RealPolicyFixture, self)._setUp()
         self.policy_dir = self.useFixture(fixtures.TempDir())
-        self.policy_file = os.path.join(self.policy_dir.path,
-                                        'policy.yaml')
+        self.policy_file = os.path.join(self.policy_dir.path, 'policy.yaml')
         # Load the fake_policy data and add the missing default rules.
         policy_rules = yaml.safe_load(fake_policy.policy_data)
         self.add_missing_default_rules(policy_rules)
@@ -92,8 +91,10 @@ class RealPolicyFixture(fixtures.Fixture):
 
         policy_opts.set_defaults(CONF)
         self.useFixture(
-            ConfPatcher(policy_dirs=[], policy_file=self.policy_file,
-                        group='oslo_policy'))
+            ConfPatcher(
+                policy_dirs=[],
+                policy_file=self.policy_file,
+                group='oslo_policy'))
 
         armada.common.policy.reset_policy()
         armada.common.policy.setup_policy()
@@ -106,18 +107,16 @@ class RealPolicyFixture(fixtures.Fixture):
         """Validate that the expected and actual policies are equivalent.
         Otherwise an ``AssertionError`` is raised.
         """
-        if not (set(self.expected_policy_actions) ==
-                set(self.actual_policy_actions)):
+        if not (set(self.expected_policy_actions) == set(
+                self.actual_policy_actions)):
             error_msg = (
                 'The expected policy actions passed to '
                 '`self.policy.set_rules` do not match the policy actions '
                 'that were actually enforced by Armada. Set of expected '
                 'policies %s should be equal to set of actual policies: %s. '
                 'There is either a bug with the test or with policy '
-                'enforcement in the controller.' % (
-                    self.expected_policy_actions,
-                    self.actual_policy_actions)
-            )
+                'enforcement in the controller.' %
+                (self.expected_policy_actions, self.actual_policy_actions))
             raise AssertionError(error_msg)
 
     def _install_policy_verification_hook(self):
@@ -152,8 +151,7 @@ class RealPolicyFixture(fixtures.Fixture):
         self.expected_policy_actions = []
         _do_enforce_rbac = armada.common.policy._enforce_policy
 
-        def enforce_policy_and_remember_actual_rules(
-                action, *a, **k):
+        def enforce_policy_and_remember_actual_rules(action, *a, **k):
             self.actual_policy_actions.append(action)
             _do_enforce_rbac(action, *a, **k)
 

@@ -25,6 +25,7 @@ from armada import const
 
 
 class OverrideTestCase(testtools.TestCase):
+
     def setUp(self):
         super(OverrideTestCase, self).setUp()
         self.basepath = os.path.join(os.path.dirname(__file__))
@@ -64,8 +65,7 @@ class OverrideTestCase(testtools.TestCase):
             documents_copy = copy.deepcopy(original_documents)
             values_documents = list(yaml.safe_load_all(g.read()))
 
-        override = ('manifest:simple-armada:release_prefix='
-                    'overridden',)
+        override = ('manifest:simple-armada:release_prefix=' 'overridden', )
 
         # Case 1: Checking if primitive gets updated.
         ovr = Override(original_documents, override, [values_yaml])
@@ -75,15 +75,14 @@ class OverrideTestCase(testtools.TestCase):
         self.assertNotEqual(original_documents, documents_copy)
         # since overrides done, these documents aren't same anymore
         self.assertNotEqual(original_documents, values_documents)
-        target_doc = [x
-                      for x
-                      in ovr.documents
-                      if x.get('metadata').get('name') == 'simple-armada'][0]
-        self.assertEqual('overridden',
-                         target_doc['data']['release_prefix'])
+        target_doc = [
+            x for x in ovr.documents
+            if x.get('metadata').get('name') == 'simple-armada'
+        ][0]
+        self.assertEqual('overridden', target_doc['data']['release_prefix'])
 
         override = ('manifest:simple-armada:chart_groups='
-                    'blog-group3,blog-group4',)
+                    'blog-group3,blog-group4', )
 
         # Case 2: Checking if list gets updated.
         ovr = Override(original_documents, override, [values_yaml])
@@ -103,8 +102,7 @@ class OverrideTestCase(testtools.TestCase):
             original_documents = list(yaml.safe_load_all(f.read()))
 
         original_documents[-1]['data']['test'] = {'foo': 'bar'}
-        override = ('manifest:simple-armada:test='
-                    '{"foo": "bar"}',)
+        override = ('manifest:simple-armada:test=' '{"foo": "bar"}', )
 
         ovr = Override(original_documents, override, [])
         self.assertRaises(json.decoder.JSONDecodeError, ovr.update_manifests)
@@ -283,15 +281,15 @@ class OverrideTestCase(testtools.TestCase):
             documents = list(yaml.safe_load_all(f.read()))
             doc_path = ['manifest', 'simple-armada']
             override = ('manifest:simple-armada:chart_groups=\
-                         blog-group3,blog-group4',)
+                         blog-group3,blog-group4', )
             ovr = Override(documents, override)
             ovr.update_manifests()
             ovr_doc = ovr.find_manifest_document(doc_path)
             target_docs = list(yaml.load_all(e.read()))
-            expected_doc = [x
-                            for x
-                            in target_docs
-                            if x.get('schema') == 'armada/Manifest/v1'][0]
+            expected_doc = [
+                x for x in target_docs
+                if x.get('schema') == 'armada/Manifest/v1'
+            ][0]
             self.assertEqual(expected_doc.get('data'), ovr_doc.get('data'))
 
     def test_find_manifest_document_valid(self):
@@ -316,6 +314,7 @@ class OverrideTestCase(testtools.TestCase):
 
 
 class OverrideNegativeTestCase(testtools.TestCase):
+
     def setUp(self):
         super(OverrideNegativeTestCase, self).setUp()
         self.basepath = os.path.join(os.path.dirname(__file__))

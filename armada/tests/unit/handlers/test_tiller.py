@@ -48,8 +48,12 @@ class TillerTestCase(base.ArmadaTestCase):
         timeout = 3600
 
         tiller_obj.install_release(
-            chart, name, namespace, values=initial_values,
-            wait=wait, timeout=timeout)
+            chart,
+            name,
+            namespace,
+            values=initial_values,
+            wait=wait,
+            timeout=timeout)
 
         mock_stub.assert_called_with(tiller_obj.channel)
         release_request = mock_install_request(
@@ -58,12 +62,9 @@ class TillerTestCase(base.ArmadaTestCase):
             release=name,
             namespace=namespace,
             wait=wait,
-            timeout=timeout
-        )
-        (mock_stub(tiller_obj.channel).InstallRelease
-         .assert_called_with(release_request,
-                             timeout + 60,
-                             metadata=tiller_obj.metadata))
+            timeout=timeout)
+        (mock_stub(tiller_obj.channel).InstallRelease.assert_called_with(
+            release_request, timeout + 60, metadata=tiller_obj.metadata))
 
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
@@ -83,10 +84,9 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_grpc.insecure_channel.assert_called_once_with(
             '%s:%s' % (str(mock.sentinel.ip), str(mock.sentinel.port)),
             options=[('grpc.max_send_message_length',
-                     tiller.MAX_MESSAGE_LENGTH),
+                      tiller.MAX_MESSAGE_LENGTH),
                      ('grpc.max_receive_message_length',
-                     tiller.MAX_MESSAGE_LENGTH)]
-        )
+                      tiller.MAX_MESSAGE_LENGTH)])
 
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch('armada.handlers.tiller.grpc', autospec=True)
@@ -131,8 +131,7 @@ class TillerTestCase(base.ArmadaTestCase):
     def test_get_tiller_namespace(self, mock_grpc, _, mock_ip):
         # verifies namespace set via instantiation
         tiller_obj = tiller.Tiller(None, None, 'test_namespace2')
-        self.assertEqual('test_namespace2',
-                         tiller_obj._get_tiller_namespace())
+        self.assertEqual('test_namespace2', tiller_obj._get_tiller_namespace())
 
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
@@ -179,18 +178,19 @@ class TillerTestCase(base.ArmadaTestCase):
         tiller_obj = tiller.Tiller('host', '8080', None)
         self.assertEqual(['foo', 'bar'], tiller_obj.list_releases())
 
-        mock_release_service_stub.assert_called_once_with(
-            tiller_obj.channel)
+        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
         list_releases_stub = mock_release_service_stub.return_value. \
             ListReleases
         list_releases_stub.assert_called_once_with(
-            mock_list_releases_request.return_value, tiller_obj.timeout,
+            mock_list_releases_request.return_value,
+            tiller_obj.timeout,
             metadata=tiller_obj.metadata)
 
         mock_list_releases_request.assert_called_once_with(
             limit=tiller.RELEASE_LIMIT,
-            status_codes=[tiller.const.STATUS_DEPLOYED,
-                          tiller.const.STATUS_FAILED],
+            status_codes=[
+                tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
+            ],
             sort_by='LAST_RELEASED',
             sort_order='DESC')
 
@@ -199,8 +199,7 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller, 'GetReleaseContentRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
     def test_get_release_content(self, mock_release_service_stub,
-                                 mock_release_content_request,
-                                 mock_grpc, _):
+                                 mock_release_content_request, mock_grpc, _):
         mock_release_service_stub.return_value.GetReleaseContent\
             .return_value = {}
 
@@ -210,7 +209,8 @@ class TillerTestCase(base.ArmadaTestCase):
         get_release_content_stub = mock_release_service_stub. \
             return_value.GetReleaseContent
         get_release_content_stub.assert_called_once_with(
-            mock_release_content_request.return_value, tiller_obj.timeout,
+            mock_release_content_request.return_value,
+            tiller_obj.timeout,
             metadata=tiller_obj.metadata)
 
     @mock.patch('armada.handlers.tiller.K8s')
@@ -218,8 +218,7 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller, 'GetVersionRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
     def test_tiller_version(self, mock_release_service_stub,
-                            mock_version_request,
-                            mock_grpc, _):
+                            mock_version_request, mock_grpc, _):
 
         mock_version = mock.Mock()
         mock_version.Version.sem_ver = mock.sentinel.sem_ver
@@ -230,12 +229,12 @@ class TillerTestCase(base.ArmadaTestCase):
 
         self.assertEqual(mock.sentinel.sem_ver, tiller_obj.tiller_version())
 
-        mock_release_service_stub.assert_called_once_with(
-            tiller_obj.channel)
+        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
 
         get_version_stub = mock_release_service_stub.return_value.GetVersion
         get_version_stub.assert_called_once_with(
-            mock_version_request.return_value, tiller_obj.timeout,
+            mock_version_request.return_value,
+            tiller_obj.timeout,
             metadata=tiller_obj.metadata)
 
     @mock.patch('armada.handlers.tiller.K8s')
@@ -252,12 +251,12 @@ class TillerTestCase(base.ArmadaTestCase):
         tiller_obj = tiller.Tiller('host', '8080', None)
         self.assertEqual({}, tiller_obj.get_release_status('release'))
 
-        mock_release_service_stub.assert_called_once_with(
-            tiller_obj.channel)
+        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
         get_release_status_stub = mock_release_service_stub.return_value. \
             GetReleaseStatus
         get_release_status_stub.assert_called_once_with(
-            mock_rel_status_request.return_value, tiller_obj.timeout,
+            mock_rel_status_request.return_value,
+            tiller_obj.timeout,
             metadata=tiller_obj.metadata)
 
     @mock.patch('armada.handlers.tiller.K8s')
@@ -265,8 +264,7 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller, 'UninstallReleaseRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
     def test_uninstall_release(self, mock_release_service_stub,
-                               mock_uninstall_release_request,
-                               mock_grpc, _):
+                               mock_uninstall_release_request, mock_grpc, _):
         mock_release_service_stub.return_value.UninstallRelease\
             .return_value = {}
 
@@ -274,13 +272,13 @@ class TillerTestCase(base.ArmadaTestCase):
 
         self.assertEqual({}, tiller_obj.uninstall_release('release'))
 
-        mock_release_service_stub.assert_called_once_with(
-            tiller_obj.channel)
+        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
         uninstall_release_stub = mock_release_service_stub.return_value. \
             UninstallRelease
 
         uninstall_release_stub.assert_called_once_with(
-            mock_uninstall_release_request.return_value, tiller_obj.timeout,
+            mock_uninstall_release_request.return_value,
+            tiller_obj.timeout,
             metadata=tiller_obj.metadata)
 
     @mock.patch('armada.handlers.tiller.K8s')
@@ -303,9 +301,14 @@ class TillerTestCase(base.ArmadaTestCase):
         recreate_pods = True
         force = True
 
-        self.assertIsNone(tiller_obj.rollback_release(
-            release, version, wait=wait, timeout=timeout, force=force,
-            recreate_pods=recreate_pods))
+        self.assertIsNone(
+            tiller_obj.rollback_release(
+                release,
+                version,
+                wait=wait,
+                timeout=timeout,
+                force=force,
+                recreate_pods=recreate_pods))
 
         mock_rollback_release_request.assert_called_once_with(
             name=release,
@@ -316,14 +319,13 @@ class TillerTestCase(base.ArmadaTestCase):
             force=force,
             recreate=recreate_pods)
 
-        mock_release_service_stub.assert_called_once_with(
-            tiller_obj.channel)
+        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
         rollback_release_stub = mock_release_service_stub.return_value. \
             RollbackRelease
 
         rollback_release_stub.assert_called_once_with(
-            mock_rollback_release_request.return_value, timeout +
-            tiller.GRPC_EPSILON,
+            mock_rollback_release_request.return_value,
+            timeout + tiller.GRPC_EPSILON,
             metadata=tiller_obj.metadata)
 
     @mock.patch('armada.handlers.tiller.K8s')
@@ -332,8 +334,7 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller, 'UpdateReleaseRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
     def test_update_release(self, mock_release_service_stub,
-                            mock_update_release_request, mock_config,
-                            _, __):
+                            mock_update_release_request, mock_config, _, __):
         release = 'release'
         chart = {}
         namespace = 'namespace'
@@ -377,7 +378,9 @@ class TillerTestCase(base.ArmadaTestCase):
         recreate_pods = True
 
         result = tiller_obj.update_release(
-            chart, release, namespace,
+            chart,
+            release,
+            namespace,
             pre_actions=pre_actions,
             post_actions=post_actions,
             disable_hooks=disable_hooks,
@@ -404,22 +407,17 @@ class TillerTestCase(base.ArmadaTestCase):
             force=force,
             recreate=recreate_pods)
 
-        mock_release_service_stub.assert_called_once_with(
-            tiller_obj.channel)
+        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
         update_release_stub = mock_release_service_stub.return_value. \
             UpdateRelease
 
         update_release_stub.assert_called_once_with(
-            mock_update_release_request.return_value, timeout +
-            tiller.GRPC_EPSILON,
+            mock_update_release_request.return_value,
+            timeout + tiller.GRPC_EPSILON,
             metadata=tiller_obj.metadata)
 
-        expected_result = tiller.TillerResult(
-            release,
-            namespace,
-            status,
-            description,
-            version)
+        expected_result = tiller.TillerResult(release, namespace, status,
+                                              description, version)
 
         self.assertEqual(expected_result, result)
 
@@ -430,9 +428,8 @@ class TillerTestCase(base.ArmadaTestCase):
         @mock.patch('armada.handlers.tiller.Config')
         @mock.patch.object(tiller, 'TestReleaseRequest')
         @mock.patch.object(tiller, 'ReleaseServiceStub')
-        def do_test(self, mock_release_service_stub,
-                    mock_test_release_request, mock_config,
-                    _, __):
+        def do_test(self, mock_release_service_stub, mock_test_release_request,
+                    mock_config, _, __):
             tiller_obj = tiller.Tiller('host', '8080', None)
             release = 'release'
             test_suite_run = {}
@@ -441,14 +438,18 @@ class TillerTestCase(base.ArmadaTestCase):
                 .return_value = grpc_response_mock
 
             tiller_obj.get_release_status = mock.Mock()
-            tiller_obj.get_release_status.return_value = AttrDict(**{
-                'info': AttrDict(**{
-                    'status': AttrDict(**{
-                        'last_test_suite_run': test_suite_run
-                    }),
-                    'Description': 'Failed'
+            tiller_obj.get_release_status.return_value = AttrDict(
+                **{
+                    'info':
+                    AttrDict(
+                        **{
+                            'status':
+                            AttrDict(**
+                                     {'last_test_suite_run': test_suite_run}),
+                            'Description':
+                            'Failed'
+                        })
                 })
-            })
 
             result = tiller_obj.test_release(release)
 
@@ -489,7 +490,9 @@ class TillerTestCase(base.ArmadaTestCase):
         ])
 
     def test_test_release_failure_to_run(self):
+
         class Iterator:
+
             def __iter__(self):
                 return self
 

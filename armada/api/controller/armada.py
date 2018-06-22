@@ -58,23 +58,22 @@ class Apply(api.BaseResource):
                 documents.extend(list(yaml.safe_load_all(d.decode())))
 
             if req_body.get('overrides', None):
-                overrides = Override(documents,
-                                     overrides=req_body.get('overrides'))
+                overrides = Override(
+                    documents, overrides=req_body.get('overrides'))
                 documents = overrides.update_manifests()
         else:
-            self.error(req.context, "Unknown content-type %s"
-                       % req.content_type)
+            self.error(req.context,
+                       "Unknown content-type %s" % req.content_type)
             # TODO(fmontei): Use falcon.<Relevant API Exception Class> instead.
             return self.return_error(
                 resp,
                 falcon.HTTP_415,
                 message="Request must be in application/x-yaml"
-                        "or application/json")
+                "or application/json")
         try:
             armada = Armada(
                 documents,
-                disable_update_pre=req.get_param_as_bool(
-                    'disable_update_pre'),
+                disable_update_pre=req.get_param_as_bool('disable_update_pre'),
                 disable_update_post=req.get_param_as_bool(
                     'disable_update_post'),
                 enable_chart_cleanup=req.get_param_as_bool(
@@ -83,20 +82,17 @@ class Apply(api.BaseResource):
                 force_wait=req.get_param_as_bool('wait'),
                 timeout=req.get_param_as_int('timeout') or 0,
                 tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int(
-                    'tiller_port') or CONF.tiller_port,
+                tiller_port=req.get_param_as_int('tiller_port') or
+                CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace),
-                target_manifest=req.get_param('target_manifest')
-            )
+                target_manifest=req.get_param('target_manifest'))
 
             msg = armada.sync()
 
-            resp.body = json.dumps(
-                {
-                    'message': msg,
-                }
-            )
+            resp.body = json.dumps({
+                'message': msg,
+            })
 
             resp.content_type = 'application/json'
             resp.status = falcon.HTTP_200
@@ -106,5 +102,4 @@ class Apply(api.BaseResource):
             self.logger.exception('Caught unexpected exception')
             err_message = 'Failed to apply manifest: {}'.format(e)
             self.error(req.context, err_message)
-            self.return_error(
-                resp, falcon.HTTP_500, message=err_message)
+            self.return_error(resp, falcon.HTTP_500, message=err_message)

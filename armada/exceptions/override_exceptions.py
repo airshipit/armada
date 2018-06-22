@@ -59,7 +59,7 @@ class InvalidOverrideValueException(OverrideException):
 
     def __init__(self, override_command):
         self._message = '{} is not a valid override statement.'.format(
-                        override_command)
+            override_command)
 
         super(InvalidOverrideValueException, self).__init__(self._message)
 

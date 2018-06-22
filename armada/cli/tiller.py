@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import click
 from oslo_config import cfg
 
@@ -47,29 +46,22 @@ To obtain Tiller service status/information:
 SHORT_DESC = "Command gets Tiller information."
 
 
-@tiller.command(name='tiller',
-                help=DESC,
-                short_help=SHORT_DESC)
-@click.option('--tiller-host',
-              help="Tiller host IP.",
-              default=None)
-@click.option('--tiller-port',
-              help="Tiller host port.",
-              type=int,
-              default=CONF.tiller_port)
-@click.option('--tiller-namespace', '-tn',
-              help="Tiller namespace.",
-              type=str,
-              default=CONF.tiller_namespace)
-@click.option('--releases',
-              help="List of deployed releases.",
-              is_flag=True)
-@click.option('--status',
-              help="Status of Armada services.",
-              is_flag=True)
-@click.option('--debug',
-              help="Enable debug logging.",
-              is_flag=True)
+@tiller.command(name='tiller', help=DESC, short_help=SHORT_DESC)
+@click.option('--tiller-host', help="Tiller host IP.", default=None)
+@click.option(
+    '--tiller-port',
+    help="Tiller host port.",
+    type=int,
+    default=CONF.tiller_port)
+@click.option(
+    '--tiller-namespace',
+    '-tn',
+    help="Tiller namespace.",
+    type=str,
+    default=CONF.tiller_namespace)
+@click.option('--releases', help="List of deployed releases.", is_flag=True)
+@click.option('--status', help="Status of Armada services.", is_flag=True)
+@click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def tiller_service(ctx, tiller_host, tiller_port, tiller_namespace, releases,
                    status, debug):
@@ -93,7 +85,8 @@ class TillerServices(CliAction):
     def invoke(self):
 
         tiller = Tiller(
-            tiller_host=self.tiller_host, tiller_port=self.tiller_port,
+            tiller_host=self.tiller_host,
+            tiller_port=self.tiller_port,
             tiller_namespace=self.tiller_namespace)
 
         if self.status:
@@ -117,9 +110,8 @@ class TillerServices(CliAction):
         if self.releases:
             if not self.ctx.obj.get('api', False):
                 for release in tiller.list_releases():
-                    self.logger.info(
-                        "Release %s in namespace: %s",
-                        release.name, release.namespace)
+                    self.logger.info("Release %s in namespace: %s",
+                                     release.name, release.namespace)
             else:
                 client = self.ctx.obj.get('CLIENT')
                 query = {
@@ -130,6 +122,5 @@ class TillerServices(CliAction):
                 resp = client.get_releases(query=query)
                 for namespace in resp.get('releases'):
                     for release in resp.get('releases').get(namespace):
-                        self.logger.info(
-                            'Release %s in namespace: %s', release,
-                            namespace)
+                        self.logger.info('Release %s in namespace: %s',
+                                         release, namespace)

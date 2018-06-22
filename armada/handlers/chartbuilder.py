@@ -63,20 +63,16 @@ class ChartBuilder(object):
         property from the chart, or else "" if the property isn't a 2-tuple.
         '''
         source_dir = self.chart.get('source_dir')
-        return (
-            os.path.join(*source_dir)
-            if (source_dir and
-                isinstance(source_dir, (list, tuple)) and
-                len(source_dir) == 2)
-            else ""
-        )
+        return (os.path.join(*source_dir)
+                if (source_dir and isinstance(source_dir, (list, tuple)) and
+                    len(source_dir) == 2) else "")
 
     def get_ignored_files(self):
         '''Load files to ignore from .helmignore if present.'''
         try:
             ignored_files = []
-            if os.path.exists(os.path.join(self.source_directory,
-                                           '.helmignore')):
+            if os.path.exists(
+                    os.path.join(self.source_directory, '.helmignore')):
                 with open(os.path.join(self.source_directory,
                                        '.helmignore')) as f:
                     ignored_files = f.readlines()
@@ -149,8 +145,9 @@ class ChartBuilder(object):
                     with open(abspath, 'r') as f:
                         file_contents = f.read().encode(encoding)
                 except OSError as e:
-                    LOG.debug('Failed to open and read file %s in the helm '
-                              'chart directory.', abspath)
+                    LOG.debug(
+                        'Failed to open and read file %s in the helm '
+                        'chart directory.', abspath)
                     raise chartbuilder_exceptions.FilesLoadException(
                         file=abspath, details=e)
                 except UnicodeError as e:
@@ -162,22 +159,24 @@ class ChartBuilder(object):
                     break
 
             if len(unicode_errors) == 2:
-                LOG.debug('Failed to read file %s in the helm chart directory.'
-                          ' Ensure that it is encoded using utf-8.', abspath)
+                LOG.debug(
+                    'Failed to read file %s in the helm chart directory.'
+                    ' Ensure that it is encoded using utf-8.', abspath)
                 raise chartbuilder_exceptions.FilesLoadException(
-                    file=abspath, clazz=unicode_errors[0].__class__.__name__,
+                    file=abspath,
+                    clazz=unicode_errors[0].__class__.__name__,
                     details='\n'.join(e for e in unicode_errors))
 
             non_template_files.append(
-                Any(type_url=relpath,
-                    value=file_contents))
+                Any(type_url=relpath, value=file_contents))
 
         for root, dirs, files in os.walk(self.source_directory):
             relfolder = os.path.split(root)[-1]
             rel_folder_path = os.path.relpath(root, self.source_directory)
 
-            if not any(root.startswith(os.path.join(self.source_directory, x))
-                       for x in ['templates', 'charts']):
+            if not any(
+                    root.startswith(os.path.join(self.source_directory, x))
+                    for x in ['templates', 'charts']):
                 for file in files:
                     if (file not in files_to_ignore and
                             file not in non_template_files):
@@ -211,8 +210,9 @@ class ChartBuilder(object):
         templates = []
         if not os.path.exists(
                 os.path.join(self.source_directory, 'templates')):
-            LOG.warn("Chart %s has no templates directory. "
-                     "No templates will be deployed", chart_name)
+            LOG.warn(
+                "Chart %s has no templates directory. "
+                "No templates will be deployed", chart_name)
         for root, _, files in os.walk(
                 os.path.join(self.source_directory, 'templates'),
                 topdown=True):

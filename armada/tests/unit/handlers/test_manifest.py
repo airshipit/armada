@@ -28,8 +28,8 @@ class ManifestTestCase(testtools.TestCase):
 
     def setUp(self):
         super(ManifestTestCase, self).setUp()
-        examples_dir = os.path.join(
-            os.getcwd(), 'armada', 'tests', 'unit', 'resources')
+        examples_dir = os.path.join(os.getcwd(), 'armada', 'tests', 'unit',
+                                    'resources')
         with open(os.path.join(examples_dir, 'keystone-manifest.yaml')) as f:
             self.documents = list(yaml.safe_load_all(f.read()))
 
@@ -139,8 +139,7 @@ class ManifestTestCase(testtools.TestCase):
 
         keystone_infra_services_chart_group = armada_manifest. \
             find_chart_group_document('keystone-infra-services')
-        self.assertEqual(chart_groups[0],
-                         keystone_infra_services_chart_group)
+        self.assertEqual(chart_groups[0], keystone_infra_services_chart_group)
 
         openstack_keystone_chart_group = armada_manifest. \
             find_chart_group_document('openstack-keystone')
@@ -224,8 +223,8 @@ class ManifestTestCase(testtools.TestCase):
         keystone_chart = armada_manifest.find_chart_document('keystone')
         keystone_chart_with_deps = armada_manifest.build_chart_deps(
             keystone_chart)
-        keystone_dependencies = keystone_chart_with_deps[
-            'data']['dependencies']
+        keystone_dependencies = keystone_chart_with_deps['data'][
+            'dependencies']
 
         self.assertEqual(openstack_keystone_chart_group_deps_dep_added[0],
                          keystone_dependencies[0])
@@ -243,15 +242,14 @@ class ManifestTestCase(testtools.TestCase):
         mariadb_chart = armada_manifest.find_chart_document('mariadb')
         mariadb_chart_with_deps = armada_manifest.build_chart_deps(
             mariadb_chart)
-        mariadb_dependencies = mariadb_chart_with_deps[
-            'data']['dependencies']
+        mariadb_dependencies = mariadb_chart_with_deps['data']['dependencies']
 
         # building memcached chart dependencies
         memcached_chart = armada_manifest.find_chart_document('memcached')
         memcached_chart_with_deps = armada_manifest.build_chart_deps(
             memcached_chart)
-        memcached_dependencies = memcached_chart_with_deps[
-            'data']['dependencies']
+        memcached_dependencies = memcached_chart_with_deps['data'][
+            'dependencies']
 
         self.assertEqual(keystone_infra_services_dep_added[0],
                          mariadb_dependencies[0])
@@ -275,8 +273,9 @@ class ManifestTestCase(testtools.TestCase):
 
         # helm-toolkit dependency, the basis for comparison of d
         # ependencies in other charts
-        expected_helm_toolkit_dependency = {'chart': helm_toolkit_chart.get(
-            'data')}
+        expected_helm_toolkit_dependency = {
+            'chart': helm_toolkit_chart.get('data')
+        }
 
         # keystone chart dependencies
         keystone_chart = armada_manifest.find_chart_document('keystone')
@@ -288,8 +287,8 @@ class ManifestTestCase(testtools.TestCase):
         self.assertIn('data', keystone_chart_with_deps)
         self.assertIn('dependencies', keystone_chart_with_deps['data'])
 
-        keystone_dependencies = keystone_chart_with_deps[
-            'data']['dependencies']
+        keystone_dependencies = keystone_chart_with_deps['data'][
+            'dependencies']
         self.assertIsInstance(keystone_dependencies, list)
         self.assertEqual(1, len(keystone_dependencies))
 
@@ -306,8 +305,7 @@ class ManifestTestCase(testtools.TestCase):
         self.assertIn('data', mariadb_chart_with_deps)
         self.assertIn('dependencies', mariadb_chart_with_deps['data'])
 
-        mariadb_dependencies = mariadb_chart_with_deps[
-            'data']['dependencies']
+        mariadb_dependencies = mariadb_chart_with_deps['data']['dependencies']
         self.assertIsInstance(mariadb_dependencies, list)
         self.assertEqual(1, len(mariadb_dependencies))
 
@@ -325,8 +323,8 @@ class ManifestTestCase(testtools.TestCase):
         self.assertIn('data', memcached_chart_with_deps)
         self.assertIn('dependencies', memcached_chart_with_deps['data'])
 
-        memcached_dependencies = memcached_chart_with_deps[
-            'data']['dependencies']
+        memcached_dependencies = memcached_chart_with_deps['data'][
+            'dependencies']
         self.assertIsInstance(memcached_dependencies, list)
         self.assertEqual(1, len(memcached_dependencies))
 
@@ -338,8 +336,8 @@ class ManifestNegativeTestCase(testtools.TestCase):
 
     def setUp(self):
         super(ManifestNegativeTestCase, self).setUp()
-        examples_dir = os.path.join(
-            os.getcwd(), 'armada', 'tests', 'unit', 'resources')
+        examples_dir = os.path.join(os.getcwd(), 'armada', 'tests', 'unit',
+                                    'resources')
         with open(os.path.join(examples_dir, 'keystone-manifest.yaml')) as f:
             self.documents = list(yaml.safe_load_all(f.read()))
 
@@ -350,9 +348,8 @@ class ManifestNegativeTestCase(testtools.TestCase):
         documents.append(documents[-1])  # Copy the last manifest.
 
         error_re = r'Multiple manifests are not supported.*'
-        self.assertRaisesRegexp(
-            exceptions.ManifestException, error_re, manifest.Manifest,
-            documents)
+        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+                                manifest.Manifest, documents)
 
     def test_get_documents_multi_target_manifests_raises_value_error(self):
         # Validates that finding multiple manifests with `target_manifest`
@@ -362,26 +359,27 @@ class ManifestNegativeTestCase(testtools.TestCase):
 
         error_re = r'Multiple manifests are not supported.*'
         self.assertRaisesRegexp(
-            exceptions.ManifestException, error_re, manifest.Manifest,
-            documents, target_manifest='armada-manifest')
+            exceptions.ManifestException,
+            error_re,
+            manifest.Manifest,
+            documents,
+            target_manifest='armada-manifest')
 
     def test_get_documents_missing_manifest(self):
         # Validates exceptions.ManifestException is thrown if no manifest is
         # found. Manifest is last document in sample YAML.
         error_re = ('Documents must be a list of documents with at least one '
                     'of each of the following schemas: .*')
-        self.assertRaisesRegexp(
-            exceptions.ManifestException, error_re, manifest.Manifest,
-            self.documents[:-1])
+        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+                                manifest.Manifest, self.documents[:-1])
 
     def test_get_documents_missing_charts(self):
         # Validates exceptions.ManifestException is thrown if no chart is
         # found. Charts are first 4 documents in sample YAML.
         error_re = ('Documents must be a list of documents with at least one '
                     'of each of the following schemas: .*')
-        self.assertRaisesRegexp(
-            exceptions.ManifestException, error_re, manifest.Manifest,
-            self.documents[4:])
+        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+                                manifest.Manifest, self.documents[4:])
 
     def test_get_documents_missing_chart_groups(self):
         # Validates exceptions.ManifestException is thrown if no chart is
@@ -389,21 +387,20 @@ class ManifestNegativeTestCase(testtools.TestCase):
         documents = self.documents[:4] + [self.documents[-1]]
         error_re = ('Documents must be a list of documents with at least one '
                     'of each of the following schemas: .*')
-        self.assertRaisesRegexp(
-            exceptions.ManifestException, error_re, manifest.Manifest,
-            documents)
+        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+                                manifest.Manifest, documents)
 
     def test_find_chart_document_negative(self):
         armada_manifest = manifest.Manifest(self.documents)
-        error_re = r'Could not find a %s named "%s"' % (
-            const.DOCUMENT_CHART, 'invalid')
+        error_re = r'Could not find a %s named "%s"' % (const.DOCUMENT_CHART,
+                                                        'invalid')
         self.assertRaisesRegexp(exceptions.ManifestException, error_re,
                                 armada_manifest.find_chart_document, 'invalid')
 
     def test_find_group_document_negative(self):
         armada_manifest = manifest.Manifest(self.documents)
-        error_re = r'Could not find a %s named "%s"' % (
-            const.DOCUMENT_GROUP, 'invalid')
+        error_re = r'Could not find a %s named "%s"' % (const.DOCUMENT_GROUP,
+                                                        'invalid')
         self.assertRaisesRegexp(exceptions.ManifestException, error_re,
                                 armada_manifest.find_chart_group_document,
                                 'invalid')

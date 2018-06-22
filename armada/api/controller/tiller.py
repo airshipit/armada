@@ -27,6 +27,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Status(api.BaseResource):
+
     @policy.enforce('tiller:get_status')
     def on_get(self, req, resp):
         '''
@@ -35,8 +36,8 @@ class Status(api.BaseResource):
         try:
             tiller = Tiller(
                 tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int(
-                    'tiller_port') or CONF.tiller_port,
+                tiller_port=req.get_param_as_int('tiller_port') or
+                CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace))
 
@@ -58,11 +59,11 @@ class Status(api.BaseResource):
         except Exception as e:
             err_message = 'Failed to get Tiller Status: {}'.format(e)
             self.error(req.context, err_message)
-            self.return_error(
-                resp, falcon.HTTP_500, message=err_message)
+            self.return_error(resp, falcon.HTTP_500, message=err_message)
 
 
 class Release(api.BaseResource):
+
     @policy.enforce('tiller:get_release')
     def on_get(self, req, resp):
         '''Controller for listing Tiller releases.
@@ -70,14 +71,15 @@ class Release(api.BaseResource):
         try:
             tiller = Tiller(
                 tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int(
-                    'tiller_port') or CONF.tiller_port,
+                tiller_port=req.get_param_as_int('tiller_port') or
+                CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace))
 
-            LOG.debug('Tiller (Release) at: %s:%s, namespace=%s, '
-                      'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                      tiller.tiller_namespace, tiller.timeout)
+            LOG.debug(
+                'Tiller (Release) at: %s:%s, namespace=%s, '
+                'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+                tiller.tiller_namespace, tiller.timeout)
 
             releases = {}
             for release in tiller.list_releases():
@@ -91,5 +93,4 @@ class Release(api.BaseResource):
         except Exception as e:
             err_message = 'Unable to find Tiller Releases: {}'.format(e)
             self.error(req.context, err_message)
-            self.return_error(
-                resp, falcon.HTTP_500, message=err_message)
+            self.return_error(resp, falcon.HTTP_500, message=err_message)

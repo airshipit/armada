@@ -41,8 +41,8 @@ class TestReleasesReleaseNameController(api.BaseResource):
         try:
             tiller = Tiller(
                 tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int(
-                    'tiller_port') or CONF.tiller_port,
+                tiller_port=req.get_param_as_int('tiller_port') or
+                CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace))
             success = test_release_for_success(tiller, release)
@@ -110,8 +110,7 @@ class TestReleasesManifestController(api.BaseResource):
 
     def _validate_documents(self, req, resp, documents):
         result, details = validate.validate_armada_documents(documents)
-        return self._format_validation_response(req, resp, result,
-                                                details)
+        return self._format_validation_response(req, resp, result, details)
 
     @policy.enforce('armada:tests_manifest')
     def on_post(self, req, resp):
@@ -122,8 +121,8 @@ class TestReleasesManifestController(api.BaseResource):
         try:
             tiller = Tiller(
                 tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int(
-                    'tiller_port') or CONF.tiller_port,
+                tiller_port=req.get_param_as_int('tiller_port') or
+                CONF.tiller_port,
                 tiller_namespace=req.get_param(
                     'tiller_namespace', default=CONF.tiller_namespace))
         # TODO(fmontei): Provide more sensible exception(s) here.
@@ -147,23 +146,16 @@ class TestReleasesManifestController(api.BaseResource):
         armada_obj = Manifest(
             documents, target_manifest=target_manifest).get_manifest()
 
-        prefix = armada_obj.get(const.KEYWORD_ARMADA).get(
-            const.KEYWORD_PREFIX)
+        prefix = armada_obj.get(const.KEYWORD_ARMADA).get(const.KEYWORD_PREFIX)
         known_releases = [release[0] for release in tiller.list_charts()]
 
-        message = {
-            'tests': {
-                'passed': [],
-                'skipped': [],
-                'failed': []
-            }
-        }
+        message = {'tests': {'passed': [], 'skipped': [], 'failed': []}}
 
         for group in armada_obj.get(const.KEYWORD_ARMADA).get(
                 const.KEYWORD_GROUPS):
             for ch in group.get(const.KEYWORD_CHARTS):
-                release_name = release_prefixer(
-                    prefix, ch.get('chart').get('release'))
+                release_name = release_prefixer(prefix,
+                                                ch.get('chart').get('release'))
 
                 if release_name in known_releases:
                     self.logger.info('RUNNING: %s tests', release_name)
@@ -175,8 +167,8 @@ class TestReleasesManifestController(api.BaseResource):
                         self.logger.info("FAILED: %s", release_name)
                         message['test']['failed'].append(release_name)
                 else:
-                    self.logger.info(
-                        'Release %s not found - SKIPPING', release_name)
+                    self.logger.info('Release %s not found - SKIPPING',
+                                     release_name)
                     message['test']['skipped'].append(release_name)
 
         resp.status = falcon.HTTP_200

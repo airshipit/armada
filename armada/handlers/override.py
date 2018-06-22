@@ -22,6 +22,7 @@ from armada.utils import validate
 
 
 class Override(object):
+
     def __init__(self, documents, overrides=None, values=None):
         self.documents = documents
         self.overrides = overrides
@@ -61,8 +62,8 @@ class Override(object):
     def find_manifest_document(self, doc_path):
         for doc in self.documents:
             if doc.get('schema') == self.find_document_type(
-                doc_path[0]) and doc.get('metadata', {}).get(
-                    'name') == doc_path[1]:
+                    doc_path[0]) and doc.get('metadata',
+                                             {}).get('name') == doc_path[1]:
                 return doc
 
         raise override_exceptions.UnknownDocumentOverrideException(
@@ -118,24 +119,24 @@ class Override(object):
     def update_chart_document(self, ovr):
         for doc in self.documents:
             if doc.get('schema') == const.DOCUMENT_CHART and doc.get(
-                    'metadata', {}).get('name') == ovr.get('metadata', {}).get(
-                        'name'):
+                    'metadata', {}).get('name') == ovr.get('metadata',
+                                                           {}).get('name'):
                 self.update(doc.get('data', {}), ovr.get('data', {}))
                 return
 
     def update_chart_group_document(self, ovr):
         for doc in self.documents:
             if doc.get('schema') == const.DOCUMENT_GROUP and doc.get(
-                    'metadata', {}).get('name') == ovr.get('metadata', {}).get(
-                        'name'):
+                    'metadata', {}).get('name') == ovr.get('metadata',
+                                                           {}).get('name'):
                 self.update(doc.get('data', {}), ovr.get('data', {}))
                 return
 
     def update_armada_manifest(self, ovr):
         for doc in self.documents:
             if doc.get('schema') == const.DOCUMENT_MANIFEST and doc.get(
-                    'metadata', {}).get('name') == ovr.get('metadata', {}).get(
-                        'name'):
+                    'metadata', {}).get('name') == ovr.get('metadata',
+                                                           {}).get('name'):
                 self.update(doc.get('data', {}), ovr.get('data', {}))
                 return
 

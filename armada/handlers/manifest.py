@@ -188,8 +188,8 @@ class Manifest(object):
         """
         try:
             chart = None
-            for iter, chart in enumerate(chart_group.get('data', {}).get(
-                    'chart_group', [])):
+            for iter, chart in enumerate(
+                    chart_group.get('data', {}).get('chart_group', [])):
                 if isinstance(chart, dict):
                     continue
                 chart_dep = self.find_chart_document(chart)
@@ -214,8 +214,8 @@ class Manifest(object):
         """
         try:
             group = None
-            for iter, group in enumerate(self.manifest.get('data', {}).get(
-                    'chart_groups', [])):
+            for iter, group in enumerate(
+                    self.manifest.get('data', {}).get('chart_groups', [])):
                 if isinstance(group, dict):
                     continue
                 chart_grp = self.find_chart_group_document(group)
@@ -244,6 +244,4 @@ class Manifest(object):
         self.build_chart_groups()
         self.build_armada_manifest()
 
-        return {
-            'armada': self.manifest.get('data', {})
-        }
+        return {'armada': self.manifest.get('data', {})}

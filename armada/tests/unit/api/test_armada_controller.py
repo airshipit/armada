@@ -34,14 +34,16 @@ class ArmadaControllerTest(base.BaseControllerTest):
         rules = {'armada:create_endpoints': '@'}
         self.policy.set_rules(rules)
 
-        options = {'debug': 'true',
-                   'disable_update_pre': 'false',
-                   'disable_update_post': 'false',
-                   'enable_chart_cleanup': 'false',
-                   'skip_pre_flight': 'false',
-                   'dry_run': 'false',
-                   'wait': 'false',
-                   'timeout': '100'}
+        options = {
+            'debug': 'true',
+            'disable_update_pre': 'false',
+            'disable_update_post': 'false',
+            'enable_chart_cleanup': 'false',
+            'skip_pre_flight': 'false',
+            'dry_run': 'false',
+            'wait': 'false',
+            'timeout': '100'
+        }
 
         expected_armada_options = {
             'disable_update_pre': False,
@@ -67,18 +69,18 @@ class ArmadaControllerTest(base.BaseControllerTest):
         mock_armada.return_value.sync.return_value = \
             {'diff': [], 'install': [], 'upgrade': []}
 
-        result = self.app.simulate_post(path='/api/v1.0/apply',
-                                        body=body,
-                                        headers={
-                                            'Content-Type': 'application/json'
-                                        },
-                                        params=options)
+        result = self.app.simulate_post(
+            path='/api/v1.0/apply',
+            body=body,
+            headers={'Content-Type': 'application/json'},
+            params=options)
         self.assertEqual(result.json, expected)
         self.assertEqual('application/json', result.headers['content-type'])
 
         mock_resolver.resolve_reference.assert_called_with([payload_url])
-        mock_armada.assert_called_with([{'foo': 'bar'}],
-                                       **expected_armada_options)
+        mock_armada.assert_called_with([{
+            'foo': 'bar'
+        }], **expected_armada_options)
         mock_armada.return_value.sync.assert_called()
 
     def test_armada_apply_no_href(self):
@@ -86,23 +88,24 @@ class ArmadaControllerTest(base.BaseControllerTest):
         rules = {'armada:create_endpoints': '@'}
         self.policy.set_rules(rules)
 
-        options = {'debug': 'true',
-                   'disable_update_pre': 'false',
-                   'disable_update_post': 'false',
-                   'enable_chart_cleanup': 'false',
-                   'skip_pre_flight': 'false',
-                   'dry_run': 'false',
-                   'wait': 'false',
-                   'timeout': '100'}
+        options = {
+            'debug': 'true',
+            'disable_update_pre': 'false',
+            'disable_update_post': 'false',
+            'enable_chart_cleanup': 'false',
+            'skip_pre_flight': 'false',
+            'dry_run': 'false',
+            'wait': 'false',
+            'timeout': '100'
+        }
         payload = {'hrefs': []}
         body = json.dumps(payload)
 
-        result = self.app.simulate_post(path='/api/v1.0/apply',
-                                        body=body,
-                                        headers={
-                                            'Content-Type': 'application/json'
-                                        },
-                                        params=options)
+        result = self.app.simulate_post(
+            path='/api/v1.0/apply',
+            body=body,
+            headers={'Content-Type': 'application/json'},
+            params=options)
         self.assertEqual(result.status_code, 400)
 
 

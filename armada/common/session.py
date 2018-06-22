@@ -35,8 +35,13 @@ class ArmadaSession(object):
         read timeout to use
     """
 
-    def __init__(self, host, port=None, scheme='http', token=None,
-                 marker=None, timeout=None):
+    def __init__(self,
+                 host,
+                 port=None,
+                 scheme='http',
+                 token=None,
+                 marker=None,
+                 timeout=None):
 
         self._session = requests.Session()
         self._session.headers.update({
@@ -48,11 +53,10 @@ class ArmadaSession(object):
 
         if port:
             self.port = port
-            self.base_url = "{}://{}:{}/api/".format(
-                self.scheme, self.host, self.port)
+            self.base_url = "{}://{}:{}/api/".format(self.scheme, self.host,
+                                                     self.port)
         else:
-            self.base_url = "{}://{}/api/".format(
-                self.scheme, self.host)
+            self.base_url = "{}://{}/api/".format(self.scheme, self.host)
 
         self.default_timeout = ArmadaSession._calc_timeout_tuple((20, 3600),
                                                                  timeout)
@@ -75,15 +79,21 @@ class ArmadaSession(object):
         api_url = '{}{}'.format(self.base_url, endpoint)
         req_timeout = self._timeout(timeout)
 
-        self.logger.debug("Sending armada_client session GET %s with "
-                          "params=[%s], headers=[%s], timeout=[%s]",
-                          api_url, query, headers, req_timeout)
+        self.logger.debug(
+            "Sending armada_client session GET %s with "
+            "params=[%s], headers=[%s], timeout=[%s]", api_url, query, headers,
+            req_timeout)
         resp = self._session.get(
             api_url, params=query, headers=headers, timeout=req_timeout)
 
         return resp
 
-    def post(self, endpoint, query=None, body=None, data=None, headers=None,
+    def post(self,
+             endpoint,
+             query=None,
+             body=None,
+             data=None,
+             headers=None,
              timeout=None):
         """
         Send a POST request to armada. If both body and data are specified,
@@ -101,23 +111,26 @@ class ArmadaSession(object):
         api_url = '{}{}'.format(self.base_url, endpoint)
         req_timeout = self._timeout(timeout)
 
-        self.logger.debug("Sending armada_client session POST %s with "
-                          "params=[%s], headers=[%s], timeout=[%s]",
-                          api_url, query, headers, req_timeout)
+        self.logger.debug(
+            "Sending armada_client session POST %s with "
+            "params=[%s], headers=[%s], timeout=[%s]", api_url, query, headers,
+            req_timeout)
         if body is not None:
             self.logger.debug("Sending POST with explicit body: \n%s" % body)
-            resp = self._session.post(api_url,
-                                      params=query,
-                                      data=body,
-                                      headers=headers,
-                                      timeout=req_timeout)
+            resp = self._session.post(
+                api_url,
+                params=query,
+                data=body,
+                headers=headers,
+                timeout=req_timeout)
         else:
             self.logger.debug("Sending POST with JSON body: \n%s" % str(data))
-            resp = self._session.post(api_url,
-                                      params=query,
-                                      json=data,
-                                      headers=headers,
-                                      timeout=req_timeout)
+            resp = self._session.post(
+                api_url,
+                params=query,
+                json=data,
+                headers=headers,
+                timeout=req_timeout)
 
         return resp
 
@@ -145,7 +158,7 @@ class ArmadaSession(object):
         try:
             if isinstance(timeout, tuple):
                 if all(isinstance(v, int)
-                        for v in timeout) and len(timeout) == 2:
+                       for v in timeout) and len(timeout) == 2:
                     connect_timeout, read_timeout = timeout
                 else:
                     raise ValueError("Tuple non-integer or wrong length")
@@ -154,8 +167,8 @@ class ArmadaSession(object):
             elif timeout is not None:
                 raise ValueError("Non integer timeout value")
         except ValueError:
-            LOG.warn("Timeout value must be a tuple of integers or a single"
-                     " integer. Proceeding with values of (%s, %s)",
-                     connect_timeout,
-                     read_timeout)
+            LOG.warn(
+                "Timeout value must be a tuple of integers or a single"
+                " integer. Proceeding with values of (%s, %s)",
+                connect_timeout, read_timeout)
         return (connect_timeout, read_timeout)

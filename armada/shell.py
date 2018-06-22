@@ -31,20 +31,15 @@ CONF = cfg.CONF
 
 
 @click.group()
-@click.option('--debug',
-              help="Enable debug logging",
-              is_flag=True)
-@click.option('--api/--no-api',
-              help="Execute service endpoints. (requires url option)",
-              default=False)
-@click.option('--url',
-              help="Armada Service Endpoint",
-              envvar='HOST',
-              default=None)
-@click.option('--token',
-              help="Keystone Service Token",
-              envvar='TOKEN',
-              default=None)
+@click.option('--debug', help="Enable debug logging", is_flag=True)
+@click.option(
+    '--api/--no-api',
+    help="Execute service endpoints. (requires url option)",
+    default=False)
+@click.option(
+    '--url', help="Armada Service Endpoint", envvar='HOST', default=None)
+@click.option(
+    '--token', help="Keystone Service Token", envvar='TOKEN', default=None)
 @click.pass_context
 def main(ctx, debug, api, url, token):
     """
@@ -83,8 +78,7 @@ def main(ctx, debug, api, url, token):
                 ArmadaSession(
                     host=parsed_url.netloc,
                     scheme=parsed_url.scheme,
-                    token=token)
-            )
+                    token=token))
 
     if debug:
         CONF.debug = debug

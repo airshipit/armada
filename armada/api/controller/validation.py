@@ -47,8 +47,8 @@ class Validate(api.BaseResource):
                 manifest = self.req_yaml(req)
                 documents = list(manifest)
 
-            self.logger.debug("Validating set of %d documents."
-                              % len(documents))
+            self.logger.debug(
+                "Validating set of %d documents." % len(documents))
 
             result, details = validate_armada_documents(documents)
 
@@ -81,5 +81,4 @@ class Validate(api.BaseResource):
         except Exception as ex:
             err_message = 'Failed to validate Armada Manifest'
             self.logger.error(err_message, exc_info=ex)
-            self.return_error(
-                resp, falcon.HTTP_400, message=err_message)
+            self.return_error(resp, falcon.HTTP_400, message=err_message)

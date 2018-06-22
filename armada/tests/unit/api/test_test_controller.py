@@ -43,13 +43,10 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
         self.assertEqual(200, resp.status_code)
 
         result = json.loads(resp.text)
-        expected = {
-            "tests": {"passed": [], "skipped": [], "failed": []}
-        }
+        expected = {"tests": {"passed": [], "skipped": [], "failed": []}}
         self.assertEqual(expected, result)
 
-        mock_manifest.assert_called_once_with(
-            documents, target_manifest=None)
+        mock_manifest.assert_called_once_with(documents, target_manifest=None)
         self.assertTrue(mock_tiller.called)
 
 
@@ -57,8 +54,8 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'test_release_for_success')
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_test_pass(
-            self, mock_tiller, mock_test_release_for_success):
+    def test_test_controller_test_pass(self, mock_tiller,
+                                       mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
@@ -71,8 +68,8 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'test_release_for_success')
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_test_fail(
-            self, mock_tiller, mock_test_release_for_success):
+    def test_test_controller_test_fail(self, mock_tiller,
+                                       mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
@@ -103,8 +100,7 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'Manifest')
     @mock.patch.object(test, 'Tiller')
-    def test_test_controller_validation_failure_returns_400(
-            self, *_):
+    def test_test_controller_validation_failure_returns_400(self, *_):
         rules = {'armada:tests_manifest': '@'}
         self.policy.set_rules(rules)
 
@@ -123,19 +119,22 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         resp_body = json.loads(resp.text)
         self.assertEqual(400, resp_body['code'])
         self.assertEqual(1, resp_body['details']['errorCount'])
-        self.assertIn(
-            {'message': (
-                'An error occurred while generating the manifest: Could not '
-                'find dependency chart helm-toolkit in armada/Chart/v1.'),
-             'error': True,
-             'kind': 'ValidationMessage',
-             'level': 'Error',
-             'name': 'ARM001',
-             'documents': []},
-            resp_body['details']['messageList'])
+        self.assertIn({
+            'message':
+            ('An error occurred while generating the manifest: Could not '
+             'find dependency chart helm-toolkit in armada/Chart/v1.'),
+            'error':
+            True,
+            'kind':
+            'ValidationMessage',
+            'level':
+            'Error',
+            'name':
+            'ARM001',
+            'documents': []
+        }, resp_body['details']['messageList'])
         self.assertEqual(('Failed to validate documents or generate Armada '
-                          'Manifest from documents.'),
-                         resp_body['message'])
+                          'Manifest from documents.'), resp_body['message'])
 
     @mock.patch('armada.utils.validate.Manifest')
     @mock.patch.object(test, 'Tiller')
@@ -158,18 +157,21 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         resp_body = json.loads(resp.text)
         self.assertEqual(400, resp_body['code'])
         self.assertEqual(1, resp_body['details']['errorCount'])
-        self.assertEqual(
-            [{'message': (
-                'An error occurred while generating the manifest: foo.'),
-              'error': True,
-              'kind': 'ValidationMessage',
-              'level': 'Error',
-              'name': 'ARM001',
-              'documents': []}],
-            resp_body['details']['messageList'])
+        self.assertEqual([{
+            'message':
+            ('An error occurred while generating the manifest: foo.'),
+            'error':
+            True,
+            'kind':
+            'ValidationMessage',
+            'level':
+            'Error',
+            'name':
+            'ARM001',
+            'documents': []
+        }], resp_body['details']['messageList'])
         self.assertEqual(('Failed to validate documents or generate Armada '
-                          'Manifest from documents.'),
-                         resp_body['message'])
+                          'Manifest from documents.'), resp_body['message'])
 
 
 @test_utils.attr(type=['negative'])

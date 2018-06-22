@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Module for resolving design references."""
 
 import urllib.parse
@@ -66,8 +67,7 @@ class ReferenceResolver(object):
             except ValueError:
                 raise InvalidPathException(
                     "Cannot resolve design reference %s: unable "
-                    "to parse as valid URI."
-                    % l)
+                    "to parse as valid URI." % l)
 
         return data
 
@@ -90,8 +90,8 @@ class ReferenceResolver(object):
             response = requests.get(design_uri.geturl(), timeout=30)
             if response.status_code >= 400:
                 raise InvalidPathException(
-                    "Error received for HTTP reference: %d"
-                    % response.status_code)
+                    "Error received for HTTP reference: %d" %
+                    response.status_code)
 
         return response.content
 

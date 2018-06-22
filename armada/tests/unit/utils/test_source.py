@@ -39,23 +39,23 @@ class GitTestCase(base.ArmadaTestCase):
                     as git_file:
                 self.assertIn(expected_ref, git_file.read())
 
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     def test_git_clone_good_url(self):
         url = 'https://github.com/openstack/airship-armada'
         git_dir = source.git_clone(url)
         self._validate_git_clone(git_dir)
 
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     def test_git_clone_commit(self):
         url = 'https://github.com/openstack/airship-armada'
         commit = 'cba78d1d03e4910f6ab1691bae633c5bddce893d'
         git_dir = source.git_clone(url, commit)
         self._validate_git_clone(git_dir)
 
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     def test_git_clone_ref(self):
         ref = 'refs/changes/54/457754/73'
         git_dir = source.git_clone(
@@ -63,29 +63,29 @@ class GitTestCase(base.ArmadaTestCase):
         self._validate_git_clone(git_dir, ref)
 
     @test_utils.attr(type=['negative'])
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     def test_git_clone_empty_url(self):
         url = ''
         # error_re = '%s is not a valid git repository.' % url
 
-        self.assertRaises(source_exceptions.GitException,
-                          source.git_clone, url)
+        self.assertRaises(source_exceptions.GitException, source.git_clone,
+                          url)
 
     @test_utils.attr(type=['negative'])
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     def test_git_clone_bad_url(self):
         url = 'https://github.com/dummy/armada'
 
-        self.assertRaises(source_exceptions.GitException,
-                          source.git_clone, url)
+        self.assertRaises(source_exceptions.GitException, source.git_clone,
+                          url)
 
     # TODO need to design a positive proxy test,
     #      difficult to achieve behind a corporate proxy
     @test_utils.attr(type=['negative'])
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     def test_git_clone_fake_proxy(self):
         url = 'https://github.com/openstack/airship-armada'
         proxy_url = test_utils.rand_name(
@@ -94,7 +94,8 @@ class GitTestCase(base.ArmadaTestCase):
 
         self.assertRaises(
             source_exceptions.GitProxyException,
-            source.git_clone, url,
+            source.git_clone,
+            url,
             proxy_server=proxy_url)
 
     @mock.patch('armada.utils.source.tempfile')
@@ -146,8 +147,8 @@ class GitTestCase(base.ArmadaTestCase):
         mock_tarfile.open.assert_not_called()
         mock_tarfile.extractall.assert_not_called()
 
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     @mock.patch.object(source, 'LOG')
     def test_source_cleanup(self, mock_log):
         url = 'https://github.com/openstack/airship-armada'
@@ -190,28 +191,34 @@ class GitTestCase(base.ArmadaTestCase):
             ('Could not delete the path %s. Is it a git repository?', path),
             actual_call)
 
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     @test_utils.attr(type=['negative'])
     @mock.patch.object(source, 'os')
     def test_git_clone_ssh_auth_method_fails_auth(self, mock_os):
         mock_os.path.exists.return_value = True
         fake_user = test_utils.rand_name('fake_user')
-        url = ('ssh://%s@review.openstack.org:29418/openstack/airship-armada'
-               % fake_user)
+        url = ('ssh://%s@review.openstack.org:29418/openstack/airship-armada' %
+               fake_user)
         self.assertRaises(
-            source_exceptions.GitAuthException, source.git_clone, url,
-            ref='refs/changes/17/388517/5', auth_method='SSH')
+            source_exceptions.GitAuthException,
+            source.git_clone,
+            url,
+            ref='refs/changes/17/388517/5',
+            auth_method='SSH')
 
-    @testtools.skipUnless(
-        base.is_connected(), 'git clone requires network connectivity.')
+    @testtools.skipUnless(base.is_connected(),
+                          'git clone requires network connectivity.')
     @test_utils.attr(type=['negative'])
     @mock.patch.object(source, 'os')
     def test_git_clone_ssh_auth_method_missing_ssh_key(self, mock_os):
         mock_os.path.exists.return_value = False
         fake_user = test_utils.rand_name('fake_user')
-        url = ('ssh://%s@review.openstack.org:29418/openstack/airship-armada'
-               % fake_user)
+        url = ('ssh://%s@review.openstack.org:29418/openstack/airship-armada' %
+               fake_user)
         self.assertRaises(
-            source_exceptions.GitSSHException, source.git_clone, url,
-            ref='refs/changes/17/388517/5', auth_method='SSH')
+            source_exceptions.GitSSHException,
+            source.git_clone,
+            url,
+            ref='refs/changes/17/388517/5',
+            auth_method='SSH')

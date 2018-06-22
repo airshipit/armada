@@ -33,7 +33,6 @@ import importlib
 import os
 import pkgutil
 
-
 LIST_OPTS_FUNC_NAME = 'list_opts'
 IGNORED_MODULES = ('opts', 'constants', 'utils')
 
@@ -71,9 +70,8 @@ def _import_modules(module_names):
         if not hasattr(module, LIST_OPTS_FUNC_NAME):
             raise Exception(
                 "The module '%s' should have a '%s' function which "
-                "returns the config options." % (
-                    full_module_path,
-                    LIST_OPTS_FUNC_NAME))
+                "returns the config options." % (full_module_path,
+                                                 LIST_OPTS_FUNC_NAME))
         else:
             imported_modules.append(module)
     return imported_modules

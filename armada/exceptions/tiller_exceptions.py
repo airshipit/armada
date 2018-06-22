@@ -52,8 +52,7 @@ class PostUpdateJobDeleteException(TillerException):
 
     def __init__(self, name, namespace):
 
-        message = 'Failed to delete k8s job {} in {}'.format(
-            name, namespace)
+        message = 'Failed to delete k8s job {} in {}'.format(name, namespace)
 
         super(PostUpdateJobDeleteException, self).__init__(message)
 
@@ -68,8 +67,7 @@ class PostUpdateJobCreateException(TillerException):
 
     def __init__(self, name, namespace):
 
-        message = 'Failed to create k8s job {} in {}'.format(
-            name, namespace)
+        message = 'Failed to create k8s job {} in {}'.format(name, namespace)
 
         super(PostUpdateJobCreateException, self).__init__(message)
 
@@ -84,8 +82,7 @@ class PreUpdateJobDeleteException(TillerException):
 
     def __init__(self, name, namespace):
 
-        message = 'Failed to delete k8s job {} in {}'.format(
-            name, namespace)
+        message = 'Failed to delete k8s job {} in {}'.format(name, namespace)
 
         super(PreUpdateJobDeleteException, self).__init__(message)
 
@@ -95,8 +92,7 @@ class PreUpdateJobCreateException(TillerException):
 
     def __init__(self, name, namespace):
 
-        message = 'Failed to create k8s job {} in {}'.format(
-            name, namespace)
+        message = 'Failed to create k8s job {} in {}'.format(name, namespace)
 
         super(PreUpdateJobCreateException, self).__init__(message)
 
@@ -152,8 +148,7 @@ class GetReleaseStatusException(TillerException):
     '''
 
     def __init__(self, release, version):
-        message = 'Failed to get {} status {} version'.format(
-            release, version)
+        message = 'Failed to get {} status {} version'.format(release, version)
 
         super(GetReleaseStatusException, self).__init__(message)
 

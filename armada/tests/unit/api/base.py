@@ -35,8 +35,8 @@ class BaseControllerTest(test_base.ArmadaTestCase):
         sample_conf_dir = os.path.join(current_dir, os.pardir, os.pardir,
                                        os.pardir, os.pardir, 'etc', 'armada')
         sample_conf_files = ['api-paste.ini', 'armada.conf.sample']
-        with mock.patch.object(
-                armada.conf, '_get_config_files') as mock_get_config_files:
+        with mock.patch.object(armada.conf,
+                               '_get_config_files') as mock_get_config_files:
             mock_get_config_files.return_value = [
                 os.path.join(sample_conf_dir, x) for x in sample_conf_files
             ]

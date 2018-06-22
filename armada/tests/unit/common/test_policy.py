@@ -20,7 +20,6 @@ from armada import conf as cfg
 from armada.exceptions import base_exception as exc
 from armada.tests.unit import fixtures
 
-
 CONF = cfg.CONF
 
 
@@ -47,9 +46,8 @@ class PolicyTestCase(testtools.TestCase):
         action = "example:nope"
         mock_ctx.to_policy_view.return_value = self.credentials
 
-        self.assertRaises(
-            exc.ActionForbidden, policy._enforce_policy, action,
-            self.target, mock_ctx)
+        self.assertRaises(exc.ActionForbidden, policy._enforce_policy, action,
+                          self.target, mock_ctx)
 
     @mock.patch('armada.api.ArmadaRequestContext')
     def test_enforce_good_action(self, mock_ctx):
@@ -63,5 +61,5 @@ class PolicyTestCase(testtools.TestCase):
         action = "example:disallowed"
         mock_ctx.to_policy_view.return_value = self.credentials
 
-        self.assertRaises(exc.ActionForbidden, policy._enforce_policy,
-                          action, self.target, mock_ctx)
+        self.assertRaises(exc.ActionForbidden, policy._enforce_policy, action,
+                          self.target, mock_ctx)

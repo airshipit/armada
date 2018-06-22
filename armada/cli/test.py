@@ -54,43 +54,37 @@ To test release:
 SHORT_DESC = "Command tests releases."
 
 
-@test.command(name='test',
-              help=DESC,
-              short_help=SHORT_DESC)
-@click.option('--file',
-              help="Armada manifest.",
-              type=str)
-@click.option('--release',
-              help="Helm release.",
-              type=str)
-@click.option('--tiller-host',
-              help="Tiller host IP.",
-              default=None)
-@click.option('--tiller-port',
-              help="Tiller host port.",
-              type=int,
-              default=CONF.tiller_port)
-@click.option('--tiller-namespace', '-tn',
-              help="Tiller Namespace.",
-              type=str,
-              default=CONF.tiller_namespace)
-@click.option('--target-manifest',
-              help=("The target manifest to run. Required for specifying "
-                    "which manifest to run when multiple are available."),
-              default=None)
-@click.option('--debug',
-              help="Enable debug logging.",
-              is_flag=True)
+@test.command(name='test', help=DESC, short_help=SHORT_DESC)
+@click.option('--file', help="Armada manifest.", type=str)
+@click.option('--release', help="Helm release.", type=str)
+@click.option('--tiller-host', help="Tiller host IP.", default=None)
+@click.option(
+    '--tiller-port',
+    help="Tiller host port.",
+    type=int,
+    default=CONF.tiller_port)
+@click.option(
+    '--tiller-namespace',
+    '-tn',
+    help="Tiller Namespace.",
+    type=str,
+    default=CONF.tiller_namespace)
+@click.option(
+    '--target-manifest',
+    help=("The target manifest to run. Required for specifying "
+          "which manifest to run when multiple are available."),
+    default=None)
+@click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def test_charts(ctx, file, release, tiller_host, tiller_port, tiller_namespace,
                 target_manifest, debug):
     CONF.debug = debug
-    TestChartManifest(
-        ctx, file, release, tiller_host, tiller_port, tiller_namespace,
-        target_manifest).safe_invoke()
+    TestChartManifest(ctx, file, release, tiller_host, tiller_port,
+                      tiller_namespace, target_manifest).safe_invoke()
 
 
 class TestChartManifest(CliAction):
+
     def __init__(self, ctx, file, release, tiller_host, tiller_port,
                  tiller_namespace, target_manifest):
 
@@ -125,8 +119,8 @@ class TestChartManifest(CliAction):
                     'tiller_port': self.tiller_port,
                     'tiller_namespace': self.tiller_namespace
                 }
-                resp = client.get_test_release(release=self.release,
-                                               query=query)
+                resp = client.get_test_release(
+                    release=self.release, query=query)
 
                 self.logger.info(resp.get('result'))
                 self.logger.info(resp.get('message'))
@@ -144,7 +138,8 @@ class TestChartManifest(CliAction):
                         const.KEYWORD_GROUPS):
                     for ch in group.get(const.KEYWORD_CHARTS):
                         release_name = release_prefixer(
-                            prefix, ch.get('chart').get('release'))
+                            prefix,
+                            ch.get('chart').get('release'))
 
                         if release_name in known_release_names:
                             self.logger.info('RUNNING: %s tests', release_name)
@@ -156,9 +151,8 @@ class TestChartManifest(CliAction):
                                 self.logger.info("FAILED: %s", release_name)
 
                         else:
-                            self.logger.info(
-                                'Release %s not found - SKIPPING',
-                                release_name)
+                            self.logger.info('Release %s not found - SKIPPING',
+                                             release_name)
             else:
                 client = self.ctx.obj.get('CLIENT')
                 query = {
@@ -168,8 +162,8 @@ class TestChartManifest(CliAction):
                 }
 
                 with open(self.filename, 'r') as f:
-                    resp = client.get_test_manifest(manifest=f.read(),
-                                                    query=query)
+                    resp = client.get_test_manifest(
+                        manifest=f.read(), query=query)
                     for test in resp.get('tests'):
                         self.logger.info('Test State: %s', test)
                         for item in test.get('tests').get(test):

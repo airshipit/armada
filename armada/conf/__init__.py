@@ -54,10 +54,7 @@ def set_default_for_default_log_levels():
     This function needs to be called before CONF().
     """
 
-    extra_log_level_defaults = [
-        'kubernetes.client.rest=INFO'
-    ]
+    extra_log_level_defaults = ['kubernetes.client.rest=INFO']
 
-    log.set_defaults(
-        default_log_levels=log.get_default_log_levels() +
-        extra_log_level_defaults)
+    log.set_defaults(default_log_levels=log.get_default_log_levels() +
+                     extra_log_level_defaults)

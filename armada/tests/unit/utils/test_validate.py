@@ -20,7 +20,6 @@ import testtools
 from armada.tests.unit import base
 from armada.utils import validate
 
-
 template_chart = """
 schema: armada/Chart/v1
 metadata:
@@ -114,9 +113,7 @@ class ValidateTestCase(BaseValidateTest):
 
     def test_validate_load_schemas(self):
         expected_schemas = [
-            'armada/Chart/v1',
-            'armada/ChartGroup/v1',
-            'armada/Manifest/v1'
+            'armada/Chart/v1', 'armada/ChartGroup/v1', 'armada/Manifest/v1'
         ]
         for expected_schema in expected_schemas:
             self.assertIn(expected_schema, validate.SCHEMAS)
@@ -232,9 +229,8 @@ class ValidateNegativeTestCase(BaseValidateTest):
         import, and importing the schemas again in manually results in
         duplicates.
         """
-        with self.assertRaisesRegexp(
-                RuntimeError,
-                'Duplicate schema specified for: .*'):
+        with self.assertRaisesRegexp(RuntimeError,
+                                     'Duplicate schema specified for: .*'):
             validate._load_schemas()
 
     def test_validate_no_dictionary_expect_type_error(self):
@@ -251,13 +247,13 @@ class ValidateNegativeTestCase(BaseValidateTest):
             documents = list(yaml.safe_load_all(f.read()))
 
         mariadb_document = [
-            d for d in documents if d['metadata']['name'] == 'mariadb'][0]
+            d for d in documents if d['metadata']['name'] == 'mariadb'
+        ][0]
         del mariadb_document['data']['release']
 
         _, error_messages = validate.validate_armada_documents(documents)
         expected_error = self._build_error_message(
-            'armada/Chart/v1', 'mariadb',
-            "'release' is a required property")
+            'armada/Chart/v1', 'mariadb', "'release' is a required property")
 
         self.assertEqual(1, len(error_messages))
         self.assertEqual(expected_error, error_messages[0]['message'])

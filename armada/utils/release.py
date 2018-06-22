@@ -26,5 +26,4 @@ def label_selectors(labels):
 
     :return: string of k8s labels
     """
-    return ",".join(
-        ["%s=%s" % (k, v) for k, v in labels.items()])
+    return ",".join(["%s=%s" % (k, v) for k, v in labels.items()])

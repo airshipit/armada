@@ -72,10 +72,8 @@ def _validate_armada_manifest(manifest):
     try:
         armada_object = manifest.get_manifest().get('armada')
     except ManifestException as me:
-        vmsg = ValidationMessage(message=str(me),
-                                 error=True,
-                                 name='ARM001',
-                                 level='Error')
+        vmsg = ValidationMessage(
+            message=str(me), error=True, name='ARM001', level='Error')
         LOG.error('ValidationMessage: %s', vmsg.get_output_json())
         details.append(vmsg.get_output())
         return False, details
@@ -85,10 +83,8 @@ def _validate_armada_manifest(manifest):
     if not isinstance(groups, list):
         message = '{} entry is of wrong type: {} (expected: {})'.format(
             KEYWORD_GROUPS, type(groups), 'list')
-        vmsg = ValidationMessage(message=message,
-                                 error=True,
-                                 name='ARM101',
-                                 level='Error')
+        vmsg = ValidationMessage(
+            message=message, error=True, name='ARM101', level='Error')
         LOG.info('ValidationMessage: %s', vmsg.get_output_json())
         details.append(vmsg.get_output())
 
@@ -98,10 +94,8 @@ def _validate_armada_manifest(manifest):
             if KEYWORD_RELEASE not in chart_obj:
                 message = 'Could not find {} keyword in {}'.format(
                     KEYWORD_RELEASE, chart_obj.get('release'))
-                vmsg = ValidationMessage(message=message,
-                                         error=True,
-                                         name='ARM102',
-                                         level='Error')
+                vmsg = ValidationMessage(
+                    message=message, error=True, name='ARM102', level='Error')
                 LOG.info('ValidationMessage: %s', vmsg.get_output_json())
                 details.append(vmsg.get_output())
 
@@ -147,8 +141,8 @@ def validate_armada_document(document):
 
     """
     if not isinstance(document, dict):
-        raise TypeError('The provided input "%s" must be a dictionary.'
-                        % document)
+        raise TypeError(
+            'The provided input "%s" must be a dictionary.' % document)
 
     schema = document.get('schema', '<missing>')
     document_name = document.get('metadata', {}).get('name', None)
@@ -161,34 +155,36 @@ def validate_armada_document(document):
             for error in validator.iter_errors(document.get('data')):
                 error_message = "Invalid document [%s] %s: %s." % \
                     (schema, document_name, error.message)
-                vmsg = ValidationMessage(message=error_message,
-                                         error=True,
-                                         name='ARM100',
-                                         level='Error',
-                                         schema=schema,
-                                         doc_name=document_name)
+                vmsg = ValidationMessage(
+                    message=error_message,
+                    error=True,
+                    name='ARM100',
+                    level='Error',
+                    schema=schema,
+                    doc_name=document_name)
                 LOG.info('ValidationMessage: %s', vmsg.get_output_json())
                 details.append(vmsg.get_output())
         except jsonschema.SchemaError as e:
             error_message = ('The built-in Armada JSON schema %s is invalid. '
                              'Details: %s.' % (e.schema, e.message))
-            vmsg = ValidationMessage(message=error_message,
-                                     error=True,
-                                     name='ARM000',
-                                     level='Error',
-                                     diagnostic='Armada is misconfigured.')
+            vmsg = ValidationMessage(
+                message=error_message,
+                error=True,
+                name='ARM000',
+                level='Error',
+                diagnostic='Armada is misconfigured.')
             LOG.error('ValidationMessage: %s', vmsg.get_output_json())
             details.append(vmsg.get_output())
     else:
-        vmsg = ValidationMessage(message='Unsupported document type.',
-                                 error=False,
-                                 name='ARM002',
-                                 level='Warning',
-                                 schema=schema,
-                                 doc_name=document_name,
-                                 diagnostic='Please ensure document is one of '
-                                            'the following schema types: %s' %
-                                            list(SCHEMAS.keys()))
+        vmsg = ValidationMessage(
+            message='Unsupported document type.',
+            error=False,
+            name='ARM002',
+            level='Warning',
+            schema=schema,
+            doc_name=document_name,
+            diagnostic='Please ensure document is one of '
+            'the following schema types: %s' % list(SCHEMAS.keys()))
         LOG.info('Unsupported document type, ignoring %s.', schema)
         LOG.debug('ValidationMessage: %s', vmsg.get_output_json())
         # Validation API doesn't care about this type of message, don't send

@@ -27,6 +27,7 @@ API_VERSION = 'v{}/{}'
 
 
 class ArmadaClient(object):
+
     def __init__(self, session):
         self.session = session
 
@@ -61,9 +62,7 @@ class ArmadaClient(object):
         resp = self.session.post(
             endpoint,
             data=req_body,
-            headers={
-                'content-type': 'application/json'
-            },
+            headers={'content-type': 'application/json'},
             timeout=timeout)
 
         self._check_response(resp)
@@ -107,9 +106,7 @@ class ArmadaClient(object):
                 endpoint,
                 body=manifest,
                 query=query,
-                headers={
-                    'content-type': 'application/x-yaml'
-                },
+                headers={'content-type': 'application/x-yaml'},
                 timeout=timeout)
         elif manifest_ref:
             req_body = {
@@ -120,9 +117,7 @@ class ArmadaClient(object):
                 endpoint,
                 data=req_body,
                 query=query,
-                headers={
-                    'content-type': 'application/json'
-                },
+                headers={'content-type': 'application/json'},
                 timeout=timeout)
 
         self._check_response(resp)
@@ -150,8 +145,8 @@ class ArmadaClient(object):
     def post_test_manifest(self, manifest=None, query=None, timeout=None):
 
         endpoint = self._set_endpoint('1.0', 'tests')
-        resp = self.session.post(endpoint, body=manifest, query=query,
-                                 timeout=timeout)
+        resp = self.session.post(
+            endpoint, body=manifest, query=query, timeout=timeout)
 
         self._check_response(resp)
 
@@ -165,5 +160,5 @@ class ArmadaClient(object):
         elif resp.status_code == 403:
             raise err.ClientForbiddenError("Forbidden access to %s" % resp.url)
         elif not resp.ok:
-            raise err.ClientError("Error - received %d: %s" %
-                                  (resp.status_code, resp.text))
+            raise err.ClientError(
+                "Error - received %d: %s" % (resp.status_code, resp.text))

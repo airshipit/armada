@@ -56,27 +56,16 @@ To delete releases by the name:
 SHORT_DESC = "Command deletes releases."
 
 
-@delete.command(name='delete',
-                help=DESC,
-                short_help=SHORT_DESC)
-@click.option('--manifest',
-              help="Armada Manifest file.",
-              type=str)
-@click.option('--releases',
-              help="Comma-separated list of release names.",
-              type=str)
-@click.option('--no-purge',
-              help="Deletes release without purge option.",
-              is_flag=True)
-@click.option('--tiller-host',
-              help="Tiller host IP.")
-@click.option('--tiller-port',
-              help="Tiller host port.",
-              type=int,
-              default=44134)
-@click.option('--debug',
-              help="Enable debug logging.",
-              is_flag=True)
+@delete.command(name='delete', help=DESC, short_help=SHORT_DESC)
+@click.option('--manifest', help="Armada Manifest file.", type=str)
+@click.option(
+    '--releases', help="Comma-separated list of release names.", type=str)
+@click.option(
+    '--no-purge', help="Deletes release without purge option.", is_flag=True)
+@click.option('--tiller-host', help="Tiller host IP.")
+@click.option(
+    '--tiller-port', help="Tiller host port.", type=int, default=44134)
+@click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def delete_charts(ctx, manifest, releases, no_purge, tiller_host, tiller_port,
                   debug):
@@ -86,6 +75,7 @@ def delete_charts(ctx, manifest, releases, no_purge, tiller_host, tiller_port,
 
 
 class DeleteChartManifest(CliAction):
+
     def __init__(self, ctx, manifest, releases, no_purge, tiller_host,
                  tiller_port):
 
@@ -103,8 +93,10 @@ class DeleteChartManifest(CliAction):
         known_release_names = [release[0] for release in tiller.list_charts()]
 
         if self.releases:
-            target_releases = [r.strip() for r in self.releases.split(',')
-                               if r.strip() in known_release_names]
+            target_releases = [
+                r.strip() for r in self.releases.split(',')
+                if r.strip() in known_release_names
+            ]
             if not target_releases:
                 self.logger.info("There's no release to delete.")
                 return
@@ -131,14 +123,16 @@ class DeleteChartManifest(CliAction):
                         const.KEYWORD_GROUPS):
                     for ch in group.get(const.KEYWORD_CHARTS):
                         release_name = release_prefixer(
-                            prefix, ch.get('chart').get('release'))
+                            prefix,
+                            ch.get('chart').get('release'))
                         if release_name in known_release_names:
                             target_releases.append(release_name)
             except yaml.YAMLError as e:
                 mark = e.problem_mark
-                self.logger.info("While parsing the manifest file, %s. "
-                                 "Error position: (%s:%s)", e.problem,
-                                 mark.line + 1, mark.column + 1)
+                self.logger.info(
+                    "While parsing the manifest file, %s. "
+                    "Error position: (%s:%s)", e.problem, mark.line + 1,
+                    mark.column + 1)
 
             if not target_releases:
                 self.logger.info("There's no release to delete.")

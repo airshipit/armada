@@ -37,6 +37,6 @@ class ProtectedReleaseException(ArmadaException):
 
     def __init__(self, reason):
         self._message = (
-            'Armada encountered protected release %s in FAILED status' % reason
-        )
+            'Armada encountered protected release %s in FAILED status' %
+            reason)
         super(ProtectedReleaseException, self).__init__(self._message)

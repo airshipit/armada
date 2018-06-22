@@ -93,6 +93,7 @@ class ContextMiddleware(object):
 
 
 class LoggingMiddleware(object):
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -121,8 +122,8 @@ class LoggingMiddleware(object):
             'external_ctx': ctx.external_marker,
         }
         resp.append_header('X-Armada-Req', ctx.request_id)
-        self.logger.info("%s %s - %s" % (req.method, req.uri, resp.status),
-                         extra=extra)
+        self.logger.info(
+            "%s %s - %s" % (req.method, req.uri, resp.status), extra=extra)
         self.logger.debug("Response body:%s", resp.body)
 
     def _log_headers(self, headers):

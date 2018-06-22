@@ -65,72 +65,71 @@ file:
 SHORT_DESC = "Command installs manifest charts."
 
 
-@apply.command(name='apply',
-               help=DESC,
-               short_help=SHORT_DESC)
-@click.argument('locations',
-                nargs=-1)
-@click.option('--api',
-              help="Contacts service endpoint.",
-              is_flag=True)
-@click.option('--disable-update-post',
-              help="Disable post-update Tiller operations.",
-              is_flag=True)
-@click.option('--disable-update-pre',
-              help="Disable pre-update Tiller operations.",
-              is_flag=True)
-@click.option('--dry-run',
-              help="Run charts without installing them.",
-              is_flag=True)
-@click.option('--enable-chart-cleanup',
-              help="Clean up unmanaged charts.",
-              is_flag=True)
-@click.option('--use-doc-ref',
-              help="Use armada manifest file reference.",
-              is_flag=True)
-@click.option('--set',
-              help=("Use to override Armada Manifest values. Accepts "
-                    "overrides that adhere to the format "
-                    "<path>:<to>:<property>=<value> to specify a primitive or "
-                    "<path>:<to>:<property>=<value1>,...,<valueN> to specify "
-                    "a list of values."),
-              multiple=True,
-              type=str,
-              default=[])
-@click.option('--tiller-host',
-              help="Tiller host IP.",
-              default=None)
-@click.option('--tiller-port',
-              help="Tiller host port.",
-              type=int,
-              default=CONF.tiller_port)
-@click.option('--tiller-namespace', '-tn',
-              help="Tiller namespace.",
-              type=str,
-              default=CONF.tiller_namespace)
-@click.option('--timeout',
-              help="Specifies time to wait for each chart to fully "
-                   "finish deploying.",
-              type=int,
-              default=0)
-@click.option('--values', '-f',
-              help=("Use to override multiple Armada Manifest values by "
-                    "reading overrides from a values.yaml-type file."),
-              multiple=True,
-              type=str,
-              default=[])
-@click.option('--wait',
-              help=("Force Tiller to wait until all charts are deployed, "
-                    "rather than using each chart's specified wait policy. "
-                    "This is equivalent to sequenced chartgroups."),
-              is_flag=True)
-@click.option('--target-manifest',
-              help=("The target manifest to run. Required for specifying "
-                    "which manifest to run when multiple are available."),
-              default=None)
-@click.option('--debug',
-              help="Enable debug logging.",
-              is_flag=True)
+@apply.command(name='apply', help=DESC, short_help=SHORT_DESC)
+@click.argument('locations', nargs=-1)
+@click.option('--api', help="Contacts service endpoint.", is_flag=True)
+@click.option(
+    '--disable-update-post',
+    help="Disable post-update Tiller operations.",
+    is_flag=True)
+@click.option(
+    '--disable-update-pre',
+    help="Disable pre-update Tiller operations.",
+    is_flag=True)
+@click.option(
+    '--dry-run', help="Run charts without installing them.", is_flag=True)
+@click.option(
+    '--enable-chart-cleanup', help="Clean up unmanaged charts.", is_flag=True)
+@click.option(
+    '--use-doc-ref', help="Use armada manifest file reference.", is_flag=True)
+@click.option(
+    '--set',
+    help=("Use to override Armada Manifest values. Accepts "
+          "overrides that adhere to the format "
+          "<path>:<to>:<property>=<value> to specify a primitive or "
+          "<path>:<to>:<property>=<value1>,...,<valueN> to specify "
+          "a list of values."),
+    multiple=True,
+    type=str,
+    default=[])
+@click.option('--tiller-host', help="Tiller host IP.", default=None)
+@click.option(
+    '--tiller-port',
+    help="Tiller host port.",
+    type=int,
+    default=CONF.tiller_port)
+@click.option(
+    '--tiller-namespace',
+    '-tn',
+    help="Tiller namespace.",
+    type=str,
+    default=CONF.tiller_namespace)
+@click.option(
+    '--timeout',
+    help="Specifies time to wait for each chart to fully "
+    "finish deploying.",
+    type=int,
+    default=0)
+@click.option(
+    '--values',
+    '-f',
+    help=("Use to override multiple Armada Manifest values by "
+          "reading overrides from a values.yaml-type file."),
+    multiple=True,
+    type=str,
+    default=[])
+@click.option(
+    '--wait',
+    help=("Force Tiller to wait until all charts are deployed, "
+          "rather than using each chart's specified wait policy. "
+          "This is equivalent to sequenced chartgroups."),
+    is_flag=True)
+@click.option(
+    '--target-manifest',
+    help=("The target manifest to run. Required for specifying "
+          "which manifest to run when multiple are available."),
+    default=None)
+@click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def apply_create(ctx, locations, api, disable_update_post, disable_update_pre,
                  dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
@@ -144,23 +143,11 @@ def apply_create(ctx, locations, api, disable_update_post, disable_update_pre,
 
 
 class ApplyManifest(CliAction):
-    def __init__(self,
-                 ctx,
-                 locations,
-                 api,
-                 disable_update_post,
-                 disable_update_pre,
-                 dry_run,
-                 enable_chart_cleanup,
-                 use_doc_ref,
-                 set,
-                 tiller_host,
-                 tiller_port,
-                 tiller_namespace,
-                 timeout,
-                 values,
-                 wait,
-                 target_manifest):
+
+    def __init__(self, ctx, locations, api, disable_update_post,
+                 disable_update_pre, dry_run, enable_chart_cleanup,
+                 use_doc_ref, set, tiller_host, tiller_port, tiller_namespace,
+                 timeout, values, wait, target_manifest):
         super(ApplyManifest, self).__init__()
         self.ctx = ctx
         # Filename can also be a URL reference

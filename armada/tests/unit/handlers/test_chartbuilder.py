@@ -145,9 +145,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         test_chart = {'source_dir': (chart_dir.path, '')}
         chartbuilder = ChartBuilder(test_chart)
 
-        self.assertRaises(
-            chartbuilder_exceptions.MetadataLoadException,
-            chartbuilder.get_metadata)
+        self.assertRaises(chartbuilder_exceptions.MetadataLoadException,
+                          chartbuilder.get_metadata)
 
     def test_get_files(self):
         """Validates that ``get_files()`` ignores 'Chart.yaml', 'values.yaml'
@@ -172,11 +171,11 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         test_chart = {'source_dir': (chart_dir.path, '')}
         chartbuilder = ChartBuilder(test_chart)
 
-        expected_files = ('[type_url: "%s"\n, type_url: "%s"\n]' % ('./bar',
-                                                                    './foo'))
+        expected_files = (
+            '[type_url: "%s"\n, type_url: "%s"\n]' % ('./bar', './foo'))
         # Validate that only 'foo' and 'bar' are returned.
-        actual_files = sorted(chartbuilder.get_files(),
-                              key=lambda x: x.type_url)
+        actual_files = sorted(
+            chartbuilder.get_files(), key=lambda x: x.type_url)
         self.assertEqual(expected_files, repr(actual_files).strip())
 
     def test_get_files_with_unicode_characters(self):
@@ -205,8 +204,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
-        expected = inspect.cleandoc(
-            """
+        expected = inspect.cleandoc("""
             metadata {
               name: "hello-world-chart"
               version: "0.1.0"
@@ -214,8 +212,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
             }
             values {
             }
-            """
-        ).strip()
+            """).strip()
 
         self.assertIsInstance(helm_chart, Chart)
         self.assertTrue(hasattr(helm_chart, 'metadata'))
@@ -256,8 +253,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
 
         # Also create a nested directory and verify that files from it are also
         # added.
-        nested_dir = self._make_temporary_subdirectory(
-            chart_dir.path, 'nested')
+        nested_dir = self._make_temporary_subdirectory(chart_dir.path,
+                                                       'nested')
         self._write_temporary_file_contents(nested_dir, 'nested0', "random")
 
         ch = yaml.safe_load(self.chart_stream)['chart']
@@ -303,20 +300,18 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(chart_dir.path, file, "")
         file_to_ignore = 'file_to_ignore'
         # Files to ignore within templates/ subdirectory.
-        self._write_temporary_file_contents(
-            templates_subdir, file_to_ignore, "")
+        self._write_temporary_file_contents(templates_subdir, file_to_ignore,
+                                            "")
         # Files to ignore within charts/ subdirectory.
-        self._write_temporary_file_contents(
-            charts_subdir, file_to_ignore, "")
+        self._write_temporary_file_contents(charts_subdir, file_to_ignore, "")
         # Files to ignore within templates/bin subdirectory.
-        self._write_temporary_file_contents(
-            templates_nested_subdir, file_to_ignore, "")
+        self._write_temporary_file_contents(templates_nested_subdir,
+                                            file_to_ignore, "")
         # Files to ignore within charts/extra subdirectory.
-        self._write_temporary_file_contents(
-            charts_nested_subdir, file_to_ignore, "")
+        self._write_temporary_file_contents(charts_nested_subdir,
+                                            file_to_ignore, "")
         # Files to **include** within charts/ subdirectory.
-        self._write_temporary_file_contents(
-            charts_subdir, '.prov', "xyzzy")
+        self._write_temporary_file_contents(charts_subdir, '.prov', "xyzzy")
 
         ch = yaml.safe_load(self.chart_stream)['chart']
         ch['source_dir'] = (chart_dir.path, '')

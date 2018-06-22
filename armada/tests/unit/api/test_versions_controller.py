@@ -22,10 +22,5 @@ class VersionsControllerTest(base.BaseControllerTest):
         Validate that /api/v1.0/health returns 204.
         """
         result = self.app.simulate_get('/versions')
-        expected = {
-            'v1.0': {
-                'path': '/api/v1.0',
-                'status': 'stable'
-            }
-        }
+        expected = {'v1.0': {'path': '/api/v1.0', 'status': 'stable'}}
         self.assertDictEqual(expected, result.json)

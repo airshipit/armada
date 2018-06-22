@@ -43,9 +43,8 @@ class ArmadaAPIException(falcon.HTTPError):
 
     def __init__(self, message=None, **kwargs):
         self.message = message or self.message
-        super(ArmadaAPIException, self).__init__(
-            self.status, self.title, self.message, **kwargs
-        )
+        super(ArmadaAPIException, self).__init__(self.status, self.title,
+                                                 self.message, **kwargs)
 
 
 class ActionForbidden(ArmadaAPIException):

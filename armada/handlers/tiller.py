@@ -51,6 +51,7 @@ LOG = logging.getLogger(__name__)
 
 
 class CommonEqualityMixin(object):
+
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.__dict__ == other.__dict__)
@@ -76,8 +77,11 @@ class Tiller(object):
     service over gRPC
     '''
 
-    def __init__(self, tiller_host=None, tiller_port=None,
-                 tiller_namespace=None, dry_run=False):
+    def __init__(self,
+                 tiller_host=None,
+                 tiller_port=None,
+                 tiller_namespace=None,
+                 dry_run=False):
         self.tiller_host = tiller_host
         self.tiller_port = tiller_port or CONF.tiller_port
         self.tiller_namespace = tiller_namespace or CONF.tiller_namespace
@@ -113,18 +117,16 @@ class Tiller(object):
         tiller_ip = self._get_tiller_ip()
         tiller_port = self._get_tiller_port()
         try:
-            LOG.debug('Tiller getting gRPC insecure channel at %s:%s '
-                      'with options: [grpc.max_send_message_length=%s, '
-                      'grpc.max_receive_message_length=%s]',
-                      tiller_ip, tiller_port,
-                      MAX_MESSAGE_LENGTH, MAX_MESSAGE_LENGTH)
+            LOG.debug(
+                'Tiller getting gRPC insecure channel at %s:%s '
+                'with options: [grpc.max_send_message_length=%s, '
+                'grpc.max_receive_message_length=%s]', tiller_ip, tiller_port,
+                MAX_MESSAGE_LENGTH, MAX_MESSAGE_LENGTH)
             return grpc.insecure_channel(
                 '%s:%s' % (tiller_ip, tiller_port),
-                options=[
-                    ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
-                    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)
-                ]
-            )
+                options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+                         ('grpc.max_receive_message_length',
+                          MAX_MESSAGE_LENGTH)])
         except Exception:
             raise ex.ChannelException()
 
@@ -194,15 +196,15 @@ class Tiller(object):
         # iterate through all the pages when collecting this list.
         # NOTE(MarshM): `Helm List` defaults to returning Deployed and Failed,
         # but this might not be a desireable ListReleasesRequest default.
-        req = ListReleasesRequest(limit=RELEASE_LIMIT,
-                                  status_codes=[const.STATUS_DEPLOYED,
-                                                const.STATUS_FAILED],
-                                  sort_by='LAST_RELEASED',
-                                  sort_order='DESC')
+        req = ListReleasesRequest(
+            limit=RELEASE_LIMIT,
+            status_codes=[const.STATUS_DEPLOYED, const.STATUS_FAILED],
+            sort_by='LAST_RELEASED',
+            sort_order='DESC')
 
         LOG.debug('Tiller ListReleases() with timeout=%s', self.timeout)
-        release_list = stub.ListReleases(req, self.timeout,
-                                         metadata=self.metadata)
+        release_list = stub.ListReleases(
+            req, self.timeout, metadata=self.metadata)
 
         for y in release_list:
             # TODO(MarshM) this log is too noisy, fix later
@@ -251,8 +253,8 @@ class Tiller(object):
                 labels = action.get('labels')
 
                 self.rolling_upgrade_pod_deployment(
-                    name, release_name, namespace, labels,
-                    action_type, chart, disable_hooks, values, timeout)
+                    name, release_name, namespace, labels, action_type, chart,
+                    disable_hooks, values, timeout)
         except Exception:
             LOG.warn("Pre: Could not update anything, please check yaml")
             raise ex.PreUpdateJobDeleteException(name, namespace)
@@ -263,8 +265,8 @@ class Tiller(object):
                 action_type = action.get('type')
                 labels = action.get('labels', None)
 
-                self.delete_resources(release_name, name, action_type,
-                                      labels, namespace, timeout)
+                self.delete_resources(release_name, name, action_type, labels,
+                                      namespace, timeout)
         except Exception:
             LOG.warn("PRE: Could not delete anything, please check yaml")
             raise ex.PreUpdateJobDeleteException(name, namespace)
@@ -307,13 +309,10 @@ class Tiller(object):
         charts = []
         for latest_release in self.list_releases():
             try:
-                release = (
-                    latest_release.name,
-                    latest_release.version,
-                    latest_release.chart,
-                    latest_release.config.raw,
-                    latest_release.info.status.Code.Name(
-                        latest_release.info.status.code))
+                release = (latest_release.name, latest_release.version,
+                           latest_release.chart, latest_release.config.raw,
+                           latest_release.info.status.Code.Name(
+                               latest_release.info.status.code))
                 charts.append(release)
                 LOG.debug('Found release %s, version %s, status: %s',
                           release[0], release[1], release[4])
@@ -323,7 +322,10 @@ class Tiller(object):
                 continue
         return charts
 
-    def update_release(self, chart, release, namespace,
+    def update_release(self,
+                       chart,
+                       release,
+                       namespace,
                        pre_actions=None,
                        post_actions=None,
                        disable_hooks=False,
@@ -337,10 +339,10 @@ class Tiller(object):
         '''
         timeout = self._check_timeout(wait, timeout)
 
-        LOG.info('Helm update release%s: wait=%s, timeout=%s, force=%s, '
-                 'recreate_pods=%s',
-                 (' (dry run)' if self.dry_run else ''),
-                 wait, timeout, force, recreate_pods)
+        LOG.info(
+            'Helm update release%s: wait=%s, timeout=%s, force=%s, '
+            'recreate_pods=%s', (' (dry run)' if self.dry_run else ''), wait,
+            timeout, force, recreate_pods)
 
         if values is None:
             values = Config(raw='')
@@ -366,7 +368,8 @@ class Tiller(object):
                 recreate=recreate_pods)
 
             update_msg = stub.UpdateRelease(
-                release_request, timeout + GRPC_EPSILON,
+                release_request,
+                timeout + GRPC_EPSILON,
                 metadata=self.metadata)
 
         except Exception:
@@ -377,16 +380,17 @@ class Tiller(object):
         self._post_update_actions(post_actions, namespace)
 
         tiller_result = TillerResult(
-            update_msg.release.name,
-            update_msg.release.namespace,
+            update_msg.release.name, update_msg.release.namespace,
             update_msg.release.info.status.Code.Name(
                 update_msg.release.info.status.code),
-            update_msg.release.info.Description,
-            update_msg.release.version)
+            update_msg.release.info.Description, update_msg.release.version)
 
         return tiller_result
 
-    def install_release(self, chart, release, namespace,
+    def install_release(self,
+                        chart,
+                        release,
+                        namespace,
                         values=None,
                         wait=False,
                         timeout=None):
@@ -396,8 +400,7 @@ class Tiller(object):
         timeout = self._check_timeout(wait, timeout)
 
         LOG.info('Helm install release%s: wait=%s, timeout=%s',
-                 (' (dry run)' if self.dry_run else ''),
-                 wait, timeout)
+                 (' (dry run)' if self.dry_run else ''), wait, timeout)
 
         if values is None:
             values = Config(raw='')
@@ -417,12 +420,12 @@ class Tiller(object):
                 timeout=timeout)
 
             install_msg = stub.InstallRelease(
-                release_request, timeout + GRPC_EPSILON,
+                release_request,
+                timeout + GRPC_EPSILON,
                 metadata=self.metadata)
 
             tiller_result = TillerResult(
-                install_msg.release.name,
-                install_msg.release.namespace,
+                install_msg.release.name, install_msg.release.namespace,
                 install_msg.release.info.status.Code.Name(
                     install_msg.release.info.status.code),
                 install_msg.release.info.Description,
@@ -434,7 +437,9 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Install')
 
-    def test_release(self, release, timeout=const.DEFAULT_TILLER_TIMEOUT,
+    def test_release(self,
+                     release,
+                     timeout=const.DEFAULT_TILLER_TIMEOUT,
                      cleanup=True):
         '''
         :param release - name of release to test
@@ -455,8 +460,7 @@ class Tiller(object):
             #     1. Remove this timeout
             #     2. Add `k8s_timeout=const.DEFAULT_K8S_TIMEOUT` arg and use
             release_request = TestReleaseRequest(
-                name=release, timeout=timeout,
-                cleanup=cleanup)
+                name=release, timeout=timeout, cleanup=cleanup)
 
             test_message_stream = stub.RunReleaseTest(
                 release_request, timeout, metadata=self.metadata)
@@ -550,16 +554,18 @@ class Tiller(object):
         # Helm client calls ReleaseContent in Delete dry-run scenario
         if self.dry_run:
             content = self.get_release_content(release)
-            LOG.info('Skipping delete during `dry-run`, would have deleted '
-                     'release=%s from namespace=%s.',
-                     content.release.name, content.release.namespace)
+            LOG.info(
+                'Skipping delete during `dry-run`, would have deleted '
+                'release=%s from namespace=%s.', content.release.name,
+                content.release.namespace)
             return
 
         # build release uninstall request
         try:
             stub = ReleaseServiceStub(self.channel)
-            LOG.info("Uninstall %s release with disable_hooks=%s, "
-                     "purge=%s flags", release, disable_hooks, purge)
+            LOG.info(
+                "Uninstall %s release with disable_hooks=%s, "
+                "purge=%s flags", release, disable_hooks, purge)
             release_request = UninstallReleaseRequest(
                 name=release, disable_hooks=disable_hooks, purge=purge)
 
@@ -571,8 +577,13 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Delete')
 
-    def delete_resources(self, release_name, resource_name, resource_type,
-                         resource_labels, namespace, wait=False,
+    def delete_resources(self,
+                         release_name,
+                         resource_name,
+                         resource_type,
+                         resource_labels,
+                         namespace,
+                         wait=False,
                          timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
         :params release_name - release name the specified resource is under
@@ -588,8 +599,9 @@ class Tiller(object):
         label_selector = ''
         if resource_labels is not None:
             label_selector = label_selectors(resource_labels)
-        LOG.debug("Deleting resources in namespace %s matching "
-                  "selectors (%s).", namespace, label_selector)
+        LOG.debug(
+            "Deleting resources in namespace %s matching "
+            "selectors (%s).", namespace, label_selector)
 
         handled = False
         if resource_type == 'job':
@@ -598,19 +610,20 @@ class Tiller(object):
                 jb_name = jb.metadata.name
 
                 if self.dry_run:
-                    LOG.info('Skipping delete job during `dry-run`, would '
-                             'have deleted job %s in namespace=%s.',
-                             jb_name, namespace)
+                    LOG.info(
+                        'Skipping delete job during `dry-run`, would '
+                        'have deleted job %s in namespace=%s.', jb_name,
+                        namespace)
                     continue
 
-                LOG.info("Deleting job %s in namespace: %s",
-                         jb_name, namespace)
+                LOG.info("Deleting job %s in namespace: %s", jb_name,
+                         namespace)
                 self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
             handled = True
 
         if resource_type == 'cronjob' or resource_type == 'job':
-            get_jobs = self.k8s.get_namespace_cron_job(
-                namespace, label_selector)
+            get_jobs = self.k8s.get_namespace_cron_job(namespace,
+                                                       label_selector)
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
 
@@ -621,42 +634,50 @@ class Tiller(object):
                              "deprecated, use `type: cronjob` instead")
 
                 if self.dry_run:
-                    LOG.info('Skipping delete cronjob during `dry-run`, would '
-                             'have deleted cronjob %s in namespace=%s.',
-                             jb_name, namespace)
+                    LOG.info(
+                        'Skipping delete cronjob during `dry-run`, would '
+                        'have deleted cronjob %s in namespace=%s.', jb_name,
+                        namespace)
                     continue
 
-                LOG.info("Deleting cronjob %s in namespace: %s",
-                         jb_name, namespace)
+                LOG.info("Deleting cronjob %s in namespace: %s", jb_name,
+                         namespace)
                 self.k8s.delete_cron_job_action(jb_name, namespace)
             handled = True
 
         if resource_type == 'pod':
-            release_pods = self.k8s.get_namespace_pod(
-                namespace, label_selector)
+            release_pods = self.k8s.get_namespace_pod(namespace,
+                                                      label_selector)
             for pod in release_pods.items:
                 pod_name = pod.metadata.name
 
                 if self.dry_run:
-                    LOG.info('Skipping delete pod during `dry-run`, would '
-                             'have deleted pod %s in namespace=%s.',
-                             pod_name, namespace)
+                    LOG.info(
+                        'Skipping delete pod during `dry-run`, would '
+                        'have deleted pod %s in namespace=%s.', pod_name,
+                        namespace)
                     continue
 
-                LOG.info("Deleting pod %s in namespace: %s",
-                         pod_name, namespace)
+                LOG.info("Deleting pod %s in namespace: %s", pod_name,
+                         namespace)
                 self.k8s.delete_namespace_pod(pod_name, namespace)
                 if wait:
                     self.k8s.wait_for_pod_redeployment(pod_name, namespace)
             handled = True
 
         if not handled:
-            LOG.error("Unable to execute name: %s type: %s ",
-                      resource_name, resource_type)
+            LOG.error("Unable to execute name: %s type: %s ", resource_name,
+                      resource_type)
 
-    def rolling_upgrade_pod_deployment(self, name, release_name, namespace,
-                                       resource_labels, action_type, chart,
-                                       disable_hooks, values,
+    def rolling_upgrade_pod_deployment(self,
+                                       name,
+                                       release_name,
+                                       namespace,
+                                       resource_labels,
+                                       action_type,
+                                       chart,
+                                       disable_hooks,
+                                       values,
                                        timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
         update statefullsets (daemon, stateful)
@@ -695,8 +716,13 @@ class Tiller(object):
 
                     # delete pods
                     self.delete_resources(
-                        release_name, name, 'pod', resource_labels, namespace,
-                        wait=True, timeout=timeout)
+                        release_name,
+                        name,
+                        'pod',
+                        resource_labels,
+                        namespace,
+                        wait=True,
+                        timeout=timeout)
 
         else:
             LOG.error("Unable to exectue name: % type: %s", name, action_type)
@@ -714,10 +740,10 @@ class Tiller(object):
 
         timeout = self._check_timeout(wait, timeout)
 
-        LOG.debug('Helm rollback%s of release=%s, version=%s, '
-                  'wait=%s, timeout=%s',
-                  (' (dry run)' if self.dry_run else ''),
-                  release_name, version, wait, timeout)
+        LOG.debug(
+            'Helm rollback%s of release=%s, version=%s, '
+            'wait=%s, timeout=%s', (' (dry run)' if self.dry_run else ''),
+            release_name, version, wait, timeout)
         try:
             stub = ReleaseServiceStub(self.channel)
             rollback_request = RollbackReleaseRequest(
@@ -742,7 +768,8 @@ class Tiller(object):
     def _check_timeout(self, wait, timeout):
         if timeout is None or timeout <= 0:
             if wait:
-                LOG.warn('Tiller timeout is invalid or unspecified, '
-                         'using default %ss.', self.timeout)
+                LOG.warn(
+                    'Tiller timeout is invalid or unspecified, '
+                    'using default %ss.', self.timeout)
             timeout = self.timeout
         return timeout

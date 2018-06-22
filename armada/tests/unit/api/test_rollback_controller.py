@@ -64,12 +64,7 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
             dry_run=False)
 
         rollback_release.assert_called_once_with(
-            release,
-            2,
-            wait=True,
-            timeout=123,
-            force=True,
-            recreate_pods=True)
+            release, 2, wait=True, timeout=123, force=True, recreate_pods=True)
 
         self.assertEqual(200, resp.status_code)
         self.assertEqual('Rollback of test-release complete.',

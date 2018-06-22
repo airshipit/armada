@@ -69,8 +69,8 @@ class GitSSHException(SourceException):
     def __init__(self, ssh_key_path):
         self._ssh_key_path = ssh_key_path
 
-        self._message = (
-            'Failed to find specified SSH key: {}.'.format(self._ssh_key_path))
+        self._message = ('Failed to find specified SSH key: {}.'.format(
+            self._ssh_key_path))
 
         super(GitSSHException, self).__init__(self._message)
 
