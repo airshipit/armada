@@ -45,9 +45,9 @@ class ConfPatcher(fixtures.Fixture):
     def __init__(self, **kwargs):
         """Constructor
 
-        :params group: if specified all config options apply to that group.
+        :param group: if specified all config options apply to that group.
 
-        :params **kwargs: the rest of the kwargs are processed as a
+        :param **kwargs: the rest of the kwargs are processed as a
         set of key/value pairs to be set as configuration override.
 
         """
