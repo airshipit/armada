@@ -19,6 +19,7 @@ IMAGE_NAME      ?= armada
 IMAGE_TAG       ?= latest
 HELM            ?= helm
 PROXY           ?= http://proxy.foo.com:8000
+NO_PROXY        ?= localhost,127.0.0.1,.svc.cluster.local
 USE_PROXY       ?= false
 PUSH_IMAGE      ?= false
 LABEL           ?= commit-id
@@ -102,7 +103,13 @@ build_docs:
 .PHONY: build_armada
 build_armada:
 ifeq ($(USE_PROXY), true)
-	docker build --network host -t $(IMAGE) --label $(LABEL) -f ./Dockerfile . --build-arg http_proxy=$(PROXY) --build-arg https_proxy=$(PROXY)
+	docker build --network host -t $(IMAGE) --label $(LABEL) -f ./Dockerfile \
+		--build-arg http_proxy=$(PROXY) \
+		--build-arg https_proxy=$(PROXY) \
+		--build-arg HTTP_PROXY=$(PROXY) \
+		--build-arg HTTPS_PROXY=$(PROXY) \
+		--build-arg no_proxy=$(NO_PROXY) \
+		--build-arg NO_PROXY=$(NO_PROXY) .
 else
 	docker build --network host -t $(IMAGE) --label $(LABEL) -f ./Dockerfile .
 endif
