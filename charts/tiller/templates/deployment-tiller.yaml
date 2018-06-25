@@ -55,6 +55,7 @@ spec:
       labels:
         app: helm
         name: tiller
+{{ tuple $envAll "tiller" "deploy" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
       containers:

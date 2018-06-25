@@ -33,7 +33,10 @@ spec:
   selector:
     app: helm
     name: tiller
-{{ tuple $envAll "tiller" "service" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
+    template:
+      metadata:
+        labels:
+{{ tuple $envAll "tiller" "service" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 10 }}
   sessionAffinity: None
   type: ClusterIP
 {{- end }}
