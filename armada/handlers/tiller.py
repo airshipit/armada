@@ -241,8 +241,8 @@ class Tiller(object):
     def _pre_update_actions(self, actions, release_name, namespace, chart,
                             disable_hooks, values, timeout):
         '''
-        :params actions - array of items actions
-        :params namespace - name of pod for actions
+        :param actions: array of items actions
+        :param namespace: name of pod for actions
         '''
 
         try:
@@ -442,11 +442,11 @@ class Tiller(object):
                      timeout=const.DEFAULT_TILLER_TIMEOUT,
                      cleanup=True):
         '''
-        :param release - name of release to test
-        :param timeout - runtime before exiting
-        :param cleanup - removes testing pod created
+        :param release: name of release to test
+        :param timeout: runtime before exiting
+        :param cleanup: removes testing pod created
 
-        :returns - test suite run object
+        :returns: test suite run object
         '''
 
         LOG.info("Running Helm test: release=%s, timeout=%s", release, timeout)
@@ -483,8 +483,8 @@ class Tiller(object):
 
     def get_release_status(self, release, version=0):
         '''
-        :param release - name of release to test
-        :param version - version of release status
+        :param release: name of release to test
+        :param version: version of release status
         '''
 
         LOG.debug('Helm getting release status for release=%s, version=%s',
@@ -504,8 +504,8 @@ class Tiller(object):
 
     def get_release_content(self, release, version=0):
         '''
-        :param release - name of release to test
-        :param version - version of release status
+        :param release: name of release to test
+        :param version: version of release status
         '''
 
         LOG.debug('Helm getting release content for release=%s, version=%s',
@@ -525,7 +525,7 @@ class Tiller(object):
 
     def tiller_version(self):
         '''
-        :returns - Tiller version
+        :returns: Tiller version
         '''
         try:
             stub = ReleaseServiceStub(self.channel)
@@ -545,10 +545,10 @@ class Tiller(object):
 
     def uninstall_release(self, release, disable_hooks=False, purge=True):
         '''
-        :params - release - Helm chart release name
-        :params - purge - deep delete of chart
+        :param: release - Helm chart release name
+        :param: purge - deep delete of chart
 
-        deletes a Helm chart from Tiller
+        Deletes a Helm chart from Tiller
         '''
 
         # Helm client calls ReleaseContent in Delete dry-run scenario
@@ -586,11 +586,11 @@ class Tiller(object):
                          wait=False,
                          timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
-        :params release_name - release name the specified resource is under
-        :params resource_name - name of specific resource
-        :params resource_type - type of resource e.g. job, pod, etc.
-        :params resource_labels - labels by which to identify the resource
-        :params namespace - namespace of the resource
+        :param release_name: release name the specified resource is under
+        :param resource_name: name of specific resource
+        :param resource_type: type of resource e.g. job, pod, etc.
+        :param resource_labels: labels by which to identify the resource
+        :param namespace: namespace of the resource
 
         Apply deletion logic based on type of resource
         '''

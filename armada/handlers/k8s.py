@@ -55,9 +55,9 @@ class K8s(object):
                           propagation_policy='Foreground',
                           timeout=DEFAULT_K8S_TIMEOUT):
         '''
-        :params name - name of job
-        :params namespace - namespace of job
-        :params propagation_policy - The Kubernetes propagation_policy to apply
+        :param name: name of job
+        :param namespace: namespace of job
+        :param propagation_policy: The Kubernetes propagation_policy to apply
             to the delete. Default 'Foreground' means that child pods to the
             job will be deleted before the job is marked as deleted.
         '''
@@ -71,9 +71,9 @@ class K8s(object):
                                propagation_policy='Foreground',
                                timeout=DEFAULT_K8S_TIMEOUT):
         '''
-        :params name - name of cron job
-        :params namespace - namespace of cron job
-        :params propagation_policy - The Kubernetes propagation_policy to apply
+        :param name: name of cron job
+        :param namespace: namespace of cron job
+        :param propagation_policy: The Kubernetes propagation_policy to apply
             to the delete. Default 'Foreground' means that child pods of the
             cron job will be deleted before the cron job is marked as deleted.
         '''
@@ -137,8 +137,8 @@ class K8s(object):
 
     def get_namespace_job(self, namespace="default", label_selector=''):
         '''
-        :params label_selector - labels of the jobs
-        :params namespace - namespace of the jobs
+        :param label_selector: labels of the jobs
+        :param namespace: namespace of the jobs
         '''
 
         try:
@@ -150,8 +150,8 @@ class K8s(object):
 
     def get_namespace_cron_job(self, namespace="default", label_selector=''):
         '''
-        :params label_selector - labels of the cron jobs
-        :params namespace - namespace of the cron jobs
+        :param label_selector: labels of the cron jobs
+        :param namespace: namespace of the cron jobs
         '''
 
         try:
@@ -164,16 +164,16 @@ class K8s(object):
 
     def create_job_action(self, name, namespace="default"):
         '''
-        :params name - name of the job
-        :params namespace - name of pod that job
+        :param name: name of the job
+        :param namespace: name of pod that job
         '''
         # TODO(MarshM) this does nothing?
         LOG.debug(" %s in namespace: %s", name, namespace)
 
     def get_namespace_pod(self, namespace="default", label_selector=''):
         '''
-        :params namespace - namespace of the Pod
-        :params label_selector - filters Pods by label
+        :param namespace: namespace of the Pod
+        :param label_selector: filters Pods by label
 
         This will return a list of objects req namespace
         '''
@@ -184,7 +184,7 @@ class K8s(object):
     # TODO(MarshM) unused?
     def get_all_pods(self, label_selector=''):
         '''
-        :params label_selector - filters Pods by label
+        :param label_selector: filters Pods by label
 
         Returns a list of pods from all namespaces
         '''
@@ -194,16 +194,16 @@ class K8s(object):
 
     def get_namespace_daemonset(self, namespace='default', label=''):
         '''
-        :param namespace - namespace of target deamonset
-        :param labels - specify targeted daemonset
+        :param namespace: namespace of target deamonset
+        :param labels: specify targeted daemonset
         '''
         return self.extension_api.list_namespaced_daemon_set(
             namespace, label_selector=label)
 
     def create_daemon_action(self, namespace, template):
         '''
-        :param - namespace - pod namespace
-        :param - template - deploy daemonset via yaml
+        :param: namespace - pod namespace
+        :param: template - deploy daemonset via yaml
         '''
         # we might need to load something here
 
@@ -212,7 +212,7 @@ class K8s(object):
 
     def delete_daemon_action(self, name, namespace="default", body=None):
         '''
-        :params - namespace - pod namespace
+        :param: namespace - pod namespace
 
         This will delete daemonset
         '''
@@ -225,9 +225,9 @@ class K8s(object):
 
     def delete_namespace_pod(self, name, namespace="default", body=None):
         '''
-        :params name - name of the Pod
-        :params namespace - namespace of the Pod
-        :params body - V1DeleteOptions
+        :param name: name of the Pod
+        :param namespace: namespace of the Pod
+        :param body: V1DeleteOptions
 
         Deletes pod by name and returns V1Status object
         '''
@@ -238,8 +238,8 @@ class K8s(object):
 
     def wait_for_pod_redeployment(self, old_pod_name, namespace):
         '''
-        :param old_pod_name - name of pods
-        :param namespace - kubernetes namespace
+        :param old_pod_name: name of pods
+        :param namespace: kubernetes namespace
         '''
 
         base_pod_pattern = re.compile('^(.+)-[a-zA-Z0-9]+$')
@@ -274,8 +274,8 @@ class K8s(object):
     def wait_get_completed_podphase(self, release,
                                     timeout=DEFAULT_K8S_TIMEOUT):
         '''
-        :param release - part of namespace
-        :param timeout - time before disconnecting stream
+        :param release: part of namespace
+        :param timeout: time before disconnecting stream
         '''
         timeout = self._check_timeout(timeout)
 
