@@ -1,4 +1,5 @@
-FROM python:3.5
+ARG FROM=python:3.5
+FROM ${FROM}
 
 MAINTAINER Armada Team
 
