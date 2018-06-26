@@ -23,6 +23,7 @@ metadata:
   labels:
     app: helm
     name: tiller
+{{ tuple $envAll "tiller" "service" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
   name: tiller-deploy
 spec:
   ports:
@@ -33,10 +34,7 @@ spec:
   selector:
     app: helm
     name: tiller
-    template:
-      metadata:
-        labels:
-{{ tuple $envAll "tiller" "service" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 10 }}
+{{ tuple $envAll "tiller" "service" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
   sessionAffinity: None
   type: ClusterIP
 {{- end }}
