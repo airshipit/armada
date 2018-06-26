@@ -106,6 +106,7 @@ class Armada(object):
         self.k8s_wait_attempt_sleep = k8s_wait_attempt_sleep
         self.manifest = Manifest(
             self.documents, target_manifest=target_manifest).get_manifest()
+        self.cloned_dirs = set()
 
     def find_release_chart(self, known_releases, release_name):
         '''
@@ -193,8 +194,9 @@ class Armada(object):
                     *repo_branch,
                     proxy_server=proxy_server,
                     auth_method=auth_method)
-                repos[repo_branch] = repo_dir
+                self.cloned_dirs.add(repo_dir)
 
+                repos[repo_branch] = repo_dir
                 chart['source_dir'] = (repo_dir, subpath)
             else:
                 chart['source_dir'] = (repos.get(repo_branch), subpath)
@@ -506,14 +508,9 @@ class Armada(object):
         LOG.info("Performing post-flight operations.")
 
         # Delete temp dirs used for deployment
-        for group in self.manifest.get(const.KEYWORD_ARMADA, {}).get(
-                const.KEYWORD_GROUPS, []):
-            for ch in group.get(const.KEYWORD_CHARTS, []):
-                chart = ch.get('chart', {})
-                if chart.get('source', {}).get('type') == 'git':
-                    source_dir = chart.get('source_dir')
-                    if isinstance(source_dir, tuple) and source_dir:
-                        source.source_cleanup(source_dir[0])
+        for cloned_dir in self.cloned_dirs:
+            LOG.debug('Removing cloned temp directory: %s', cloned_dir)
+            source.source_cleanup(cloned_dir)
 
     def _wait_until_ready(self, release_name, wait_labels, namespace, timeout):
         if self.dry_run:
