@@ -59,7 +59,23 @@ data:
           type: boolean
       additionalProperties: false
     test:
-      type: boolean
+      anyOf:
+        # TODO: Remove boolean support after deprecation period.
+        - type: boolean
+        - type: object
+          properties:
+            enabled:
+              type: boolean
+            options:
+              type: object
+              properties:
+                cleanup:
+                  type: boolean
+              additionalProperties: false
+          additionalProperties: false
+          required:
+            - enabled
+
     timeout:
       type: integer
     wait:

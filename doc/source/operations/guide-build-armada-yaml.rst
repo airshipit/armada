@@ -98,7 +98,7 @@ Chart
 | protected       | object   | do not delete FAILED releases when encountered from previous run (provide the         |
 |                 |          | 'continue_processing' bool to continue or halt execution (default: halt))             |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| test            | bool     | run pre-defined helm tests helm in a chart                                            |
+| test            | object   | Run helm tests on the chart after install/upgrade                                     |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | install         | object   | install the chart into your Kubernetes cluster                                        |
 +-----------------+----------+---------------------------------------------------------------------------------------+
@@ -112,6 +112,40 @@ Chart
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | timeout         | int      | time (in seconds) allotted for chart to deploy when 'wait' flag is set (DEPRECATED)   |
 +-----------------+----------+---------------------------------------------------------------------------------------+
+
+Test
+^^^^
+
++-------------+----------+---------------------------------------------------------------+
+| keyword     | type     | action                                                        |
++=============+==========+===============================================================+
+| enabled     | bool     | whether to enable helm tests for this chart                   |
++-------------+----------+---------------------------------------------------------------+
+| options     | object   | options to pass through to helm                               |
++-------------+----------+---------------------------------------------------------------+
+
+.. DANGER::
+
+    DEPRECATION: In addition to an object with the above fields, the ``test``
+    key currently also supports ``bool``, which maps to ``enabled``, but this is
+    deprecated and will be removed.  The ``cleanup`` option below is set to true
+    in this case for backward compatability.
+
+Test - Options
+^^^^^^^^^^^^^^
+
++-------------+----------+---------------------------------------------------------------+
+| keyword     | type     | action                                                        |
++=============+==========+===============================================================+
+| cleanup     | bool     | cleanup test pods after test completion, defaults to false    |
++-------------+----------+---------------------------------------------------------------+
+
+.. note::
+
+    The preferred way to achieve test cleanup is to add a pre-upgrade delete
+    action on the test pod, which allows for debugging the test pod up until the
+    next upgrade.
+
 
 Upgrade, Install - Pre or Post
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,6 +215,8 @@ Chart Example
         timeout: 100
       protected:
         continue_processing: false
+      test:
+        enabled: true
       install:
         no_hooks: false
       upgrade:

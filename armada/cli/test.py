@@ -74,19 +74,25 @@ SHORT_DESC = "Command tests releases."
     help=("The target manifest to run. Required for specifying "
           "which manifest to run when multiple are available."),
     default=None)
+@click.option(
+    '--cleanup',
+    help=("Delete test pods upon completion."),
+    is_flag=True,
+    default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def test_charts(ctx, file, release, tiller_host, tiller_port, tiller_namespace,
-                target_manifest, debug):
+                target_manifest, cleanup, debug):
     CONF.debug = debug
     TestChartManifest(ctx, file, release, tiller_host, tiller_port,
-                      tiller_namespace, target_manifest).safe_invoke()
+                      tiller_namespace, target_manifest,
+                      cleanup).safe_invoke()
 
 
 class TestChartManifest(CliAction):
 
     def __init__(self, ctx, file, release, tiller_host, tiller_port,
-                 tiller_namespace, target_manifest):
+                 tiller_namespace, target_manifest, cleanup):
 
         super(TestChartManifest, self).__init__()
         self.ctx = ctx
@@ -96,6 +102,7 @@ class TestChartManifest(CliAction):
         self.tiller_port = tiller_port
         self.tiller_namespace = tiller_namespace
         self.target_manifest = target_manifest
+        self.cleanup = cleanup
 
     def invoke(self):
         tiller = Tiller(
@@ -107,7 +114,8 @@ class TestChartManifest(CliAction):
         if self.release:
             if not self.ctx.obj.get('api', False):
                 self.logger.info("RUNNING: %s tests", self.release)
-                success = test_release_for_success(tiller, self.release)
+                success = test_release_for_success(
+                    tiller, self.release, cleanup=self.cleanup)
                 if success:
                     self.logger.info("PASSED: %s", self.release)
                 else:
@@ -127,7 +135,7 @@ class TestChartManifest(CliAction):
 
         if self.file:
             if not self.ctx.obj.get('api', False):
-                documents = yaml.safe_load_all(open(self.file).read())
+                documents = list(yaml.safe_load_all(open(self.file).read()))
                 armada_obj = Manifest(
                     documents,
                     target_manifest=self.target_manifest).get_manifest()
@@ -137,14 +145,28 @@ class TestChartManifest(CliAction):
                 for group in armada_obj.get(const.KEYWORD_ARMADA).get(
                         const.KEYWORD_GROUPS):
                     for ch in group.get(const.KEYWORD_CHARTS):
+                        chart = ch['chart']
                         release_name = release_prefixer(
-                            prefix,
-                            ch.get('chart').get('release'))
+                            prefix, chart.get('release'))
 
                         if release_name in known_release_names:
+                            cleanup = self.cleanup
+                            if cleanup is None:
+                                test_chart_override = chart.get('test', {})
+                                if isinstance(test_chart_override, bool):
+                                    self.logger.warn(
+                                        'Boolean value for chart `test` key is'
+                                        ' deprecated and support for this will'
+                                        ' be removed. Use `test.enabled` '
+                                        'instead.')
+                                    # Use old default value.
+                                    cleanup = True
+                                else:
+                                    cleanup = test_chart_override.get(
+                                        'options', {}).get('cleanup', False)
                             self.logger.info('RUNNING: %s tests', release_name)
                             success = test_release_for_success(
-                                tiller, release_name)
+                                tiller, release_name, cleanup=cleanup)
                             if success:
                                 self.logger.info("PASSED: %s", release_name)
                             else:

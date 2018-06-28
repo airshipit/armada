@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import difflib
+import functools
 import time
 import yaml
 
@@ -326,8 +327,21 @@ class Armada(object):
                 # TODO(MarshM) better handling of timeout/timer
                 cg_max_timeout = max(wait_timeout, cg_max_timeout)
 
-                # Chart test policy can override ChartGroup, if specified
-                test_this_chart = chart.get('test', cg_test_all_charts)
+                test_chart_override = chart.get('test')
+                # Use old default value when not using newer `test` key
+                test_cleanup = True
+                if test_chart_override is None:
+                    test_this_chart = cg_test_all_charts
+                elif isinstance(test_chart_override, bool):
+                    LOG.warn('Boolean value for chart `test` key is'
+                             ' deprecated and support for this will'
+                             ' be removed. Use `test.enabled` '
+                             'instead.')
+                    test_this_chart = test_chart_override
+                else:
+                    test_this_chart = test_chart_override['enabled']
+                    test_cleanup = test_chart_override.get('options', {}).get(
+                        'cleanup', False)
 
                 chartbuilder = ChartBuilder(chart)
                 protoc_chart = chartbuilder.get_helm_chart()
@@ -438,6 +452,7 @@ class Armada(object):
 
                 # Sequenced ChartGroup should run tests after each Chart
                 timer = int(round(deadline - time.time()))
+                test_chart_args = (release_name, timer, test_cleanup)
                 if test_this_chart:
                     if cg_sequenced:
                         LOG.info(
@@ -449,12 +464,14 @@ class Armada(object):
                             LOG.error(reason)
                             raise armada_exceptions.ArmadaTimeoutException(
                                 reason)
-                        self._test_chart(release_name, timer)
+                        self._test_chart(*test_chart_args)
 
                     # Un-sequenced ChartGroup should run tests at the end
                     else:
                         # Keeping track of time remaining
-                        tests_to_run.append((release_name, timer))
+                        tests_to_run.append(
+                            functools.partial(self._test_chart,
+                                              *test_chart_args))
 
             # End of Charts in ChartGroup
             LOG.info('All Charts applied in ChartGroup %s.', cg_name)
@@ -486,8 +503,8 @@ class Armada(object):
                     timeout=timer)
 
             # After entire ChartGroup is healthy, run any pending tests
-            for (test, test_timer) in tests_to_run:
-                self._test_chart(test, test_timer)
+            for callback in tests_to_run:
+                callback()
 
         self.post_flight_ops()
 
@@ -531,7 +548,7 @@ class Armada(object):
             k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
             timeout=timeout)
 
-    def _test_chart(self, release_name, timeout):
+    def _test_chart(self, release_name, timeout, cleanup):
         if self.dry_run:
             LOG.info(
                 'Skipping test during `dry-run`, would have tested '
@@ -539,7 +556,7 @@ class Armada(object):
             return True
 
         success = test_release_for_success(
-            self.tiller, release_name, timeout=timeout)
+            self.tiller, release_name, timeout=timeout, cleanup=cleanup)
         if success:
             LOG.info("Test passed for release: %s", release_name)
         else:
