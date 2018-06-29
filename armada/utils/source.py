@@ -57,7 +57,6 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
         raise source_exceptions.GitException(repo_url)
 
     env_vars = {'GIT_TERMINAL_PROMPT': '0'}
-    temp_dir = tempfile.mkdtemp(prefix='armada')
     ssh_cmd = None
 
     if auth_method and auth_method.lower() == 'ssh':
@@ -79,6 +78,8 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
             'with no authentication.', repo_url, ref)
 
     try:
+        temp_dir = tempfile.mkdtemp(prefix='armada')
+
         if proxy_server:
             LOG.debug('Cloning [%s] with proxy [%s]', repo_url, proxy_server)
             repo = Repo.clone_from(

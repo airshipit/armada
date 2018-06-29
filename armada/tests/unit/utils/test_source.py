@@ -52,7 +52,7 @@ class GitTestCase(base.ArmadaTestCase):
         url = 'https://github.com/openstack/airship-armada'
         commit = 'cba78d1d03e4910f6ab1691bae633c5bddce893d'
         git_dir = source.git_clone(url, commit)
-        self._validate_git_clone(git_dir)
+        self._validate_git_clone(git_dir, commit)
 
     @testtools.skipUnless(base.is_connected(),
                           'git clone requires network connectivity.')
