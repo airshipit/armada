@@ -138,6 +138,13 @@ endpoints:
       default: http
     host_fqdn_override:
       default: null
+      # NOTE(lamt): This chart supports TLS for fqdn overriden public
+      # endpoints using the following format:
+      # public:
+      #   host: null
+      #   tls:
+      #     crt: null
+      #     key: null
   local_image_registry:
     name: docker-registry
     namespace: docker-registry
@@ -155,6 +162,10 @@ secrets:
   identity:
     admin: armada-keystone-admin
     armada: armada-keystone-user
+  tls:
+    armada:
+      api:
+        public: armada-tls-public
 
 conf:
   armada:
@@ -287,6 +298,7 @@ manifests:
   job_ks_endpoints: true
   job_ks_service: true
   job_ks_user: true
+  secret_ingress_tls: true
   secret_keystone: true
   service: true
   service_ingress: true
