@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HELM_BRANCH='release-2.7'
+HELM_BRANCH='release-2.9'
 
 git clone https://github.com/kubernetes/helm ./helm -b $HELM_BRANCH
 
