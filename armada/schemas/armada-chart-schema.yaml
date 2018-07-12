@@ -73,9 +73,7 @@ data:
                   type: boolean
               additionalProperties: false
           additionalProperties: false
-          required:
-            - enabled
-
+    # TODO(MarshM): Deprecate this `timeout` in favor of `wait.timeout`
     timeout:
       type: integer
     wait:

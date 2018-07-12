@@ -125,7 +125,6 @@ metadata:
 data:
   description: "Deploying OpenStack Keystone"
   sequenced: True
-  test_charts: False
   chart_group:
     - keystone
 ---

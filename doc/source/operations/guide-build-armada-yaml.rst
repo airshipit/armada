@@ -52,8 +52,14 @@ armada/ChartGroup/v1
 +-----------------+----------+------------------------------------------------------------------------+
 | sequenced       | bool     | enables sequenced chart deployment in a group                          |
 +-----------------+----------+------------------------------------------------------------------------+
-| test_charts     | bool     | run pre-defined helm tests helm in a ChartGroup                        |
+| test_charts     | bool     | run pre-defined helm tests in a ChartGroup (DEPRECATED)                |
 +-----------------+----------+------------------------------------------------------------------------+
+
+.. DANGER::
+
+    DEPRECATION: The ``test_charts`` key will be removed, as Armada will run
+    helm tests for all charts by default.
+
 
 Chart Group Example
 ^^^^^^^^^^^^^^^^^^^
@@ -98,7 +104,7 @@ Chart
 | protected       | object   | do not delete FAILED releases when encountered from previous run (provide the         |
 |                 |          | 'continue_processing' bool to continue or halt execution (default: halt))             |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| test            | object   | Run helm tests on the chart after install/upgrade                                     |
+| test            | object   | Run helm tests on the chart after install/upgrade (default enabled)                   |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | install         | object   | install the chart into your Kubernetes cluster                                        |
 +-----------------+----------+---------------------------------------------------------------------------------------+
@@ -116,20 +122,25 @@ Chart
 Test
 ^^^^
 
-+-------------+----------+---------------------------------------------------------------+
-| keyword     | type     | action                                                        |
-+=============+==========+===============================================================+
-| enabled     | bool     | whether to enable helm tests for this chart                   |
-+-------------+----------+---------------------------------------------------------------+
-| options     | object   | options to pass through to helm                               |
-+-------------+----------+---------------------------------------------------------------+
++-------------+----------+--------------------------------------------------------------------+
+| keyword     | type     | action                                                             |
++=============+==========+====================================================================+
+| enabled     | bool     | whether to enable/disable helm tests for this chart (default True) |
++-------------+----------+--------------------------------------------------------------------+
+| options     | object   | options to pass through to helm                                    |
++-------------+----------+--------------------------------------------------------------------+
+
+.. note::
+
+    Armada will attempt to run helm tests by default. They may be disabled by
+    setting the ``enabled`` key to ``False``.
 
 .. DANGER::
 
     DEPRECATION: In addition to an object with the above fields, the ``test``
     key currently also supports ``bool``, which maps to ``enabled``, but this is
     deprecated and will be removed.  The ``cleanup`` option below is set to true
-    in this case for backward compatability.
+    in this case for backward compatibility.
 
 Test - Options
 ^^^^^^^^^^^^^^

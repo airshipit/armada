@@ -334,7 +334,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
             chart_group = armada_obj.manifest['armada']['chart_groups'][0]
             charts = chart_group['chart_group']
-            cg_test_all_charts = chart_group.get('test_charts', False)
+            cg_test_all_charts = chart_group.get('test_charts', True)
 
             m_tiller = mock_tiller.return_value
             m_tiller.list_charts.return_value = known_releases

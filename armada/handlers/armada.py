@@ -254,11 +254,19 @@ class Armada(object):
             cg_name = chartgroup.get('name', '<missing name>')
             cg_desc = chartgroup.get('description', '<missing description>')
             cg_sequenced = chartgroup.get('sequenced', False)
-            cg_test_all_charts = chartgroup.get('test_charts', False)
-            LOG.info(
-                'Processing ChartGroup: %s (%s), sequenced=%s, '
-                'test_charts=%s', cg_name, cg_desc, cg_sequenced,
-                cg_test_all_charts)
+            LOG.info('Processing ChartGroup: %s (%s), sequenced=%s', cg_name,
+                     cg_desc, cg_sequenced)
+
+            # TODO(MarshM): Deprecate the `test_charts` key
+            cg_test_all_charts = chartgroup.get('test_charts')
+            if isinstance(cg_test_all_charts, bool):
+                LOG.warn('The ChartGroup `test_charts` key is deprecated, '
+                         'and support for this will be removed. See the '
+                         'Chart `test` key for more information.')
+            else:
+                # This key defaults to True. Individual charts must
+                # explicitly disable helm tests if they choose
+                cg_test_all_charts = True
 
             ns_label_set = set()
             tests_to_run = []
@@ -363,7 +371,8 @@ class Armada(object):
                              'instead.')
                     test_this_chart = test_chart_override
                 else:
-                    test_this_chart = test_chart_override['enabled']
+                    # NOTE: helm tests are enabled by default
+                    test_this_chart = test_chart_override.get('enabled', True)
                     test_cleanup = test_chart_override.get('options', {}).get(
                         'cleanup', False)
 
@@ -474,25 +483,19 @@ class Armada(object):
                              tiller_result.__dict__)
                     msg['install'].append(release_name)
 
-                # Sequenced ChartGroup should run tests after each Chart
+                # Keeping track of time remaining
                 timer = int(round(deadline - time.time()))
                 test_chart_args = (release_name, timer, test_cleanup)
                 if test_this_chart:
+                    # Sequenced ChartGroup should run tests after each Chart
                     if cg_sequenced:
                         LOG.info(
                             'Running sequenced test, timeout remaining: '
                             '%ss.', timer)
-                        if timer <= 0:
-                            reason = ('Timeout expired before testing '
-                                      'sequenced release %s' % release_name)
-                            LOG.error(reason)
-                            raise armada_exceptions.ArmadaTimeoutException(
-                                reason)
                         self._test_chart(*test_chart_args)
 
                     # Un-sequenced ChartGroup should run tests at the end
                     else:
-                        # Keeping track of time remaining
                         tests_to_run.append(
                             functools.partial(self._test_chart,
                                               *test_chart_args))
@@ -573,6 +576,12 @@ class Armada(object):
                 'Skipping test during `dry-run`, would have tested '
                 'release=%s with timeout %ss.', release_name, timeout)
             return True
+
+        if timeout <= 0:
+            reason = ('Timeout expired before testing '
+                      'release %s' % release_name)
+            LOG.error(reason)
+            raise armada_exceptions.ArmadaTimeoutException(reason)
 
         success = test_release_for_success(
             self.tiller, release_name, timeout=timeout, cleanup=cleanup)

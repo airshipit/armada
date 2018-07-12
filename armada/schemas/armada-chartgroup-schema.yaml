@@ -27,6 +27,7 @@ data:
       type: string
     sequenced:
       type: boolean
+    # TODO(MarshM): Deprecate `test_charts`, it is no longer useful
     test_charts:
       type: boolean
     chart_group:
