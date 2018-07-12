@@ -69,8 +69,10 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
                       'the SSH key under CONF.ssh_key_path was not found.')
             raise source_exceptions.GitSSHException(CONF.ssh_key_path)
 
-        ssh_cmd = ('ssh -i {} -o ConnectionAttempts=20 -o ConnectTimeout=10'
-                   .format(os.path.expanduser(CONF.ssh_key_path)))
+        ssh_cmd = (
+            'ssh -i {} -o ConnectionAttempts=20 -o ConnectTimeout=10 -o '
+            'StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'.format(
+                os.path.expanduser(CONF.ssh_key_path)))
         env_vars.update({'GIT_SSH_COMMAND': ssh_cmd})
     else:
         LOG.debug(
