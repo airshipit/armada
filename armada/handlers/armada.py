@@ -273,6 +273,8 @@ class Armada(object):
                 namespace = chart.get('namespace')
                 release = chart.get('release')
                 release_name = release_prefixer(prefix, release)
+                LOG.info('Processing Chart, release=%s', release_name)
+
                 values = chart.get('values', {})
                 pre_actions = {}
                 post_actions = {}
@@ -304,23 +306,43 @@ class Armada(object):
                         self.tiller.uninstall_release(release_name)
                         msg['purge'].append(release_name)
 
+                # NOTE(MarshM): Calculating `wait_timeout` is unfortunately
+                #   overly complex. The order of precedence is currently:
+                #   1) User provided override via API/CLI (default 0 if not
+                #      provided by client/user).
+                #   2) Chart's `data.wait.timeout`, or...
+                #   3) Chart's `data.timeout` (deprecated).
+                #   4) const.DEFAULT_CHART_TIMEOUT, if nothing is ever
+                #      specified, for use in waiting for final ChartGroup
+                #      health and helm tests, but ignored for the actual
+                #      install/upgrade of the Chart.
+                # NOTE(MarshM): Not defining a timeout has a side effect of
+                #   allowing Armada to install charts with a circular
+                #   dependency defined between components.
+
+                # TODO(MarshM): Deprecated, remove the following block
+                deprecated_timeout = chart.get('timeout', None)
+                if isinstance(deprecated_timeout, int):
+                    LOG.warn('The `timeout` key is deprecated and support '
+                             'for this will be removed soon. Use '
+                             '`wait.timeout` instead.')
+
+                wait_values = chart.get('wait', {})
+                wait_labels = wait_values.get('labels', {})
                 wait_timeout = self.timeout
-                wait_labels = {}
-                # Retrieve appropriate timeout value
                 if wait_timeout <= 0:
-                    # TODO(MarshM): chart's `data.timeout` should be deprecated
-                    chart_timeout = chart.get('timeout', 0)
-                    # Favor data.wait.timeout over data.timeout, until removed
-                    wait_values = chart.get('wait', {})
-                    wait_timeout = wait_values.get('timeout', chart_timeout)
-                    wait_labels = wait_values.get('labels', {})
+                    wait_timeout = wait_values.get('timeout', wait_timeout)
+                    # TODO(MarshM): Deprecated, remove the following check
+                    if wait_timeout <= 0:
+                        wait_timeout = deprecated_timeout or wait_timeout
 
                 # Determine wait logic
                 this_chart_should_wait = (cg_sequenced or self.force_wait or
-                                          wait_timeout > 0 or
-                                          len(wait_labels) > 0)
+                                          wait_timeout > 0)
 
-                if this_chart_should_wait and wait_timeout <= 0:
+                # If there is still no timeout, we need to use a default
+                # (item 4 in note above)
+                if wait_timeout <= 0:
                     LOG.warn('No Chart timeout specified, using default: %ss',
                              const.DEFAULT_CHART_TIMEOUT)
                     wait_timeout = const.DEFAULT_CHART_TIMEOUT
@@ -489,7 +511,7 @@ class Armada(object):
                 labels_dict = dict(labels)
                 timer = int(round(deadline - time.time()))
                 LOG.info(
-                    'Final ChartGroup wait for healthy namespace (%s), '
+                    'Final ChartGroup wait for healthy namespace=%s, '
                     'labels=(%s), timeout remaining: %ss.', ns, labels_dict,
                     timer)
                 if timer <= 0:
