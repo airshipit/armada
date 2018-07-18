@@ -87,16 +87,6 @@ class PreUpdateJobDeleteException(TillerException):
         super(PreUpdateJobDeleteException, self).__init__(message)
 
 
-class PreUpdateJobCreateException(TillerException):
-    '''Exception that occurs when a job creation fails.'''
-
-    def __init__(self, name, namespace):
-
-        message = 'Failed to create k8s job {} in {}'.format(name, namespace)
-
-        super(PreUpdateJobCreateException, self).__init__(message)
-
-
 class ReleaseException(TillerException):
     '''
     Exception that occurs when a release fails to install, upgrade, delete,

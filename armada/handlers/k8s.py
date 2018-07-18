@@ -162,14 +162,6 @@ class K8s(object):
                 "Exception getting cron jobs: namespace=%s, label=%s: %s",
                 namespace, label_selector, e)
 
-    def create_job_action(self, name, namespace="default"):
-        '''
-        :param name: name of the job
-        :param namespace: name of pod that job
-        '''
-        # TODO(MarshM) this does nothing?
-        LOG.debug(" %s in namespace: %s", name, namespace)
-
     def get_namespace_pod(self, namespace="default", label_selector=''):
         '''
         :param namespace: namespace of the Pod
@@ -180,17 +172,6 @@ class K8s(object):
 
         return self.client.list_namespaced_pod(
             namespace, label_selector=label_selector)
-
-    # TODO(MarshM) unused?
-    def get_all_pods(self, label_selector=''):
-        '''
-        :param label_selector: filters Pods by label
-
-        Returns a list of pods from all namespaces
-        '''
-
-        return self.client.list_pod_for_all_namespaces(
-            label_selector=label_selector)
 
     def get_namespace_daemonset(self, namespace='default', label=''):
         '''

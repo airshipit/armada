@@ -271,33 +271,6 @@ class Tiller(object):
             LOG.warn("PRE: Could not delete anything, please check yaml")
             raise ex.PreUpdateJobDeleteException(name, namespace)
 
-        try:
-            for action in actions.get('create', []):
-                name = action.get("name")
-                action_type = action.get("type")
-                if "job" in action_type:
-                    LOG.info("Creating %s in namespace: %s", name, namespace)
-                    # TODO(MarshM) create_job_action does nothing but LOG.debug
-                    self.k8s.create_job_action(name, action_type)
-                    continue
-        except Exception:
-            LOG.warn("PRE: Could not create anything, please check yaml")
-            raise ex.PreUpdateJobCreateException(name, namespace)
-
-    def _post_update_actions(self, actions, namespace):
-        try:
-            for action in actions.get('create', []):
-                name = action.get("name")
-                action_type = action.get("type")
-                if "job" in action_type:
-                    LOG.info("Creating %s in namespace: %s", name, namespace)
-                    # TODO(MarshM) create_job_action does nothing but LOG.debug
-                    self.k8s.create_job_action(name, action_type)
-                    continue
-        except Exception:
-            LOG.warn("POST: Could not create anything, please check yaml")
-            raise ex.PreUpdateJobCreateException(name, namespace)
-
     def list_charts(self):
         '''
         List Helm Charts from Latest Releases
@@ -376,8 +349,6 @@ class Tiller(object):
             LOG.exception('Error while updating release %s', release)
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Upgrade')
-
-        self._post_update_actions(post_actions, namespace)
 
         tiller_result = TillerResult(
             update_msg.release.name, update_msg.release.namespace,

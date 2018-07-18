@@ -367,7 +367,6 @@ class TillerTestCase(base.ArmadaTestCase):
         # TODO: Test these methods as well, either by unmocking, or adding
         #       separate tests for them.
         tiller_obj._pre_update_actions = MagicMock()
-        tiller_obj._post_update_actions = MagicMock()
 
         pre_actions = {}
         post_actions = {}
@@ -393,8 +392,6 @@ class TillerTestCase(base.ArmadaTestCase):
         tiller_obj._pre_update_actions.assert_called_once_with(
             pre_actions, release, namespace, chart, disable_hooks, values,
             timeout)
-        tiller_obj._post_update_actions.assert_called_once_with(
-            post_actions, namespace)
 
         mock_update_release_request.assert_called_once_with(
             chart=chart,
