@@ -35,7 +35,7 @@ from armada.handlers.k8s import K8s
 from armada.handlers import test
 from armada.utils.release import label_selectors
 
-TILLER_VERSION = b'2.7.2'
+TILLER_VERSION = b'2.9.1'
 GRPC_EPSILON = 60
 RELEASE_LIMIT = 128  # TODO(mark-burnett): There may be a better page size.
 
