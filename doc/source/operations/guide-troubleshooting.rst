@@ -28,7 +28,7 @@ When running Armada in the container you can execute docker logs to retrieve log
 Errors/Exceptions
 -----------------
 
-A guide for interpreting errors/exceptions can be found `here <http://armada-helm.readthedocs.io/en/latest/operations/guide-exceptions.html>`_.
+A guide for interpreting errors/exceptions can be found `here <https://airshipit.readthedocs.io/projects/armada/en/latest/operations/exceptions/guide-exceptions.html>`_.
 
 Working with SSL
 ----------------

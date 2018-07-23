@@ -8,10 +8,9 @@ Prerequisites
 
 Kubernetes Cluster
 
-`Tiller Service <http://github.com/kubernetes/helm>`_
+`Tiller Service <https://github.com/kubernetes/helm>`_
 
-`Armada.yaml <http://armada-helm.readthedocs.io/en/latest/operations/
-guide-build-armada-yaml.html>`_
+`Armada.yaml <https://airshipit.readthedocs.io/projects/armada/en/latest/operations/guide-build-armada-yaml.html>`_
 
 .. note::
 
@@ -32,12 +31,12 @@ Usage
 
     Pull:
 
-    docker pull quay.io/attcomdev/armada:latest
+    docker pull quay.io/airshipit/armada:latest
 
     Build:
 
     git clone https://github.com/openstack/airship-armada && cd airship-armada/
-    docker build . -t quay.io/attcomdev/armada:latest
+    docker build . -t quay.io/airshipit/armada:latest
 
 2. Running Armada
 
@@ -56,7 +55,7 @@ Usage
 
 .. code:: bash
 
-    docker run -d --net host -p 8000:8000 --name armada -v $(pwd)/etc/:/etc/ -v ~/.kube/:/armada/.kube/ -v $(pwd)/examples/:/examples quay.io/attcomdev/armada:latest
+    docker run -d --net host -p 8000:8000 --name armada -v $(pwd)/etc/:/etc/ -v ~/.kube/:/armada/.kube/ -v $(pwd)/examples/:/examples quay.io/airshipit/armada:latest
     docker exec armada armada --help
 
 

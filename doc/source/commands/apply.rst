@@ -16,7 +16,7 @@ Commands
       executing apply command will execute upgrade.
 
       To see how to create an Armada manifest:
-      http://armada-helm.readthedocs.io/en/latest/operations/
+      https://airshipit.readthedocs.io/projects/armada/en/latest/operations/
 
       To install or upgrade charts, run:
 

@@ -405,7 +405,7 @@ Simple Example
       values: {}
       source:
         type: git
-        location: http://github.com/namespace/repo
+        location: https://github.com/namespace/repo
         subpath: blog-1
         reference: new-feat
       dependencies: []
