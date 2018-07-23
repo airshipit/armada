@@ -265,8 +265,13 @@ class Tiller(object):
                 action_type = action.get('type')
                 labels = action.get('labels', None)
 
-                self.delete_resources(release_name, name, action_type, labels,
-                                      namespace, timeout)
+                self.delete_resources(
+                    release_name,
+                    name,
+                    action_type,
+                    labels,
+                    namespace,
+                    timeout=timeout)
         except Exception:
             LOG.warn("PRE: Could not delete anything, please check yaml")
             raise ex.PreUpdateJobDeleteException(name, namespace)
@@ -631,7 +636,7 @@ class Tiller(object):
 
                 LOG.info("Deleting pod %s in namespace: %s", pod_name,
                          namespace)
-                self.k8s.delete_namespace_pod(pod_name, namespace)
+                self.k8s.delete_pod_action(pod_name, namespace)
                 if wait:
                     self.k8s.wait_for_pod_redeployment(pod_name, namespace)
             handled = True
