@@ -113,7 +113,7 @@ class DeleteChartManifest(CliAction):
             target_releases = []
 
             with open(self.manifest) as f:
-                documents = yaml.safe_load_all(f.read())
+                documents = list(yaml.safe_load_all(f.read()))
             try:
                 armada_obj = Manifest(documents).get_manifest()
                 prefix = armada_obj.get(const.KEYWORD_ARMADA).get(
