@@ -345,8 +345,15 @@ class Armada(object):
                         wait_timeout = deprecated_timeout or wait_timeout
 
                 # Determine wait logic
+                # NOTE(Dan Kim): Conditions to wait are below :
+                # 1) set sequenced=True in chart group
+                # 2) set force_wait param
+                # 3) add Chart's `data.wait.timeout`
+                # --timeout param will do not set wait=True, it just change
+                # max timeout of chart's deployment. (default: 900)
                 this_chart_should_wait = (cg_sequenced or self.force_wait or
-                                          wait_timeout > 0)
+                                          (bool(wait_values) and
+                                           (wait_timeout > 0)))
 
                 # If there is still no timeout, we need to use a default
                 # (item 4 in note above)
