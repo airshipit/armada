@@ -139,13 +139,6 @@ class Armada(object):
                 raise validate_exceptions.InvalidManifestException(
                     error_messages=details)
 
-        # TODO(MarshM): this is duplicated inside validate_armada_documents()
-        #               L126, and should be unreachable code if it has errors
-        result, msg_list = validate.validate_armada_manifests(self.documents)
-        if not result:
-            raise validate_exceptions.InvalidArmadaObjectException(
-                details=','.join([m.get('message') for m in msg_list]))
-
         # Clone the chart sources
         repos = {}
         manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
