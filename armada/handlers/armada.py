@@ -22,6 +22,7 @@ from oslo_log import log as logging
 
 from armada import const
 from armada.exceptions import armada_exceptions
+from armada.exceptions import override_exceptions
 from armada.exceptions import source_exceptions
 from armada.exceptions import tiller_exceptions
 from armada.exceptions import validate_exceptions
@@ -32,7 +33,6 @@ from armada.handlers.test import test_release_for_success
 from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
 from armada.utils import source
-from armada.utils import validate
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -101,8 +101,13 @@ class Armada(object):
             tiller_port=tiller_port,
             tiller_namespace=tiller_namespace,
             dry_run=dry_run)
-        self.documents = Override(
-            documents, overrides=set_ovr, values=values).update_manifests()
+        try:
+            self.documents = Override(
+                documents, overrides=set_ovr,
+                values=values).update_manifests()
+        except (validate_exceptions.InvalidManifestException,
+                override_exceptions.InvalidOverrideValueException):
+            raise
         self.k8s_wait_attempts = k8s_wait_attempts
         self.k8s_wait_attempt_sleep = k8s_wait_attempt_sleep
         self.manifest = Manifest(
@@ -126,18 +131,6 @@ class Armada(object):
         # Ensure Tiller is available and manifest is valid
         if not self.tiller.tiller_status():
             raise tiller_exceptions.TillerServicesUnavailableException()
-
-        valid, details = validate.validate_armada_documents(self.documents)
-
-        if details:
-            for msg in details:
-                if msg.get('error', False):
-                    LOG.error(msg.get('message', 'Unknown validation error.'))
-                else:
-                    LOG.debug(msg.get('message', 'Validation succeeded.'))
-            if not valid:
-                raise validate_exceptions.InvalidManifestException(
-                    error_messages=details)
 
         # Clone the chart sources
         repos = {}

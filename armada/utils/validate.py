@@ -219,6 +219,11 @@ def validate_armada_documents(documents):
         valid, details = validate_armada_manifests(documents)
         all_valid = all_valid and valid
         messages.extend(details)
+        for msg in messages:
+            if msg.get('error', False):
+                LOG.error(msg.get('message', 'Unknown validation error.'))
+            else:
+                LOG.debug(msg.get('message', 'Validation succeeded.'))
 
     return all_valid, messages
 

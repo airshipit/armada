@@ -20,6 +20,9 @@ from armada.handlers import armada
 from armada.tests.unit import base
 from armada.tests.test_utils import AttrDict
 from armada.utils.release import release_prefixer
+from armada.exceptions import ManifestException
+from armada.exceptions.override_exceptions import InvalidOverrideValueException
+from armada.exceptions.validate_exceptions import InvalidManifestException
 from armada.exceptions import tiller_exceptions
 from armada.exceptions.armada_exceptions import ProtectedReleaseException
 
@@ -615,3 +618,43 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 wait=True)
         ]
         mock_tiller.return_value.install_release.assert_has_calls(method_calls)
+
+
+class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
+
+    @mock.patch.object(armada, 'source')
+    @mock.patch('armada.handlers.armada.Tiller')
+    def test_armada_get_manifest_exception(self, mock_tiller, mock_source):
+        """Test armada handling with invalid manifest."""
+        yaml_documents = list(yaml.safe_load_all(TEST_YAML))
+        error_re = ('Documents must be a list of documents with at least one '
+                    'of each of the following schemas: .*')
+        self.assertRaisesRegexp(ManifestException, error_re, armada.Armada,
+                                yaml_documents[:1])
+
+    @mock.patch.object(armada, 'source')
+    @mock.patch('armada.handlers.armada.Tiller')
+    def test_armada_override_exception(self, mock_tiller, mock_source):
+        """Test Armada checks with invalid chart override."""
+        yaml_documents = list(yaml.safe_load_all(TEST_YAML))
+        override = ('chart:example-chart-2:name=' 'overridden', )
+
+        error_re = ('is not a valid override statement')
+        with self.assertRaisesRegexp(InvalidOverrideValueException, error_re):
+            armada.Armada(yaml_documents, set_ovr=override)
+
+    @mock.patch.object(armada, 'source')
+    @mock.patch('armada.handlers.armada.Tiller')
+    def test_armada_manifest_exception_override_none(self, mock_tiller,
+                                                     mock_source):
+        """Test Armada checks with invalid manifest."""
+        yaml_documents = list(yaml.safe_load_all(TEST_YAML))
+        example_document = [
+            d for d in yaml_documents
+            if d['metadata']['name'] == 'example-chart-4'
+        ][0]
+        del example_document['data']['release']
+
+        error_re = ('Invalid document .*')
+        with self.assertRaisesRegexp(InvalidManifestException, error_re):
+            armada.Armada(yaml_documents, set_ovr=None)
