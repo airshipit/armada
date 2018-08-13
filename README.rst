@@ -7,7 +7,7 @@ Armada is a tool for managing multiple Helm charts with dependencies by
 centralizing all configurations in a single Armada YAML and providing
 life-cycle hooks for all Helm releases.
 
-Find more documentation for Armada on `Read The Docs <https://armada-helm.readthedocs.io/>`_.
+Find more documentation for Armada on `Read The Docs <https://airship-armada.readthedocs.io/>`_.
 
 Overview
 --------
@@ -108,14 +108,14 @@ Further Reading
 
 `Airship <https://airshipit.org>`_.
 
-.. _Manual Install Guide: http://armada-helm.readthedocs.io/en/latest/development/getting-started.html#developer-install-guide
-.. _Armada Quickstart: http://armada-helm.readthedocs.io/en/latest/operations/guide-use-armada.html
+.. _Manual Install Guide: https://airship-armada.readthedocs.io/en/latest/development/getting-started.html#developer-install-guide
+.. _Armada Quickstart: https://airship-armada.readthedocs.io/en/latest/operations/guide-use-armada.html
 .. _kubectl: https://kubernetes.io/docs/user-guide/kubectl/kubectl_config/
 .. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
-.. _Deckhand: https://github.com/openstack/deckhand
+.. _Deckhand: https://github.com/openstack/airship-deckhand
 .. _Keystone: https://github.com/openstack/keystone
 
-.. |Docker Repository on Quay| image:: https://quay.io/repository/attcomdev/armada/status
-   :target: https://quay.io/repository/attcomdev/armada
-.. |Doc Status| image:: https://readthedocs.org/projects/armada-helm/badge/?version=latest
-   :target: http://armada-helm.readthedocs.io/
+.. |Docker Repository on Quay| image:: https://quay.io/repository/airshipit/armada/status
+   :target: https://quay.io/repository/airshipit/armada
+.. |Doc Status| image:: https://readthedocs.org/projects/airship-armada/badge/?version=latest
+   :target: https://airship-armada.readthedocs.io/
