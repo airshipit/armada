@@ -14,7 +14,7 @@ readlink(){
 }
 
 # Check to see if the aramada container exists
-if [ -n "$( sudo docker ps -a | grep quay.io/attcomdev/armada )" ]; then
+if [ -n "$( sudo docker ps -a | grep quay.io/airshipit/armada )" ]; then
     echo "Armada container already exists..."
     clean_container armada
 fi
@@ -24,13 +24,13 @@ if [ $1 = "apply" ]; then
     # TODO Handle erroneous or missing inputs
     # Bring up a new armada container with passed in yaml mounted to the container
     echo "Creating an Armada container..."
-    docker run -d --net host -p 8000:8000 --name armada -v $(readlink $(dirname $2)):$(readlink $(dirname $2)) -v ~/.kube/config:/armada/.kube/config -v ~/.kube/plugins/armada/examples/:/examples quay.io/attcomdev/armada:latest
+    docker run -d --net host -p 8000:8000 --name armada -v $(readlink $(dirname $2)):$(readlink $(dirname $2)) -v ~/.kube/config:/armada/.kube/config -v ~/.kube/plugins/armada/examples/:/examples quay.io/airshipit/armada:latest
     docker exec armada armada apply $(readlink $2)
 else
     # For any other command the chart does not need to be mounted to the container
     # Bring up a new armada container
     echo "Creating an Armada container..."
-    docker run -d --net host -p 8000:8000 --name armada -v ~/.kube/config:/armada/.kube/config -v ~/.kube/plugins/armada/examples/:/examples quay.io/attcomdev/armada:latest
+    docker run -d --net host -p 8000:8000 --name armada -v ~/.kube/config:/armada/.kube/config -v ~/.kube/plugins/armada/examples/:/examples quay.io/airshipit/armada:latest
     docker exec armada armada "$@"
 fi
 clean_container armada

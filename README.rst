@@ -64,7 +64,7 @@ Afterward, you can launch the Armada container by executing:
 
     $ sudo docker run -d --net host -p 8000:8000 --name armada \
         -v ~/.kube/config:/armada/.kube/config \
-        -v $(pwd)/examples/:/examples quay.io/attcomdev/armada:latest
+        -v $(pwd)/examples/:/examples quay.io/airshipit/armada:latest
 
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^

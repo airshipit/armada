@@ -14,7 +14,7 @@
 
 # APP INFO
 DOCKER_REGISTRY   ?= quay.io
-IMAGE_PREFIX      ?= attcomdev
+IMAGE_PREFIX      ?= airshipit
 IMAGE_NAME        ?= armada
 IMAGE_TAG         ?= latest
 HELM              ?= helm
