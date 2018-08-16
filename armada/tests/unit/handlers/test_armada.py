@@ -317,7 +317,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
     def _test_sync(self,
                    known_releases,
                    test_success=True,
-                   test_failure_to_run=False):
+                   test_failure_to_run=False,
+                   diff={'some_key': {'some diff'}}):
         """Test install functionality from the sync() method."""
 
         @mock.patch.object(armada.Armada, 'post_flight_ops')
@@ -330,7 +331,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             # Instantiate Armada object.
             yaml_documents = list(yaml.safe_load_all(TEST_YAML))
             armada_obj = armada.Armada(yaml_documents)
-            armada_obj.show_diff = mock.Mock()
+            armada_obj.get_diff = mock.Mock()
 
             chart_group = armada_obj.manifest['armada']['chart_groups'][0]
             charts = chart_group['chart_group']
@@ -355,6 +356,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             mock_chartbuilder.get_source_path.return_value = None
             mock_chartbuilder.get_helm_chart.return_value = None
 
+            # Simulate chart diff, upgrade should only happen if non-empty.
+            armada_obj.get_diff.return_value = diff
+
             armada_obj.sync()
 
             expected_install_release_calls = []
@@ -371,6 +375,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 # multiple conditions, so this is enough.
                 this_chart_should_wait = chart['wait']['timeout'] > 0
 
+                expected_apply = True
                 if release_name not in [x[0] for x in known_releases]:
                     expected_install_release_calls.append(
                         mock.call(
@@ -415,26 +420,31 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     break
 
                         if status == const.STATUS_DEPLOYED:
-                            upgrade = chart.get('upgrade', {})
-                            disable_hooks = upgrade.get('no_hooks', False)
-                            force = upgrade.get('force', False)
-                            recreate_pods = upgrade.get('recreate_pods', False)
+                            if not diff:
+                                expected_apply = False
+                            else:
+                                upgrade = chart.get('upgrade', {})
+                                disable_hooks = upgrade.get('no_hooks', False)
+                                force = upgrade.get('force', False)
+                                recreate_pods = upgrade.get(
+                                    'recreate_pods', False)
 
-                            expected_update_release_calls.append(
-                                mock.call(
-                                    mock_chartbuilder().get_helm_chart(),
-                                    "{}-{}".format(
-                                        armada_obj.manifest['armada']
-                                        ['release_prefix'], chart['release']),
-                                    chart['namespace'],
-                                    pre_actions={},
-                                    post_actions={},
-                                    disable_hooks=disable_hooks,
-                                    force=force,
-                                    recreate_pods=recreate_pods,
-                                    values=yaml.safe_dump(chart['values']),
-                                    wait=this_chart_should_wait,
-                                    timeout=chart['wait']['timeout']))
+                                expected_update_release_calls.append(
+                                    mock.call(
+                                        mock_chartbuilder().get_helm_chart(),
+                                        "{}-{}".format(
+                                            armada_obj.manifest['armada'][
+                                                'release_prefix'],
+                                            chart['release']),
+                                        chart['namespace'],
+                                        pre_actions={},
+                                        post_actions={},
+                                        disable_hooks=disable_hooks,
+                                        force=force,
+                                        recreate_pods=recreate_pods,
+                                        values=yaml.safe_dump(chart['values']),
+                                        wait=this_chart_should_wait,
+                                        timeout=chart['wait']['timeout']))
 
                 test_chart_override = chart.get('test')
                 # Use old default value when not using newer `test` key
@@ -448,7 +458,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     test_cleanup = test_chart_override.get('options', {}).get(
                         'cleanup', False)
 
-                if test_this_chart:
+                if test_this_chart and expected_apply:
                     expected_test_release_for_success_calls.append(
                         mock.call(
                             m_tiller,
@@ -505,23 +515,21 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
     def test_armada_sync_with_one_deployed_release(self):
         c1 = 'armada-test_chart_1'
 
-        known_releases = [[
-            c1, None,
-            self._get_chart_by_name(c1), None, const.STATUS_DEPLOYED
-        ]]
+        known_releases = [[c1, None, None, "{}", const.STATUS_DEPLOYED]]
         self._test_sync(known_releases)
+
+    def test_armada_sync_with_one_deployed_release_no_diff(self):
+        c1 = 'armada-test_chart_1'
+
+        known_releases = [[c1, None, None, "{}", const.STATUS_DEPLOYED]]
+        self._test_sync(known_releases, diff=set())
 
     def test_armada_sync_with_both_deployed_releases(self):
         c1 = 'armada-test_chart_1'
         c2 = 'armada-test_chart_2'
 
-        known_releases = [[
-            c1, None,
-            self._get_chart_by_name(c1), None, const.STATUS_DEPLOYED
-        ], [
-            c2, None,
-            self._get_chart_by_name(c2), None, const.STATUS_DEPLOYED
-        ]]
+        known_releases = [[c1, None, None, "{}", const.STATUS_DEPLOYED],
+                          [c2, None, None, "{}", const.STATUS_DEPLOYED]]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_unprotected_releases(self):
