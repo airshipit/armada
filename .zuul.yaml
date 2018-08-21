@@ -13,12 +13,14 @@
 - project:
     check:
       jobs:
+        - openstack-tox-pep8
         - airship-armada-linter
         - airship-armada-lint-pep8
         - airship-armada-ubuntu
         - airship-armada-docker-build-gate
     gate:
       jobs:
+        - openstack-tox-pep8
         - airship-armada-linter
         - airship-armada-lint-pep8
         - airship-armada-docker-build-gate
