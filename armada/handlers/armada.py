@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import difflib
+from deepdiff import DeepDiff
 import functools
 import time
 import yaml
@@ -370,7 +370,7 @@ class Armada(object):
                         'cleanup', False)
 
                 chartbuilder = ChartBuilder(chart)
-                protoc_chart = chartbuilder.get_helm_chart()
+                new_chart = chartbuilder.get_helm_chart()
 
                 # Begin Chart timeout deadline
                 deadline = time.time() + wait_timeout
@@ -385,7 +385,7 @@ class Armada(object):
                              release_name, namespace)
                     # extract the installed chart and installed values from the
                     # latest release so we can compare to the intended state
-                    apply_chart, apply_values = self.find_release_chart(
+                    old_chart, old_values_string = self.find_release_chart(
                         deployed_releases, release_name)
 
                     upgrade = chart.get('upgrade', {})
@@ -404,19 +404,25 @@ class Armada(object):
                         if not self.disable_update_post and upgrade_post:
                             post_actions = upgrade_post
 
-                    # Show delta for both the chart templates and the chart
-                    # values
-                    # TODO(alanmeadows) account for .files differences
-                    # once we support those
-                    LOG.info('Checking upgrade chart diffs.')
-                    upgrade_diff = self.show_diff(chart, apply_chart,
-                                                  apply_values,
-                                                  chartbuilder.dump(), values,
-                                                  msg)
+                    try:
+                        old_values = yaml.safe_load(old_values_string)
+                    except yaml.YAMLError:
+                        chart_desc = '{} (previously deployed)'.format(
+                            old_chart.metadata.name)
+                        raise armada_exceptions.\
+                            InvalidOverrideValuesYamlException(chart_desc)
 
-                    if not upgrade_diff:
-                        LOG.info("There are no updates found in this chart")
+                    LOG.info('Checking for updates to chart release inputs.')
+                    diff = self.get_diff(old_chart, old_values, new_chart,
+                                         values)
+
+                    if not diff:
+                        LOG.info("Found no updates to chart release inputs")
                         continue
+
+                    LOG.info("Found updates to chart release inputs")
+                    LOG.debug("%s", diff)
+                    msg['diff'].append({chart['release']: str(diff)})
 
                     # TODO(MarshM): Add tiller dry-run before upgrade and
                     # consider deadline impacts
@@ -426,7 +432,7 @@ class Armada(object):
                     LOG.info('Beginning Upgrade, wait=%s, timeout=%ss',
                              this_chart_should_wait, timer)
                     tiller_result = self.tiller.update_release(
-                        protoc_chart,
+                        new_chart,
                         release_name,
                         namespace,
                         pre_actions=pre_actions,
@@ -458,7 +464,7 @@ class Armada(object):
                     LOG.info('Beginning Install, wait=%s, timeout=%ss',
                              this_chart_should_wait, timer)
                     tiller_result = self.tiller.install_release(
-                        protoc_chart,
+                        new_chart,
                         release_name,
                         namespace,
                         values=yaml.safe_dump(values),
@@ -584,49 +590,65 @@ class Armada(object):
             LOG.info("Test failed for release: %s", release_name)
             raise tiller_exceptions.TestFailedException(release_name)
 
-    def show_diff(self, chart, installed_chart, installed_values, target_chart,
-                  target_values, msg):
-        '''Produce a unified diff of the installed chart vs our intention'''
+    def get_diff(self, old_chart, old_values, new_chart, new_values):
+        '''
+        Get the diff between old and new chart release inputs to determine
+        whether an upgrade is needed.
 
-        # TODO(MarshM) This gives decent output comparing values. Would be
-        # nice to clean it up further. Are \\n or \n\n ever valid diffs?
-        # Can these be cleanly converted to dicts, for easier compare?
-        def _sanitize_diff_str(str):
-            return str.replace('\\n', '\n').replace('\n\n', '\n').split('\n')
+        Release inputs which are relevant are the override values given, and
+        the chart content including:
 
-        source = _sanitize_diff_str(str(installed_chart.SerializeToString()))
-        target = _sanitize_diff_str(str(target_chart))
-        chart_diff = list(difflib.unified_diff(source, target, n=0))
+        * default values (values.yaml),
+        * templates and their content
+        * files and their content
+        * the above for each chart on which the chart depends transitively.
 
-        chart_release = chart.get('release', None)
+        This excludes Chart.yaml content as that is rarely used by the chart
+        via ``{{ .Chart }}``, and even when it is does not usually necessitate
+        an upgrade.
 
-        if len(chart_diff) > 0:
-            LOG.info("Found diff in Chart (%s)", chart_release)
-            diff_msg = []
-            for line in chart_diff:
-                diff_msg.append(line)
-            msg['diff'].append({'chart': diff_msg})
+        :param old_chart: The deployed chart.
+        :type  old_chart: Chart
+        :param old_values: The deployed chart override values.
+        :type  old_values: dict
+        :param new_chart: The chart to deploy.
+        :type  new_chart: Chart
+        :param new_values: The chart override values to deploy.
+        :type  new_values: dict
+        :return: Mapping of difference types to sets of those differences.
+        :rtype: dict
+        '''
 
-            pretty_diff = '\n'.join(diff_msg)
-            LOG.debug(pretty_diff)
+        def make_release_input(chart, values, desc):
+            # TODO(seaneagan): Should we include `chart.metadata` (Chart.yaml)?
+            try:
+                default_values = yaml.safe_load(chart.values.raw)
+            except yaml.YAMLError:
+                chart_desc = '{} ({})'.format(chart.metadata.name, desc)
+                raise armada_exceptions.InvalidValuesYamlException(chart_desc)
+            files = {f.type_url: f.value for f in chart.files}
+            templates = {t.name: t.data for t in chart.templates}
+            dependencies = {
+                d.metadata.name: make_release_input(d)
+                for d in chart.dependencies
+            }
 
-        source = _sanitize_diff_str(installed_values)
-        target = _sanitize_diff_str(yaml.safe_dump(target_values))
-        values_diff = list(difflib.unified_diff(source, target, n=0))
+            return {
+                'chart': {
+                    'values': default_values,
+                    'files': files,
+                    'templates': templates,
+                    'dependencies': dependencies
+                },
+                'values': values
+            }
 
-        if len(values_diff) > 0:
-            LOG.info("Found diff in values (%s)", chart_release)
-            diff_msg = []
-            for line in values_diff:
-                diff_msg.append(line)
-            msg['diff'].append({'values': diff_msg})
+        old_input = make_release_input(old_chart, old_values,
+                                       'previously deployed')
+        new_input = make_release_input(new_chart, new_values,
+                                       'currently being deployed')
 
-            pretty_diff = '\n'.join(diff_msg)
-            LOG.debug(pretty_diff)
-
-        result = (len(chart_diff) > 0) or (len(values_diff) > 0)
-
-        return result
+        return DeepDiff(old_input, new_input, view='tree')
 
     def _chart_cleanup(self, prefix, charts, msg):
         LOG.info('Processing chart cleanup to remove unspecified releases.')

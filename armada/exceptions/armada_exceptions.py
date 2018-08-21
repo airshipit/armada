@@ -40,3 +40,29 @@ class ProtectedReleaseException(ArmadaException):
             'Armada encountered protected release %s in FAILED status' %
             reason)
         super(ProtectedReleaseException, self).__init__(self._message)
+
+
+class InvalidValuesYamlException(ArmadaException):
+    '''
+    Exception that occurs when Armada encounters invalid values.yaml content in
+    a helm chart.
+    '''
+
+    def __init__(self, chart_description):
+        self._message = (
+            'Armada encountered invalid values.yaml in helm chart: %s' %
+            chart_description)
+        super(InvalidValuesYamlException, self).__init__(self._message)
+
+
+class InvalidOverrideValuesYamlException(ArmadaException):
+    '''
+    Exception that occurs when Armada encounters invalid override yaml in
+    helm chart.
+    '''
+
+    def __init__(self, chart_description):
+        self._message = (
+            'Armada encountered invalid values.yaml in helm chart: %s' %
+            chart_description)
+        super(InvalidValuesYamlException, self).__init__(self._message)
