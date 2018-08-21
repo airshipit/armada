@@ -18,6 +18,7 @@ import yaml
 
 from armada import const
 from armada.exceptions import override_exceptions
+from armada.exceptions import validate_exceptions
 from armada.utils import validate
 
 
@@ -37,6 +38,19 @@ class Override(object):
                 return list(yaml.safe_load_all(f.read()))
         except IOError:
             raise override_exceptions.InvalidOverrideFileException(doc)
+
+    def _document_checker(self, doc, ovr=None):
+        # Validate document or raise the appropriate exception
+        try:
+            valid, details = validate.validate_armada_documents(doc)
+        except (RuntimeError, TypeError):
+            raise override_exceptions.InvalidOverrideValueException(ovr)
+        if not valid:
+            if ovr:
+                raise override_exceptions.InvalidOverrideValueException(ovr)
+            else:
+                raise validate_exceptions.InvalidManifestException(
+                    error_messages=details)
 
     def update(self, d, u):
         for k, v in u.items():
@@ -146,6 +160,9 @@ class Override(object):
             for value in self.values:
                 merging_values = self._load_yaml_file(value)
                 self.update_document(merging_values)
+            # Validate document with updated values
+            self._document_checker(self.documents, self.values)
+
         if self.overrides:
             for override in self.overrides:
                 new_value = override.split('=')[1]
@@ -153,11 +170,11 @@ class Override(object):
                 data_path = doc_path.pop().split('.')
 
                 self.override_manifest_value(doc_path, data_path, new_value)
+            # Validate document with overrides
+            self._document_checker(self.documents, self.overrides)
 
-        try:
-            validate.validate_armada_documents(self.documents)
-        except Exception:
-            raise override_exceptions.InvalidOverrideValueException(
-                self.overrides)
+        if not (self.values and self.overrides):
+            # Valiate document
+            self._document_checker(self.documents)
 
         return self.documents

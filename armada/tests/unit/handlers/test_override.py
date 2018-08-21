@@ -66,7 +66,6 @@ class OverrideTestCase(testtools.TestCase):
             values_documents = list(yaml.safe_load_all(g.read()))
 
         override = ('manifest:simple-armada:release_prefix=' 'overridden', )
-
         # Case 1: Checking if primitive gets updated.
         ovr = Override(original_documents, override, [values_yaml])
         ovr.update_manifests()
@@ -103,7 +102,6 @@ class OverrideTestCase(testtools.TestCase):
 
         original_documents[-1]['data']['test'] = {'foo': 'bar'}
         override = ('manifest:simple-armada:test=' '{"foo": "bar"}', )
-
         ovr = Override(original_documents, override, [])
         self.assertRaises(json.decoder.JSONDecodeError, ovr.update_manifests)
 
@@ -321,6 +319,14 @@ class OverrideNegativeTestCase(testtools.TestCase):
         self.base_manifest = '{}/templates/base.yaml'.format(self.basepath)
 
     def test_update_manifests_invalid(self):
+        with open(self.base_manifest) as f:
+            original_documents = list(yaml.safe_load_all(f.read()))
+
+        override = ('manifest:simple-armada:release_prefix=' '\overridden', )
+        ovr = Override(original_documents, override)
+        self.assertRaises(json.decoder.JSONDecodeError, ovr.update_manifests)
+
+    def test_update_manifests_invalid_dic_override(self):
         missing_yaml = "{}/templates/non_existing_yaml.yaml". \
             format(self.basepath)
         with open(self.base_manifest):
@@ -328,6 +334,15 @@ class OverrideNegativeTestCase(testtools.TestCase):
             self.assertRaises(
                 override_exceptions.InvalidOverrideValueException,
                 ovr.update_manifests)
+
+    def test_update_manifests_invalid_override(self):
+        with open(self.base_manifest) as f:
+            original_documents = list(yaml.safe_load_all(f.read()))
+
+        override = ('manifest:simple-armada:name=' 'overridden', )
+        ovr = Override(original_documents, override)
+        self.assertRaises(override_exceptions.InvalidOverrideValueException,
+                          ovr.update_manifests)
 
     def test_load_yaml_file_invalid(self):
         missing_yaml = "{}/templates/non_existing_yaml.yaml". \
