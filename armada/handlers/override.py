@@ -165,8 +165,8 @@ class Override(object):
 
         if self.overrides:
             for override in self.overrides:
-                new_value = override.split('=')[1]
-                doc_path = override.split('=')[0].split(":")
+                new_value = override.split('=', 1)[1]
+                doc_path = override.split('=', 1)[0].split(":")
                 data_path = doc_path.pop().split('.')
 
                 self.override_manifest_value(doc_path, data_path, new_value)
