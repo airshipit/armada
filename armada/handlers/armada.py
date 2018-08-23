@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from deepdiff import DeepDiff
 import functools
 import time
 import yaml
@@ -29,6 +28,7 @@ from armada.exceptions import validate_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
+from armada.handlers.release_diff import ReleaseDiff
 from armada.handlers.test import test_release_for_success
 from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
@@ -590,66 +590,6 @@ class Armada(object):
             LOG.info("Test failed for release: %s", release_name)
             raise tiller_exceptions.TestFailedException(release_name)
 
-    def get_diff(self, old_chart, old_values, new_chart, new_values):
-        '''
-        Get the diff between old and new chart release inputs to determine
-        whether an upgrade is needed.
-
-        Release inputs which are relevant are the override values given, and
-        the chart content including:
-
-        * default values (values.yaml),
-        * templates and their content
-        * files and their content
-        * the above for each chart on which the chart depends transitively.
-
-        This excludes Chart.yaml content as that is rarely used by the chart
-        via ``{{ .Chart }}``, and even when it is does not usually necessitate
-        an upgrade.
-
-        :param old_chart: The deployed chart.
-        :type  old_chart: Chart
-        :param old_values: The deployed chart override values.
-        :type  old_values: dict
-        :param new_chart: The chart to deploy.
-        :type  new_chart: Chart
-        :param new_values: The chart override values to deploy.
-        :type  new_values: dict
-        :return: Mapping of difference types to sets of those differences.
-        :rtype: dict
-        '''
-
-        def make_release_input(chart, values, desc):
-            # TODO(seaneagan): Should we include `chart.metadata` (Chart.yaml)?
-            try:
-                default_values = yaml.safe_load(chart.values.raw)
-            except yaml.YAMLError:
-                chart_desc = '{} ({})'.format(chart.metadata.name, desc)
-                raise armada_exceptions.InvalidValuesYamlException(chart_desc)
-            files = {f.type_url: f.value for f in chart.files}
-            templates = {t.name: t.data for t in chart.templates}
-            dependencies = {
-                d.metadata.name: make_release_input(d)
-                for d in chart.dependencies
-            }
-
-            return {
-                'chart': {
-                    'values': default_values,
-                    'files': files,
-                    'templates': templates,
-                    'dependencies': dependencies
-                },
-                'values': values
-            }
-
-        old_input = make_release_input(old_chart, old_values,
-                                       'previously deployed')
-        new_input = make_release_input(new_chart, new_values,
-                                       'currently being deployed')
-
-        return DeepDiff(old_input, new_input, view='tree')
-
     def _chart_cleanup(self, prefix, charts, msg):
         LOG.info('Processing chart cleanup to remove unspecified releases.')
 
@@ -669,3 +609,6 @@ class Armada(object):
                          release)
                 self.tiller.uninstall_release(release)
                 msg['purge'].append(release)
+
+    def get_diff(self, old_chart, old_values, new_chart, values):
+        return ReleaseDiff(old_chart, old_values, new_chart, values).get_diff()
