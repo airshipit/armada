@@ -111,17 +111,16 @@ endpoints:
         user_domain_name: default
         username: armada
     hosts:
-      default: keystone-api
-      public: keystone
+      default: keystone
+      internal: keystone-api
     path:
       default: /v3
     scheme:
       default: http
     port:
-      admin:
-        default: 35357
       api:
         default: 80
+        internal: 5000
     host_fqdn_override:
       default: null
   armada:
