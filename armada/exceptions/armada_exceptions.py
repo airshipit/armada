@@ -77,3 +77,13 @@ class InvalidWaitTypeException(ArmadaException):
         self._message = (
             'Armada encountered invalid wait type: %s' % wait_type)
         super(InvalidWaitTypeException, self).__init__(self._message)
+
+
+class ChartDeployException(ArmadaException):
+    '''
+    Exception that occurs while deploying charts.
+    '''
+
+    def __init__(self, chart_names):
+        self._message = ('Exception deploying charts: %s' % chart_names)
+        super(ChartDeployException, self).__init__(self._message)

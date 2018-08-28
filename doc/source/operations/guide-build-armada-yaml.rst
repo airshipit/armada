@@ -99,12 +99,12 @@ Chart
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | namespace       | string   | namespace of your chart                                                               |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| wait            | object   | contains wait information such as (timeout, labels)                                   |
+| wait            | object   | See Wait_.                                                                            |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | protected       | object   | do not delete FAILED releases when encountered from previous run (provide the         |
 |                 |          | 'continue_processing' bool to continue or halt execution (default: halt))             |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| test            | object   | Run helm tests on the chart after install/upgrade (default enabled)                   |
+| test            | object   | See Test_.                                                                            |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | install         | object   | install the chart into your Kubernetes cluster                                        |
 +-----------------+----------+---------------------------------------------------------------------------------------+
@@ -119,15 +119,41 @@ Chart
 | timeout         | int      | time (in seconds) allotted for chart to deploy when 'wait' flag is set (DEPRECATED)   |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 
+Wait
+^^^^
+
++-------------+----------+--------------------------------------------------------------------+
+| keyword     | type     | action                                                             |
++=============+==========+====================================================================+
+| native      | object   | See `Wait Native`_.                                                |
++-------------+----------+--------------------------------------------------------------------+
+| timeout     | int      | time (in seconds) to wait for chart to deploy                      |
++-------------+----------+--------------------------------------------------------------------+
+| labels      | object   | k:v mapping of labels to select Kubernetes resources               |
++-------------+----------+--------------------------------------------------------------------+
+
+Wait Native
+^^^^^^^^^^^
+
+Config for the native ``helm (install|upgrade) --wait`` flag.
+
++-------------+----------+--------------------------------------------------------------------+
+| keyword     | type     | action                                                             |
++=============+==========+====================================================================+
+| enabled     | boolean  | defaults to true                                                   |
++-------------+----------+--------------------------------------------------------------------+
+
 Test
 ^^^^
+
+Run helm tests on the chart after install/upgrade.
 
 +-------------+----------+--------------------------------------------------------------------+
 | keyword     | type     | action                                                             |
 +=============+==========+====================================================================+
 | enabled     | bool     | whether to enable/disable helm tests for this chart (default True) |
 +-------------+----------+--------------------------------------------------------------------+
-| options     | object   | options to pass through to helm                                    |
+| options     | object   | See `Test Options`_.                                               |
 +-------------+----------+--------------------------------------------------------------------+
 
 .. note::
@@ -142,8 +168,13 @@ Test
     deprecated and will be removed.  The ``cleanup`` option below is set to true
     in this case for backward compatibility.
 
-Test - Options
-^^^^^^^^^^^^^^
+.. _test_options:
+
+
+Test Options
+^^^^^^^^^^^^
+
+Test options to pass through directly to helm.
 
 +-------------+----------+---------------------------------------------------------------+
 | keyword     | type     | action                                                        |

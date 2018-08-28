@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
+import threading
 
 from oslo_config import cfg
 from oslo_log import log
@@ -42,8 +44,25 @@ def set_app_default_configs():
     config_files = _get_config_files()
     if all([os.path.exists(x) for x in config_files]):
         CONF([], project='armada', default_config_files=config_files)
+    setup_chart_deploy_aware_logging()
     set_default_for_default_log_levels()
     default.register_opts(CONF)
+
+
+# Stores chart being deployed (if any) in current thread.
+current_chart_thread_local = threading.local()
+
+
+def get_current_chart():
+    return getattr(current_chart_thread_local, 'chart', None)
+
+
+def set_current_chart(chart):
+    current_chart_thread_local.chart = chart
+
+
+def setup_chart_deploy_aware_logging():
+    logging.setLoggerClass(ChartDeployAwareLogger)
 
 
 def set_default_for_default_log_levels():
@@ -56,5 +75,23 @@ def set_default_for_default_log_levels():
 
     extra_log_level_defaults = ['kubernetes.client.rest=INFO']
 
-    log.set_defaults(default_log_levels=log.get_default_log_levels() +
-                     extra_log_level_defaults)
+    log.set_defaults(
+        default_log_levels=log.get_default_log_levels() +
+        extra_log_level_defaults, )
+
+
+class ChartDeployAwareLogger(logging.Logger):
+    """Includes name of chart currently being deployed (if any) in log
+    messages.
+    """
+
+    def _log(self, level, msg, *args, **kwargs):
+        chart = get_current_chart()
+        if chart:
+            name = chart['chart_name']
+            prefix = '[chart={}]: '.format(name)
+        else:
+            prefix = ''
+        prefixed = '{}{}'.format(prefix, msg)
+        return super(ChartDeployAwareLogger, self)._log(
+            level, prefixed, *args, **kwargs)

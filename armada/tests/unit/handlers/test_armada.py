@@ -17,14 +17,17 @@ import yaml
 
 from armada import const
 from armada.handlers import armada
+from armada.handlers import chart_deploy
 from armada.tests.unit import base
-from armada.tests.test_utils import AttrDict
+from armada.tests.test_utils import AttrDict, makeMockThreadSafe
 from armada.utils.release import release_prefixer
 from armada.exceptions import ManifestException
 from armada.exceptions.override_exceptions import InvalidOverrideValueException
 from armada.exceptions.validate_exceptions import InvalidManifestException
 from armada.exceptions import tiller_exceptions
-from armada.exceptions.armada_exceptions import ProtectedReleaseException
+from armada.exceptions.armada_exceptions import ChartDeployException
+
+makeMockThreadSafe()
 
 TEST_YAML = """
 ---
@@ -43,7 +46,7 @@ metadata:
   name: example-group
 data:
   description: this is a test
-  sequenced: False
+  sequenced: True
   chart_group:
     - example-chart-1
     - example-chart-2
@@ -136,6 +139,8 @@ data:
     dependencies: []
     wait:
       timeout: 10
+      native:
+        enabled: false
     test:
       enabled: true
 """
@@ -171,7 +176,10 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                             'source_dir': CHART_SOURCES[0],
                             'values': {},
                             'wait': {
-                                'timeout': 10
+                                'timeout': 10,
+                                'native': {
+                                    'enabled': False
+                                }
                             },
                             'test': {
                                 'enabled': True
@@ -260,7 +268,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     'name':
                     'example-group',
                     'sequenced':
-                    False
+                    True
                 }]
             }
         }  # yapf: disable
@@ -317,6 +325,11 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     mock_source.source_cleanup.assert_called_with(
                         CHART_SOURCES[counter][0])
 
+    # TODO(seaneagan): Separate ChartDeploy tests into separate module.
+    # TODO(seaneagan): Once able to make mock library sufficiently thread safe,
+    # run sync tests for unsequenced as well by moving them to separate test
+    # class with two separate subclasses which set chart group `sequenced`
+    # field, one to true, one to false.
     def _test_sync(self,
                    known_releases,
                    test_success=True,
@@ -326,15 +339,15 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada.Armada, 'pre_flight_ops')
-        @mock.patch('armada.handlers.armada.ChartBuilder')
+        @mock.patch('armada.handlers.chart_deploy.ChartBuilder')
         @mock.patch('armada.handlers.armada.Tiller')
-        @mock.patch.object(armada, 'test_release_for_success')
+        @mock.patch.object(chart_deploy, 'test_release_for_success')
         def _do_test(mock_test_release_for_success, mock_tiller,
                      mock_chartbuilder, mock_pre_flight, mock_post_flight):
             # Instantiate Armada object.
             yaml_documents = list(yaml.safe_load_all(TEST_YAML))
             armada_obj = armada.Armada(yaml_documents)
-            armada_obj.get_diff = mock.Mock()
+            armada_obj.chart_deploy.get_diff = mock.Mock()
 
             chart_group = armada_obj.manifest['armada']['chart_groups'][0]
             charts = chart_group['chart_group']
@@ -360,7 +373,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             mock_chartbuilder.get_helm_chart.return_value = None
 
             # Simulate chart diff, upgrade should only happen if non-empty.
-            armada_obj.get_diff.return_value = diff
+            armada_obj.chart_deploy.get_diff.return_value = diff
 
             armada_obj.sync()
 
@@ -376,7 +389,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 release_name = release_prefixer(prefix, release)
                 # Simplified check because the actual code uses logical-or's
                 # multiple conditions, so this is enough.
-                this_chart_should_wait = chart['wait']['timeout'] > 0
+                native_wait_enabled = (chart['wait'].get('native', {}).get(
+                    'enabled', True))
 
                 expected_apply = True
                 if release_name not in [x[0] for x in known_releases]:
@@ -388,8 +402,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                 ['release_prefix'], chart['release']),
                             chart['namespace'],
                             values=yaml.safe_dump(chart['values']),
-                            wait=this_chart_should_wait,
-                            timeout=chart['wait']['timeout']))
+                            wait=native_wait_enabled,
+                            timeout=mock.ANY))
                 else:
                     target_release = None
                     for known_release in known_releases:
@@ -412,15 +426,16 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                             chart['release']),
                                         chart['namespace'],
                                         values=yaml.safe_dump(chart['values']),
-                                        wait=this_chart_should_wait,
-                                        timeout=chart['wait']['timeout']))
+                                        wait=native_wait_enabled,
+                                        timeout=mock.ANY))
                             else:
                                 p_continue = protected.get(
                                     'continue_processing', False)
                                 if p_continue:
                                     continue
                                 else:
-                                    break
+                                    if chart_group['sequenced']:
+                                        break
 
                         if status == const.STATUS_DEPLOYED:
                             if not diff:
@@ -446,8 +461,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         force=force,
                                         recreate_pods=recreate_pods,
                                         values=yaml.safe_dump(chart['values']),
-                                        wait=this_chart_should_wait,
-                                        timeout=chart['wait']['timeout']))
+                                        wait=native_wait_enabled,
+                                        timeout=mock.ANY))
 
                 test_chart_override = chart.get('test')
                 # Use old default value when not using newer `test` key
@@ -469,6 +484,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                             timeout=mock.ANY,
                             cleanup=test_cleanup))
 
+            any_order = not chart_group['sequenced']
             # Verify that at least 1 release is either installed or updated.
             self.assertTrue(
                 len(expected_install_release_calls) >= 1 or
@@ -479,28 +495,28 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 len(expected_install_release_calls),
                 m_tiller.install_release.call_count)
             m_tiller.install_release.assert_has_calls(
-                expected_install_release_calls)
+                expected_install_release_calls, any_order=any_order)
             # Verify that the expected number of deployed releases are
             # updated with expected arguments.
             self.assertEqual(
                 len(expected_update_release_calls),
                 m_tiller.update_release.call_count)
             m_tiller.update_release.assert_has_calls(
-                expected_update_release_calls)
+                expected_update_release_calls, any_order=any_order)
             # Verify that the expected number of deployed releases are
             # uninstalled with expected arguments.
             self.assertEqual(
                 len(expected_uninstall_release_calls),
                 m_tiller.uninstall_release.call_count)
             m_tiller.uninstall_release.assert_has_calls(
-                expected_uninstall_release_calls)
+                expected_uninstall_release_calls, any_order=any_order)
             # Verify that the expected number of deployed releases are
             # tested with expected arguments.
             self.assertEqual(
                 len(expected_test_release_for_success_calls),
                 mock_test_release_for_success.call_count)
             mock_test_release_for_success.assert_has_calls(
-                expected_test_release_for_success_calls)
+                expected_test_release_for_success_calls, any_order=any_order)
 
         _do_test()
 
@@ -566,66 +582,21 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         def _test_method():
             self._test_sync(known_releases)
 
-        self.assertRaises(ProtectedReleaseException, _test_method)
+        self.assertRaises(ChartDeployException, _test_method)
 
     def test_armada_sync_test_failure(self):
 
         def _test_method():
             self._test_sync([], test_success=False)
 
-        self.assertRaises(tiller_exceptions.TestFailedException, _test_method)
+        self.assertRaises(ChartDeployException, _test_method)
 
     def test_armada_sync_test_failure_to_run(self):
 
         def _test_method():
             self._test_sync([], test_failure_to_run=True)
 
-        self.assertRaises(tiller_exceptions.ReleaseException, _test_method)
-
-    @mock.patch.object(armada.Armada, 'post_flight_ops')
-    @mock.patch.object(armada.Armada, 'pre_flight_ops')
-    @mock.patch('armada.handlers.armada.ChartBuilder')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_install(self, mock_tiller, mock_chartbuilder, mock_pre_flight,
-                     mock_post_flight):
-        '''Test install functionality from the sync() method'''
-
-        # Instantiate Armada object.
-        yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        armada_obj = armada.Armada(yaml_documents)
-
-        charts = armada_obj.manifest['armada']['chart_groups'][0][
-            'chart_group']
-        chart_1 = charts[0]['chart']
-        chart_2 = charts[1]['chart']
-
-        # Mock irrelevant methods called by `armada.sync()`.
-        mock_tiller.list_charts.return_value = []
-        mock_chartbuilder.get_source_path.return_value = None
-        mock_chartbuilder.get_helm_chart.return_value = None
-
-        armada_obj.sync()
-
-        # Check params that should be passed to `tiller.install_release()`.
-        method_calls = [
-            mock.call(
-                mock_chartbuilder().get_helm_chart(),
-                "{}-{}".format(armada_obj.manifest['armada']['release_prefix'],
-                               chart_1['release']),
-                chart_1['namespace'],
-                values=yaml.safe_dump(chart_1['values']),
-                timeout=10,
-                wait=True),
-            mock.call(
-                mock_chartbuilder().get_helm_chart(),
-                "{}-{}".format(armada_obj.manifest['armada']['release_prefix'],
-                               chart_2['release']),
-                chart_2['namespace'],
-                values=yaml.safe_dump(chart_2['values']),
-                timeout=10,
-                wait=True)
-        ]
-        mock_tiller.return_value.install_release.assert_has_calls(method_calls)
+        self.assertRaises(ChartDeployException, _test_method)
 
 
 class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):

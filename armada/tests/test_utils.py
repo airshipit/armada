@@ -16,11 +16,34 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
 import random
 import string
+import testtools
+import threading
 import uuid
 
-import testtools
+_mock_thread_safe = False
+_mock_call_lock = threading.RLock()
+
+
+# TODO(seaneagan): Get this working.
+def makeMockThreadSafe():
+    '''
+        This attempts to make a subset of the mock library thread safe using
+        locking, so that the mock call records are accurate.
+    '''
+    global _mock_thread_safe
+    if not _mock_thread_safe:
+        unsafe_mock_call = mock.CallableMixin._mock_call
+
+        def safe_mock_call(*args, **kwargs):
+            with _mock_call_lock:
+                return unsafe_mock_call(*args, **kwargs)
+
+        mock.CallableMixin._mock_call = safe_mock_call
+
+        _mock_thread_safe = True
 
 
 def rand_uuid_hex():

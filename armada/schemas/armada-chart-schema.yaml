@@ -83,6 +83,14 @@ data:
           type: integer
         labels:
           $ref: "#/definitions/labels"
+        # Config for helm's native `--wait` param.
+        native:
+          type: object
+          properties:
+            # TODO: Add separate timeout for native wait?
+            enabled:
+              type: boolean
+          additionalProperties: false
       additionalProperties: false
     source:
       type: object
