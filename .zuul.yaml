@@ -23,6 +23,7 @@
         - openstack-tox-pep8
         - airship-armada-chart-build-gate
         - airship-armada-docker-build-gate
+        - airship-treasuremap-airskiff-deploy
     gate:
       jobs:
         - openstack-tox-pep8
@@ -56,6 +57,31 @@
       tags:
         dynamic:
           patch_set: true
+
+- job:
+    name: airship-treasuremap-airskiff-deploy
+    nodeset: airship-armada-single-node
+    description: |
+      Deploy Memcached using Airskiff and submitted Armada changes.
+    timeout: 9600
+    voting: false
+    pre-run:
+      - tools/gate/playbooks/airskiff-reduce-site.yaml
+      - tools/gate/playbooks/git-config.yaml
+    run: tools/gate/playbooks/airskiff-deploy.yaml
+    post-run: tools/gate/playbooks/debug-report.yaml
+    required-projects:
+      - openstack/airship-deckhand
+      - openstack/airship-pegleg
+      - openstack/airship-shipyard
+      - openstack/airship-treasuremap
+      - openstack/openstack-helm-infra
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^examples/.*$
+      - ^releasenotes/.*$
+      - ^swagger/.*$
 
 - job:
     name: airship-armada-docker-publish
