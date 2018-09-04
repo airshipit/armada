@@ -137,8 +137,8 @@ class Tiller(object):
         '''
         pods = None
         namespace = self._get_tiller_namespace()
-        pods = self.k8s.get_namespace_pod(namespace,
-                                          CONF.tiller_pod_labels).items
+        pods = self.k8s.get_namespace_pod(
+            namespace, label_selector=CONF.tiller_pod_labels).items
         # No Tiller pods found
         if not pods:
             raise ex.TillerPodNotFoundException(CONF.tiller_pod_labels)
@@ -581,7 +581,8 @@ class Tiller(object):
 
         handled = False
         if resource_type == 'job':
-            get_jobs = self.k8s.get_namespace_job(namespace, label_selector)
+            get_jobs = self.k8s.get_namespace_job(
+                namespace, label_selector=label_selector)
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
 
@@ -598,8 +599,8 @@ class Tiller(object):
             handled = True
 
         if resource_type == 'cronjob' or resource_type == 'job':
-            get_jobs = self.k8s.get_namespace_cron_job(namespace,
-                                                       label_selector)
+            get_jobs = self.k8s.get_namespace_cron_job(
+                namespace, label_selector=label_selector)
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
 
@@ -622,8 +623,8 @@ class Tiller(object):
             handled = True
 
         if resource_type == 'pod':
-            release_pods = self.k8s.get_namespace_pod(namespace,
-                                                      label_selector)
+            release_pods = self.k8s.get_namespace_pod(
+                namespace, label_selector=label_selector)
             for pod in release_pods.items:
                 pod_name = pod.metadata.name
 
@@ -668,8 +669,8 @@ class Tiller(object):
             if resource_labels is not None:
                 label_selector = label_selectors(resource_labels)
 
-            get_daemonset = self.k8s.get_namespace_daemonset(
-                namespace=namespace, label=label_selector)
+            get_daemonset = self.k8s.get_namespace_daemon_set(
+                namespace, label_selector=label_selector)
 
             for ds in get_daemonset.items:
                 ds_name = ds.metadata.name

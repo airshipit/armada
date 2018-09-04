@@ -31,6 +31,7 @@ from armada.handlers.override import Override
 from armada.handlers.release_diff import ReleaseDiff
 from armada.handlers.test import test_release_for_success
 from armada.handlers.tiller import Tiller
+from armada.handlers.wait import get_wait_for
 from armada.utils.release import release_prefixer
 from armada.utils import source
 
@@ -561,13 +562,28 @@ class Armada(object):
                 timeout)
             return
 
-        self.tiller.k8s.wait_until_ready(
-            release=release_name,
-            labels=wait_labels,
-            namespace=namespace,
-            k8s_wait_attempts=self.k8s_wait_attempts,
-            k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
-            timeout=timeout)
+        LOG.info('Waiting for release=%s', release_name)
+
+        waits = [
+            get_wait_for('job', self.tiller.k8s, skip_if_none_found=True),
+            get_wait_for('pod', self.tiller.k8s)
+        ]
+        deadline = time.time() + timeout
+        deadline_remaining = timeout
+        for wait in waits:
+            if deadline_remaining <= 0:
+                reason = (
+                    'Timeout expired waiting for release=%s' % release_name)
+                LOG.error(reason)
+                raise armada_exceptions.ArmadaTimeoutException(reason)
+
+            wait.wait(
+                labels=wait_labels,
+                namespace=namespace,
+                k8s_wait_attempts=self.k8s_wait_attempts,
+                k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
+                timeout=timeout)
+            deadline_remaining = int(round(deadline - time.time()))
 
     def _test_chart(self, release_name, timeout, cleanup):
         if self.dry_run:
