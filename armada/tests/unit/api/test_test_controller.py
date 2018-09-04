@@ -143,8 +143,9 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         self.assertEqual(1, resp_body['details']['errorCount'])
         self.assertIn({
             'message':
-            ('An error occurred while generating the manifest: Could not '
-             'find dependency chart helm-toolkit in armada/Chart/v1.'),
+            ('An error occurred while building chart group: '
+             'Could not build chart group keystone-infra-services in '
+             'armada/ChartGroup/v1.'),
             'error':
             True,
             'kind':
