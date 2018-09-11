@@ -140,10 +140,10 @@ data:
       enabled: true
 """
 
-CHART_SOURCES = [('git://github.com/dummy/armada',
-                  'chart_1'), ('/tmp/dummy/armada', 'chart_2'),
-                 ('/tmp/dummy/armada', 'chart_3'), ('/tmp/dummy/armada',
-                                                    'chart_4')]
+CHART_SOURCES = [('git://github.com/dummy/armada', 'chart_1'),
+                 ('/tmp/dummy/armada', 'chart_2'),
+                 ('/tmp/dummy/armada', 'chart_3'),
+                 ('/tmp/dummy/armada', 'chart_4')]
 
 
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
@@ -263,7 +263,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     False
                 }]
             }
-        }
+        }  # yapf: disable
 
         self.assertTrue(hasattr(armada_obj, 'manifest'))
         self.assertIsInstance(armada_obj.manifest, dict)
@@ -384,8 +384,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                         mock.call(
                             mock_chartbuilder().get_helm_chart(),
                             "{}-{}".format(
-                                armada_obj.manifest['armada'][
-                                    'release_prefix'], chart['release']),
+                                armada_obj.manifest['armada']
+                                ['release_prefix'], chart['release']),
                             chart['namespace'],
                             values=yaml.safe_dump(chart['values']),
                             wait=this_chart_should_wait,
@@ -407,8 +407,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     mock.call(
                                         mock_chartbuilder().get_helm_chart(),
                                         "{}-{}".format(
-                                            armada_obj.manifest['armada'][
-                                                'release_prefix'],
+                                            armada_obj.manifest['armada']
+                                            ['release_prefix'],
                                             chart['release']),
                                         chart['namespace'],
                                         values=yaml.safe_dump(chart['values']),
@@ -436,8 +436,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     mock.call(
                                         mock_chartbuilder().get_helm_chart(),
                                         "{}-{}".format(
-                                            armada_obj.manifest['armada'][
-                                                'release_prefix'],
+                                            armada_obj.manifest['armada']
+                                            ['release_prefix'],
                                             chart['release']),
                                         chart['namespace'],
                                         pre_actions={},

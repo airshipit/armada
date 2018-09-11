@@ -127,7 +127,5 @@ class Rollback(CliAction):
         self.output(response)
 
     def output(self, response):
-        self.logger.info(
-            ('(dry run) '
-             if self.dry_run else '') + 'Rollback of %s complete.',
-            self.release)
+        self.logger.info(('(dry run) ' if self.dry_run else '') +
+                         'Rollback of %s complete.', self.release)

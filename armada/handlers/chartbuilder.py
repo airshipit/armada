@@ -63,9 +63,9 @@ class ChartBuilder(object):
         property from the chart, or else "" if the property isn't a 2-tuple.
         '''
         source_dir = self.chart.get('source_dir')
-        return (os.path.join(*source_dir)
-                if (source_dir and isinstance(source_dir, (list, tuple)) and
-                    len(source_dir) == 2) else "")
+        return (os.path.join(*source_dir) if
+                (source_dir and isinstance(source_dir, (list, tuple)) and
+                 len(source_dir) == 2) else "")
 
     def get_ignored_files(self):
         '''Load files to ignore from .helmignore if present.'''
