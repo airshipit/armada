@@ -48,7 +48,7 @@ class Armada(object):
                  dry_run=False,
                  set_ovr=None,
                  force_wait=False,
-                 timeout=0,
+                 timeout=None,
                  tiller_host=None,
                  tiller_port=None,
                  tiller_namespace=None,

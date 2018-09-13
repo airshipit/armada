@@ -68,17 +68,6 @@ class InvalidOverrideValuesYamlException(ArmadaException):
         super(InvalidValuesYamlException, self).__init__(self._message)
 
 
-class InvalidWaitTypeException(ArmadaException):
-    '''
-    Exception that occurs when Armada encounters an invalid wait type.
-    '''
-
-    def __init__(self, wait_type):
-        self._message = (
-            'Armada encountered invalid wait type: %s' % wait_type)
-        super(InvalidWaitTypeException, self).__init__(self._message)
-
-
 class ChartDeployException(ArmadaException):
     '''
     Exception that occurs while deploying charts.
@@ -87,3 +76,13 @@ class ChartDeployException(ArmadaException):
     def __init__(self, chart_names):
         self._message = ('Exception deploying charts: %s' % chart_names)
         super(ChartDeployException, self).__init__(self._message)
+
+
+class WaitException(ArmadaException):
+    '''
+    Exception that occurs while waiting for resources to become ready.
+    '''
+
+    def __init__(self, message):
+        self._message = message
+        super(WaitException, self).__init__(message)

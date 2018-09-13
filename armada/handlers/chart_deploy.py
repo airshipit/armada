@@ -16,12 +16,11 @@ from oslo_log import log as logging
 import time
 import yaml
 
-from armada import const
 from armada.exceptions import armada_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.test import test_release_for_success
 from armada.handlers.release_diff import ReleaseDiff
-from armada.handlers.wait import get_wait_for
+from armada.handlers.wait import ChartWait
 from armada.exceptions import tiller_exceptions
 from armada.utils.release import release_prefixer
 
@@ -79,35 +78,22 @@ class ChartDeploy(object):
                 self.tiller.uninstall_release(release_name)
                 result['purge'] = release_name
 
-        wait_values = chart.get('wait', {})
-        wait_labels = wait_values.get('labels', {})
+        chart_wait = ChartWait(
+            self.tiller.k8s,
+            release_name,
+            chart,
+            namespace,
+            k8s_wait_attempts=self.k8s_wait_attempts,
+            k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
+            timeout=self.timeout)
 
-        wait_timeout = self.timeout
-        if wait_timeout <= 0:
-            wait_timeout = wait_values.get('timeout', wait_timeout)
+        native_wait_enabled = chart_wait.is_native_enabled()
 
-        # TODO(MarshM): Deprecated, remove `timeout` key.
-        deprecated_timeout = chart.get('timeout', None)
-        if isinstance(deprecated_timeout, int):
-            LOG.warn('The `timeout` key is deprecated and support '
-                     'for this will be removed soon. Use '
-                     '`wait.timeout` instead.')
-        if wait_timeout <= 0:
-            wait_timeout = deprecated_timeout or wait_timeout
-
-        if wait_timeout <= 0:
-            LOG.info('No Chart timeout specified, using default: %ss',
-                     const.DEFAULT_CHART_TIMEOUT)
-            wait_timeout = const.DEFAULT_CHART_TIMEOUT
-
-        native_wait = wait_values.get('native', {})
-        native_wait_enabled = native_wait.get('enabled', True)
+        # Begin Chart timeout deadline
+        deadline = time.time() + chart_wait.get_timeout()
 
         chartbuilder = ChartBuilder(chart)
         new_chart = chartbuilder.get_helm_chart()
-
-        # Begin Chart timeout deadline
-        deadline = time.time() + wait_timeout
 
         # TODO(mark-burnett): It may be more robust to directly call
         # tiller status to decide whether to install/upgrade rather
@@ -202,7 +188,7 @@ class ChartDeploy(object):
             result['install'] = release_name
 
         timer = int(round(deadline - time.time()))
-        self._wait_until_ready(release_name, wait_labels, namespace, timer)
+        chart_wait.wait(timer)
 
         test_chart_override = chart.get('test')
         # Use old default value when not using newer `test` key
@@ -225,37 +211,6 @@ class ChartDeploy(object):
             self._test_chart(release_name, timer, test_cleanup)
 
         return result
-
-    def _wait_until_ready(self, release_name, wait_labels, namespace, timeout):
-        if self.dry_run:
-            LOG.info(
-                'Skipping wait during `dry-run`, would have waited on '
-                'namespace=%s, labels=(%s) for %ss.', namespace, wait_labels,
-                timeout)
-            return
-
-        LOG.info('Waiting for release=%s', release_name)
-
-        waits = [
-            get_wait_for('job', self.tiller.k8s, skip_if_none_found=True),
-            get_wait_for('pod', self.tiller.k8s)
-        ]
-        deadline = time.time() + timeout
-        deadline_remaining = timeout
-        for wait in waits:
-            if deadline_remaining <= 0:
-                reason = (
-                    'Timeout expired waiting for release=%s' % release_name)
-                LOG.error(reason)
-                raise armada_exceptions.ArmadaTimeoutException(reason)
-
-            wait.wait(
-                labels=wait_labels,
-                namespace=namespace,
-                k8s_wait_attempts=self.k8s_wait_attempts,
-                k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
-                timeout=timeout)
-            deadline_remaining = int(round(deadline - time.time()))
 
     def _test_chart(self, release_name, timeout, cleanup):
         if self.dry_run:

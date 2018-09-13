@@ -26,3 +26,23 @@ Armada Exceptions
    :members:
    :show-inheritance:
    :undoc-members:
+
+.. autoexception:: armada.exceptions.armada_exceptions.InvalidValuesYamlException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.armada_exceptions.InvalidOverrideValuesYamlException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.armada_exceptions.ChartDeployException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.armada_exceptions.WaitException
+   :members:
+   :show-inheritance:
+   :undoc-members:

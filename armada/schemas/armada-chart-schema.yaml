@@ -81,6 +81,21 @@ data:
       properties:
         timeout:
           type: integer
+        resources:
+          type: array
+          items:
+            properties:
+              type:
+                type: string
+              labels:
+                $ref: '#/definitions/labels'
+              min_ready:
+                anyOf:
+                  - type: integer
+                  - type: string
+            required:
+              - type
+            additionalProperties: false
         labels:
           $ref: "#/definitions/labels"
         # Config for helm's native `--wait` param.

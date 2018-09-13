@@ -108,8 +108,7 @@ SHORT_DESC = "Command installs manifest charts."
     '--timeout',
     help="Specifies time to wait for each chart to fully "
     "finish deploying.",
-    type=int,
-    default=0)
+    type=int)
 @click.option(
     '--values',
     '-f',

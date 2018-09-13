@@ -99,7 +99,7 @@ Chart
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | namespace       | string   | namespace of your chart                                                               |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| wait            | object   | See Wait_.                                                                            |
+| wait            | object   | See `Wait`_.                                                                          |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | protected       | object   | do not delete FAILED releases when encountered from previous run (provide the         |
 |                 |          | 'continue_processing' bool to continue or halt execution (default: halt))             |
@@ -125,11 +125,30 @@ Wait
 +-------------+----------+--------------------------------------------------------------------+
 | keyword     | type     | action                                                             |
 +=============+==========+====================================================================+
-| native      | object   | See `Wait Native`_.                                                |
-+-------------+----------+--------------------------------------------------------------------+
 | timeout     | int      | time (in seconds) to wait for chart to deploy                      |
 +-------------+----------+--------------------------------------------------------------------+
-| labels      | object   | k:v mapping of labels to select Kubernetes resources               |
+| resources   | array    | Array of `Wait Resource`_ to wait on, with ``labels`` added to each|
+|             |          | item. Defaults to pods and jobs (if any exist) matching ``labels``.|
++-------------+----------+--------------------------------------------------------------------+
+| labels      | object   | Base mapping of labels to wait on. They are added to any labels in |
+|             |          | each item in the ``resources`` array.                              |
++-------------+----------+--------------------------------------------------------------------+
+| native      | boolean  | See `Wait Native`_.                                                |
++-------------+----------+--------------------------------------------------------------------+
+
+Wait Resource
+^^^^^^^^^^^^^
++-------------+----------+--------------------------------------------------------------------+
+| keyword     | type     | action                                                             |
++=============+==========+====================================================================+
+| type        | string   | k8s resource type, supports: controllers ('deployment',            |
+|             |          | 'daemonset', 'statefulset'), 'pod', 'job'                          |
++-------------+----------+--------------------------------------------------------------------+
+| labels      | object   | mapping of kubernetes resource labels                              |
++-------------+----------+--------------------------------------------------------------------+
+| min\_ready  | int      | Only for controller ``type``s. Amount of pods in a controller      |
+|             | string   | which must be ready. Can be integer or percent string e.g. ``80%``.|
+|             |          | Default ``100%``.                                                  |
 +-------------+----------+--------------------------------------------------------------------+
 
 Wait Native
