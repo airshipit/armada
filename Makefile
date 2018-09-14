@@ -38,7 +38,6 @@ ifdef VERSION
 	DOCKER_VERSION = $(VERSION)
 endif
 
-
 SHELL = /bin/bash
 
 info:
@@ -88,7 +87,11 @@ dry-run: clean
 	$(HELM) template charts/$(CHART)
 
 .PHONY: docs
-docs: build_docs
+docs: clean build_docs
+
+.PHONY: build_docs
+build_docs:
+	tox -e docs
 
 .PHONY: run_images
 run_images: run_armada
@@ -96,10 +99,6 @@ run_images: run_armada
 .PHONY: run_armada
 run_armada: build_armada
 	./tools/armada_image_run.sh $(IMAGE)
-
-.PHONY: build_docs
-build_docs:
-	tox -e docs
 
 .PHONY: build_armada
 build_armada:
@@ -128,6 +127,7 @@ protoc:
 .PHONY: clean
 clean:
 	rm -rf build
+	rm -rf doc/build
 	rm -f charts/*.tgz
 	rm -f charts/*/requirements.lock
 	rm -rf charts/*/charts
