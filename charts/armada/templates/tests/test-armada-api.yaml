@@ -25,6 +25,7 @@ metadata:
   name: "{{ .Release.Name }}-armada-api-test"
   annotations:
     "helm.sh/hook": "test-success"
+    {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" }}
   labels:
 {{ tuple $envAll "armada" "api-test" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:

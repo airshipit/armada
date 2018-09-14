@@ -39,6 +39,8 @@ metadata:
     app: helm
     name: tiller
   name: tiller-deploy
+  annotations:
+    {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" }}
 spec:
   replicas: 1
   selector:

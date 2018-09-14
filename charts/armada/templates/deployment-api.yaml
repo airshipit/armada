@@ -69,6 +69,8 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: armada-api
+  annotations:
+    {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" }}
 spec:
   replicas: {{ .Values.pod.replicas.api }}
 {{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
