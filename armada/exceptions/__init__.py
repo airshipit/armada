@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from armada.exceptions.manifest_exceptions import BuildChartException
+from armada.exceptions.manifest_exceptions import BuildChartGroupException
+from armada.exceptions.manifest_exceptions import ChartDependencyException
 from armada.exceptions.manifest_exceptions import ManifestException
 
-__all__ = ['ManifestException']
+__all__ = [
+    'BuildChartException', 'BuildChartGroupException',
+    'ChartDependencyException', 'ManifestException'
+]

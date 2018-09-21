@@ -102,6 +102,27 @@ data:
   dependencies:
     - helm-toolkit
 ---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: ro-global
+  labels:
+    name: ro-global
+    component: ro
+  layeringDefinition:
+    abstract: false
+    layer: global
+    actions:
+      - method: merge
+        path: .
+  storagePolicy: cleartext
+data:
+  source: {location: '', subpath: charts/ro, type: git}
+  release: ro-release
+  chart_name: ro
+  namespace: openstack
+  dependencies: []
+---
 schema: armada/ChartGroup/v1
 metadata:
   schema: metadata/Document/v1
@@ -122,6 +143,19 @@ data:
   sequenced: True
   chart_group:
     - keystone
+---
+schema: armada/ChartGroup/v1
+metadata:
+  schema: metadata/Document/v1
+  name: ro-inventory-notifier
+  layeringDefinition:
+    abstract: false
+    layer: global
+  storagePolicy: cleartext
+data:
+  description: Deploy RO
+  chart_group:
+    - ro
 ---
 schema: armada/Manifest/v1
 metadata:

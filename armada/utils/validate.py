@@ -16,6 +16,7 @@ import jsonschema
 import os
 import pkg_resources
 import requests
+import traceback
 import yaml
 
 from oslo_log import log as logging
@@ -74,6 +75,7 @@ def _validate_armada_manifest(manifest):
     except ManifestException as me:
         vmsg = ValidationMessage(
             message=str(me), error=True, name='ARM001', level='Error')
+        LOG.error(traceback.format_exc())
         LOG.error('ValidationMessage: %s', vmsg.get_output_json())
         details.append(vmsg.get_output())
         return False, details

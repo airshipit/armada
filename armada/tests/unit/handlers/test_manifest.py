@@ -40,12 +40,12 @@ class ManifestTestCase(testtools.TestCase):
         self.assertIsInstance(armada_manifest.groups, list)
         self.assertIsNotNone(armada_manifest.manifest)
 
-        self.assertEqual(4, len(armada_manifest.charts))
-        self.assertEqual(2, len(armada_manifest.groups))
+        self.assertEqual(5, len(armada_manifest.charts))
+        self.assertEqual(3, len(armada_manifest.groups))
 
-        self.assertEqual([self.documents[x] for x in range(4)],
+        self.assertEqual([self.documents[x] for x in range(5)],
                          armada_manifest.charts)
-        self.assertEqual([self.documents[x] for x in range(4, 6)],
+        self.assertEqual([self.documents[x] for x in range(5, 8)],
                          armada_manifest.groups)
         self.assertEqual(self.documents[-1], armada_manifest.manifest)
 
@@ -59,12 +59,12 @@ class ManifestTestCase(testtools.TestCase):
         self.assertIsInstance(armada_manifest.groups, list)
         self.assertIsNotNone(armada_manifest.manifest)
 
-        self.assertEqual(4, len(armada_manifest.charts))
-        self.assertEqual(2, len(armada_manifest.groups))
+        self.assertEqual(5, len(armada_manifest.charts))
+        self.assertEqual(3, len(armada_manifest.groups))
 
-        self.assertEqual([self.documents[x] for x in range(4)],
+        self.assertEqual([self.documents[x] for x in range(5)],
                          armada_manifest.charts)
-        self.assertEqual([self.documents[x] for x in range(4, 6)],
+        self.assertEqual([self.documents[x] for x in range(5, 8)],
                          armada_manifest.groups)
         self.assertEqual(self.documents[-1], armada_manifest.manifest)
         self.assertEqual('armada-manifest',
@@ -87,12 +87,12 @@ class ManifestTestCase(testtools.TestCase):
         self.assertIsInstance(armada_manifest.groups, list)
         self.assertIsNotNone(armada_manifest.manifest)
 
-        self.assertEqual(4, len(armada_manifest.charts))
-        self.assertEqual(2, len(armada_manifest.groups))
+        self.assertEqual(5, len(armada_manifest.charts))
+        self.assertEqual(3, len(armada_manifest.groups))
 
-        self.assertEqual([self.documents[x] for x in range(4)],
+        self.assertEqual([self.documents[x] for x in range(5)],
                          armada_manifest.charts)
-        self.assertEqual([self.documents[x] for x in range(4, 6)],
+        self.assertEqual([self.documents[x] for x in range(5, 8)],
                          armada_manifest.groups)
         self.assertEqual(armada_manifest.manifest, self.documents[-1])
         self.assertEqual('armada-manifest',
@@ -107,7 +107,8 @@ class ManifestTestCase(testtools.TestCase):
                          armada_manifest.manifest['metadata']['name'])
 
     def test_get_manifest(self):
-        armada_manifest = manifest.Manifest(self.documents)
+        armada_manifest = manifest.Manifest(
+            self.documents, target_manifest='armada-manifest')
         obtained_manifest = armada_manifest.get_manifest()
         self.assertIsInstance(obtained_manifest, dict)
         self.assertEqual(obtained_manifest['armada'],
@@ -116,7 +117,7 @@ class ManifestTestCase(testtools.TestCase):
     def test_find_documents(self):
         armada_manifest = manifest.Manifest(self.documents)
         chart_documents, chart_groups, manifests = armada_manifest. \
-            _find_documents()
+            _find_documents(target_manifest='armada-manifest')
 
         # checking if all the chart documents are present
         self.assertIsInstance(chart_documents, list)
@@ -174,13 +175,13 @@ class ManifestTestCase(testtools.TestCase):
         ok_chart = armada_manifest. \
             find_chart_group_document('openstack-keystone')
         self.assertIsInstance(ok_chart, dict)
-        self.assertEqual(self.documents[-2], ok_chart)
+        self.assertEqual(self.documents[-3], ok_chart)
 
         armada_manifest = manifest.Manifest(self.documents)
         kis_chart = armada_manifest.find_chart_group_document(
             'keystone-infra-services')
         self.assertIsInstance(kis_chart, dict)
-        self.assertEqual(self.documents[-3], kis_chart)
+        self.assertEqual(self.documents[-4], kis_chart)
 
     def test_verify_build_armada_manifest(self):
         armada_manifest = manifest.Manifest(self.documents)
@@ -375,11 +376,11 @@ class ManifestNegativeTestCase(testtools.TestCase):
 
     def test_get_documents_missing_charts(self):
         # Validates exceptions.ManifestException is thrown if no chart is
-        # found. Charts are first 4 documents in sample YAML.
+        # found. Charts are first 5 documents in sample YAML.
         error_re = ('Documents must be a list of documents with at least one '
                     'of each of the following schemas: .*')
         self.assertRaisesRegexp(exceptions.ManifestException, error_re,
-                                manifest.Manifest, self.documents[4:])
+                                manifest.Manifest, self.documents[5:])
 
     def test_get_documents_missing_chart_groups(self):
         # Validates exceptions.ManifestException is thrown if no chart is
@@ -392,16 +393,16 @@ class ManifestNegativeTestCase(testtools.TestCase):
 
     def test_find_chart_document_negative(self):
         armada_manifest = manifest.Manifest(self.documents)
-        error_re = r'Could not find a %s named "%s"' % (const.DOCUMENT_CHART,
-                                                        'invalid')
-        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+        error_re = r'Could not build %s named "%s"' % (const.DOCUMENT_CHART,
+                                                       'invalid')
+        self.assertRaisesRegexp(exceptions.BuildChartException, error_re,
                                 armada_manifest.find_chart_document, 'invalid')
 
     def test_find_group_document_negative(self):
         armada_manifest = manifest.Manifest(self.documents)
-        error_re = r'Could not find a %s named "%s"' % (const.DOCUMENT_GROUP,
-                                                        'invalid')
-        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+        error_re = r'Could not build %s named "%s"' % (const.DOCUMENT_GROUP,
+                                                       'invalid')
+        self.assertRaisesRegexp(exceptions.BuildChartGroupException, error_re,
                                 armada_manifest.find_chart_group_document,
                                 'invalid')
 

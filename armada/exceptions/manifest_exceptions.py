@@ -25,3 +25,40 @@ class ManifestException(base.ArmadaBaseException):
     """
 
     message = 'An error occurred while generating the manifest: %(details)s.'
+
+
+class BuildChartException(ManifestException):
+    """
+    An exception occurred while attempting to build the chart for an
+    Armada manifest.  The exception will return with details as to why.
+
+    **Troubleshoot:**
+    *Coming Soon*
+    """
+
+    message = 'An error occurred while trying to build chart: %(details)s.'
+
+
+class BuildChartGroupException(ManifestException):
+    """
+    An exception occurred while attempting to build the chart group for an
+    Armada manifest.  The exception will return with details as to why.
+
+    **Troubleshoot:**
+    *Coming Soon*
+    """
+
+    message = 'An error occurred while building chart group: %(details)s.'
+
+
+class ChartDependencyException(ManifestException):
+    """
+    An exception occurred while attempting to build a chart dependency for an
+    Armada manifest.  The exception will return with details as to why.
+
+    **Troubleshoot:**
+    *Coming Soon*
+    """
+
+    message = 'An error occurred while building a dependency chart: ' \
+              '%(details)s.'
