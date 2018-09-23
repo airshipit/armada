@@ -14,29 +14,25 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Lint Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Lint (Validate) Exceptions
+--------------------------
 
-  * - Exception Name
-    - Description
-  * - InvalidManifestException
-    - .. autoexception:: armada.exceptions.validate_exceptions.InvalidManifestException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - InvalidChartDefinitionException
-    - .. autoexception:: armada.exceptions.validate_exceptions.InvalidChartDefinitionException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - InvalidReleaseException
-    - .. autoexception:: armada.exceptions.validate_exceptions.InvalidReleaseException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - InvalidArmadaObjectException
-    - .. autoexception:: armada.exceptions.validate_exceptions.InvalidArmadaObjectException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.validate_exceptions.InvalidManifestException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.validate_exceptions.InvalidChartDefinitionException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.validate_exceptions.InvalidReleaseException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.validate_exceptions.InvalidArmadaObjectException
+   :members:
+   :show-inheritance:
+   :undoc-members:

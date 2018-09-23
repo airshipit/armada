@@ -14,29 +14,26 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Api Exceptions**
-  :widths: 5 50
-  :header-rows: 1
 
-  * - Exception Name
-    - Description
-  * - ApiException
-    - .. autoexception:: armada.exceptions.api_exceptions.ApiException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - ClientError
-    - .. autoexception:: armada.exceptions.api_exceptions.ClientError
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - ClientForbiddenError
-    - .. autoexception:: armada.exceptions.api_exceptions.ClientForbiddenError
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - ClientUnauthorizedError
-    - .. autoexception:: armada.exceptions.api_exceptions.ClientUnauthorizedError
-         :members:
-         :show-inheritance:
-         :undoc-members:
+API Exceptions
+--------------
+
+.. autoexception:: armada.exceptions.api_exceptions.ApiException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.api_exceptions.ClientError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.api_exceptions.ClientForbiddenError
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.api_exceptions.ClientUnauthorizedError
+   :members:
+   :show-inheritance:
+   :undoc-members:
