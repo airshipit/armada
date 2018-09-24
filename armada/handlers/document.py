@@ -111,7 +111,7 @@ class ReferenceResolver(object):
 
     @classmethod
     def resolve_reference_ucp(cls, design_uri):
-        """Retrieve artifacts from a UCP service endpoint.
+        """Retrieve artifacts from a Airship service endpoint.
 
         Return a byte array of the response content. Assumes Keystone
         authentication required.

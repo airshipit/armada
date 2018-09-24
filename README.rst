@@ -117,5 +117,5 @@ Further Reading
 
 .. |Docker Repository on Quay| image:: https://quay.io/repository/airshipit/armada/status
    :target: https://quay.io/repository/airshipit/armada
-.. |Doc Status| image:: https://readthedocs.org/projects/airship-armada/badge/?version=latest
+.. |Doc Status| image:: https://readthedocs.io/projects/airship-armada/badge/?version=latest
    :target: https://airship-armada.readthedocs.io/
