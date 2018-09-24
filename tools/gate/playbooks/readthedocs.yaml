@@ -18,5 +18,5 @@
       uri:
         method: POST
         body: 'token={{ airship_armada_rtd_credential.token }}'
-        url: 'https://readthedocs.org/api/v2/webhook/{{ zuul.project.short_name }}/{{ airship_armada_rtd_credential.id }}/'
+        url: 'https://readthedocs.io/api/v2/webhook/{{ zuul.project.short_name }}/{{ airship_armada_rtd_credential.id }}/'
         follow_redirects: all

@@ -18,7 +18,7 @@ name: armada
 version: 0.1.0
 keywords:
 - armada
-home: https://airship-armada.readthedocs.io/en/latest/
+home: https://airship-armada.readthedocs.io/
 sources:
 - https://github.com/openstack/airship-armada
 engine: gotpl

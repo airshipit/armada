@@ -55,7 +55,7 @@ class ArmadaClient(object):
     def post_validate(self, manifest=None, timeout=None):
 
         endpoint = self._set_endpoint('1.0', 'validatedesign')
-        # TODO(sh8121att) Look to update the UCP convention to
+        # TODO(sh8121att) Look to update the Airship convention to
         # allow a list of hrefs
         req_body = {'href': manifest}
 

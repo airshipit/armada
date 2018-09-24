@@ -16,7 +16,7 @@ import json
 
 
 class ValidationMessage(object):
-    """ ValidationMessage per UCP convention:
+    """ ValidationMessage per Airship convention:
     https://airshipit.readthedocs.io/en/latest/api-conventions.html#output-structure  # noqa
 
     Construction of ValidationMessage message:
