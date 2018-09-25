@@ -1,7 +1,12 @@
 ARG FROM=python:3.5
 FROM ${FROM}
 
-MAINTAINER Armada Team
+LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode'
+LABEL org.opencontainers.image.url='https://airshipit.org'
+LABEL org.opencontainers.image.documentation='https://airship-armada.readthedocs.org'
+LABEL org.opencontainers.image.source='https://git.openstack.org/openstack/airship-armada'
+LABEL org.opencontainers.image.vendor='The Airship Authors'
+LABEL org.opencontainers.image.licenses='Apache-2.0'
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG=C.UTF-8
