@@ -14,25 +14,20 @@
   License for the specific language governing permissions and limitations
   under the License.
 
+Kubernetes Exceptions
+---------------------
 
-.. list-table:: **Kubernetes Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+.. autoexception:: armada.exceptions.k8s_exceptions.KubernetesErrorEventException
+   :members:
+   :show-inheritance:
+   :undoc-members:
 
-  * - Exception Name
-    - Description
-  * - KubernetesErrorEventException
-    - .. autoexception:: armada.exceptions.k8s_exceptions.KubernetesErrorEventException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - KubernetesUnknownStreamingEventTypeException
-    - .. autoexception:: armada.exceptions.k8s_exceptions.KubernetesUnknownStreamingEventTypeException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - KubernetesWatchTimeoutException
-    - .. autoexception:: armada.exceptions.k8s_exceptions.KubernetesWatchTimeoutException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.k8s_exceptions.KubernetesUnknownStreamingEventTypeException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.k8s_exceptions.KubernetesWatchTimeoutException
+   :members:
+   :show-inheritance:
+   :undoc-members:

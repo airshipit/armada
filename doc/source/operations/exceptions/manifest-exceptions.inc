@@ -14,14 +14,10 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Manifest Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Manifest Exceptions
+-------------------
 
-  * - Exception Name
-    - Description
-  * - ManifestException
-    - .. autoexception:: armada.exceptions.manifest_exceptions.ManifestException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.manifest_exceptions.ManifestException
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -14,34 +14,30 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Tiller Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Tiller Exceptions
+-----------------
 
-  * - Exception Name
-    - Description
-  * - ChannelException
-    - .. autoexception:: armada.exceptions.tiller_exceptions.ChannelException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - GetReleaseStatusException
-    - .. autoexception:: armada.exceptions.tiller_exceptions.GetReleaseStatusException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - PostUpdateJobCreateException
-    - .. autoexception:: armada.exceptions.tiller_exceptions.PostUpdateJobCreateException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - PreUpdateJobDeleteException
-    - .. autoexception:: armada.exceptions.tiller_exceptions.PreUpdateJobDeleteException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - ReleaseException
-    - .. autoexception:: armada.exceptions.tiller_exceptions.ReleaseException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.tiller_exceptions.ChannelException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.tiller_exceptions.GetReleaseStatusException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.tiller_exceptions.PostUpdateJobCreateException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.tiller_exceptions.PreUpdateJobDeleteException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.tiller_exceptions.ReleaseException
+   :members:
+   :show-inheritance:
+   :undoc-members:

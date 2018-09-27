@@ -14,34 +14,30 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Chartbuilder Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Chartbuilder Exceptions
+-----------------------
 
-  * - Exception Name
-    - Description
-  * - DependencyException
-    - .. autoexception:: armada.exceptions.chartbuilder_exceptions.DependencyException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - FilesLoadException
-    - .. autoexception:: armada.exceptions.chartbuilder_exceptions.FilesLoadException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - HelmChartBuildException
-    - .. autoexception:: armada.exceptions.chartbuilder_exceptions.HelmChartBuildException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - IgnoredFilesLoadException
-    - .. autoexception:: armada.exceptions.chartbuilder_exceptions.IgnoredFilesLoadException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - MetadataLoadException
-    - .. autoexception:: armada.exceptions.chartbuilder_exceptions.MetadataLoadException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.chartbuilder_exceptions.DependencyException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.chartbuilder_exceptions.FilesLoadException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.chartbuilder_exceptions.HelmChartBuildException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.chartbuilder_exceptions.IgnoredFilesLoadException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.chartbuilder_exceptions.MetadataLoadException
+   :members:
+   :show-inheritance:
+   :undoc-members:

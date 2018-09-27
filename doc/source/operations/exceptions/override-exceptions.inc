@@ -14,24 +14,20 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Override Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Override Exceptions
+-------------------
 
-  * - Exception Name
-    - Description
-  * - InvalidOverrideFileException
-    - .. autoexception:: armada.exceptions.override_exceptions.InvalidOverrideFileException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - InvalidOverrideValueException
-    - .. autoexception:: armada.exceptions.override_exceptions.InvalidOverrideValueException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - UnknownDocumentOverrideException
-    - .. autoexception:: armada.exceptions.override_exceptions.UnknownDocumentOverrideException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.override_exceptions.InvalidOverrideFileException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.override_exceptions.InvalidOverrideValueException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.override_exceptions.UnknownDocumentOverrideException
+   :members:
+   :show-inheritance:
+   :undoc-members:

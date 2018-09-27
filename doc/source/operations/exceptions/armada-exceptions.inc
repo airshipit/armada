@@ -14,19 +14,15 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Armada Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Armada Exceptions
+-----------------
 
-  * - Exception Name
-    - Description
-  * - ArmadaTimeoutException
-    - .. autoexception:: armada.exceptions.armada_exceptions.ArmadaTimeoutException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - ProtectedReleaseException
-    - .. autoexception:: armada.exceptions.armada_exceptions.ProtectedReleaseException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.armada_exceptions.ArmadaTimeoutException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.armada_exceptions.ProtectedReleaseException
+   :members:
+   :show-inheritance:
+   :undoc-members:

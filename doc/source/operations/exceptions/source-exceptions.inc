@@ -14,34 +14,30 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Source Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Source Exceptions
+-----------------
 
-  * - Exception Name
-    - Description
-  * - ChartSourceException
-    - .. autoexception:: armada.exceptions.source_exceptions.ChartSourceException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - GitException
-    - .. autoexception:: armada.exceptions.source_exceptions.GitException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - InvalidPathException
-    - .. autoexception:: armada.exceptions.source_exceptions.InvalidPathException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - TarballDownloadException
-    - .. autoexception:: armada.exceptions.source_exceptions.TarballDownloadException
-         :members:
-         :show-inheritance:
-         :undoc-members:
-  * - TarballExtractException
-    - .. autoexception:: armada.exceptions.source_exceptions.TarballExtractException
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.source_exceptions.ChartSourceException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.source_exceptions.GitException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.source_exceptions.InvalidPathException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.source_exceptions.TarballDownloadException
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+.. autoexception:: armada.exceptions.source_exceptions.TarballExtractException
+   :members:
+   :show-inheritance:
+   :undoc-members:

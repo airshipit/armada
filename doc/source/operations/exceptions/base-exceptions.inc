@@ -14,14 +14,10 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. list-table:: **Base Exceptions**
-  :widths: 5 50
-  :header-rows: 1
+Base Exceptions
+---------------
 
-  * - Exception Name
-    - Description
-  * - ActionForbidden
-    - .. autoexception:: armada.exceptions.base_exception.ActionForbidden
-         :members:
-         :show-inheritance:
-         :undoc-members:
+.. autoexception:: armada.exceptions.base_exception.ActionForbidden
+   :members:
+   :show-inheritance:
+   :undoc-members:
