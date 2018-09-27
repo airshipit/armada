@@ -66,3 +66,14 @@ class InvalidOverrideValuesYamlException(ArmadaException):
             'Armada encountered invalid values.yaml in helm chart: %s' %
             chart_description)
         super(InvalidValuesYamlException, self).__init__(self._message)
+
+
+class InvalidWaitTypeException(ArmadaException):
+    '''
+    Exception that occurs when Armada encounters an invalid wait type.
+    '''
+
+    def __init__(self, wait_type):
+        self._message = (
+            'Armada encountered invalid wait type: %s' % wait_type)
+        super(InvalidWaitTypeException, self).__init__(self._message)
