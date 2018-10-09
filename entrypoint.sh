@@ -21,11 +21,11 @@ CMD="armada"
 # Define port
 ARMADA_UWSGI_PORT=${ARMADA_UWSGI_PORT:-8000}
 # How long uWSGI should wait for each Armada response
-ARMADA_UWSGI_TIMEOUT=${ARMADA_UWSGI_TIMEOUT:-"3600"}
+ARMADA_UWSGI_TIMEOUT=${ARMADA_UWSGI_TIMEOUT:-3600}
 # Number of uWSGI workers to handle API requests
-ARMADA_UWSGI_WORKERS=${ARMADA_UWSGI_WORKERS:-"4"}
+ARMADA_UWSGI_WORKERS=${ARMADA_UWSGI_WORKERS:-4}
 # Threads per worker
-ARMADA_UWSGI_THREADS=${ARMADA_UWSGI_THREADS:-"1"}
+ARMADA_UWSGI_THREADS=${ARMADA_UWSGI_THREADS:-1}
 
 # Start Armada application
 # TODO(fmontei): Should be specifying callable too. But Armada spins up the
@@ -34,16 +34,16 @@ if [ "$1" = 'server' ]; then
     exec uwsgi \
         -b 32768 \
         --die-on-term \
-        --http :${ARMADA_UWSGI_PORT} \
-        --http-timeout $ARMADA_UWSGI_TIMEOUT \
+        --http :"${ARMADA_UWSGI_PORT}" \
+        --http-timeout "$ARMADA_UWSGI_TIMEOUT" \
         --enable-threads \
         -L \
         --lazy-apps \
         --master \
         --paste config:/etc/armada/api-paste.ini \
         --pyargv "--config-file /etc/armada/armada.conf" \
-        --threads $ARMADA_UWSGI_THREADS \
-        --workers $ARMADA_UWSGI_WORKERS
+        --threads "$ARMADA_UWSGI_THREADS" \
+        --workers "$ARMADA_UWSGI_WORKERS"
 else
     exec $CMD "$@"
 fi
