@@ -184,16 +184,17 @@ conf:
     'pipeline:main':
       pipeline: authtoken armada-api
   policy:
-    admin_required: 'role:admin'
+    admin_required: 'role:admin or role:admin_ucp'
+    service_or_admin: 'rule:admin_required or rule:service_role'
+    service_role: 'role:service'
+    admin_viewer: 'role:admin_ucp_viewer or rule:service_or_admin'
     'armada:create_endpoints': 'rule:admin_required'
     'armada:rollback_release': 'rule:admin_required'
     'armada:test_manifest': 'rule:admin_required'
     'armada:test_release': 'rule:admin_required'
-    'armada:validate_manifest': 'rule:admin_required'
-    service_or_admin: 'rule:admin_required or rule:service_role'
-    service_role: 'role:service'
-    'tiller:get_released': 'rule:admin_required'
-    'tiller:get_status': 'rule:admin_required'
+    'armada:validate_manifest': 'rule:admin_viewer'
+    'tiller:get_release': 'rule:admin_viewer'
+    'tiller:get_status': 'rule:admin_viewer'
 
 pod:
   env:

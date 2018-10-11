@@ -1,5 +1,5 @@
 #
-#"admin_required": "role:admin"
+#"admin_required": "role:admin or role:admin_ucp"
 
 #
 #"service_or_admin": "rule:admin_required or rule:service_role"
@@ -7,30 +7,33 @@
 #
 #"service_role": "role:service"
 
-# install manifest charts
-# POST  api/v1.0/apply/
+#
+#"admin_viewer": "role:admin_ucp_viewer or rule:service_or_admin"
+
+# Install manifest charts
+# POST  /api/v1.0/apply/
 #"armada:create_endpoints": "rule:admin_required"
 
-# rollback release
-# POST  api/v1.0/rollback/{release}
-#"armada:rollback_release": "rule:admin_required"
+# Validate manifest
+# POST  /api/v1.0/validatedesign/
+#"armada:validate_manifest": "rule:admin_viewer"
 
-# validate installed manifest
-# POST  /api/v1.0/validate/
-#"armada:validate_manifest": "rule:admin_required"
-
-# validate install manifest
+# Test release
 # GET  /api/v1.0/test/{release}
 #"armada:test_release": "rule:admin_required"
 
-# validate install manifest
+# Test manifest
 # POST  /api/v1.0/tests/
 #"armada:test_manifest": "rule:admin_required"
 
-# Get tiller status
-# GET  /api/v1.0/status/
-#"tiller:get_status": "rule:admin_required"
+# Rollback release
+# POST  /api/v1.0/rollback/{release}
+#"armada:rollback_release": "rule:admin_required"
 
-# Get tiller release
+# Get Tiller status
+# GET  /api/v1.0/status/
+#"tiller:get_status": "rule:admin_viewer"
+
+# Get Tiller release
 # GET  /api/v1.0/releases/
-#"tiller:get_release": "rule:admin_required"
+#"tiller:get_release": "rule:admin_viewer"
