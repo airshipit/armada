@@ -116,7 +116,7 @@ class TestReleasesManifestController(api.BaseResource):
         result, details = validate.validate_armada_documents(documents)
         return self._format_validation_response(req, resp, result, details)
 
-    @policy.enforce('armada:tests_manifest')
+    @policy.enforce('armada:test_manifest')
     def on_post(self, req, resp):
         # TODO(fmontei): Validation Content-Type is application/x-yaml.
 

@@ -30,7 +30,7 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
     @mock.patch.object(test, 'Manifest')
     @mock.patch.object(test, 'Tiller')
     def test_test_controller_with_manifest(self, mock_tiller, mock_manifest):
-        rules = {'armada:tests_manifest': '@'}
+        rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
         # TODO: Don't use example charts in tests.
@@ -111,7 +111,7 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
     @mock.patch.object(test, 'test_release_for_success')
     def test_test_controller_tiller_exc_returns_500(
             self, mock_test_release_for_success, mock_tiller, _):
-        rules = {'armada:tests_manifest': '@'}
+        rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
         mock_tiller.side_effect = Exception
@@ -123,7 +123,7 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
     @mock.patch.object(test, 'Manifest')
     @mock.patch.object(test, 'Tiller')
     def test_test_controller_validation_failure_returns_400(self, *_):
-        rules = {'armada:tests_manifest': '@'}
+        rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
         manifest_path = os.path.join(os.getcwd(), 'examples',
@@ -163,7 +163,7 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
     @mock.patch.object(test, 'Tiller')
     def test_test_controller_manifest_failure_returns_400(
             self, _, mock_manifest):
-        rules = {'armada:tests_manifest': '@'}
+        rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
         mock_manifest.return_value.get_manifest.side_effect = (
@@ -231,11 +231,11 @@ class TestReleasesReleaseNameControllerNegativeRbacTest(
 class TestReleasesManifestControllerNegativeRbacTest(base.BaseControllerTest):
 
     @test_utils.attr(type=['negative'])
-    def test_tests_manifest_insufficient_permissions(self):
+    def test_test_manifest_insufficient_permissions(self):
         """Tests the POST /api/v1.0/tests endpoint returns 403 following failed
         authorization.
         """
-        rules = {'armada:tests_manifest': policy_base.RULE_ADMIN_REQUIRED}
+        rules = {'armada:test_manifest': policy_base.RULE_ADMIN_REQUIRED}
         self.policy.set_rules(rules)
         resp = self.app.simulate_post('/api/v1.0/tests')
         self.assertEqual(403, resp.status_code)
