@@ -13,12 +13,15 @@
 import functools
 
 from oslo_config import cfg
+from oslo_log import log as logging
 from oslo_policy import policy
+from oslo_utils import excutils
 
 from armada.common import policies
 from armada.exceptions import base_exception as exc
 
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 _ENFORCER = None
 
 
@@ -41,9 +44,30 @@ def _enforce_policy(action, target, credentials, do_raise=True):
     if do_raise:
         extras.update(exc=exc.ActionForbidden, do_raise=do_raise)
 
-    _ENFORCER.enforce(action, target, credentials.to_policy_view(), **extras)
+    # `oslo.policy` supports both enforce and authorize. authorize is
+    # stricter because it'll raise an exception if the policy action is
+    # not found in the list of registered rules. This means that attempting
+    # to enforce anything not found in ``armada.common.policies`` will error
+    # out with a 'Policy not registered' message and 403 status code.
+    try:
+        _ENFORCER.authorize(action, target, credentials.to_policy_view(),
+                            **extras)
+    except policy.PolicyNotRegistered as e:
+        LOG.exception('Policy not registered for %(action)s',
+                      {'action': action})
+        raise exc.ActionForbidden()
+    except Exception as e:
+        with excutils.save_and_reraise_exception():
+            LOG.debug(
+                'Policy check for %(action)s failed with credentials '
+                '%(credentials)s', {
+                    'action': action,
+                    'credentials': credentials
+                })
 
 
+# NOTE(felipemonteiro): This naming is OK. It's just kept around for legacy
+# reasons. What's important is that authorize is used above.
 def enforce(rule):
 
     def decorator(func):
