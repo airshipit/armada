@@ -198,3 +198,19 @@ class TillerVersionException(TillerException):
     '''
 
     message = 'Failed to get Tiller Version'
+
+
+class TillerListReleasesPagingException(TillerException):
+    '''
+    Exception that occurs when paging through releases listed by tiller
+    and the total releases changes between pages.
+
+    This could occur as tiller does not use anything like continue tokens for
+    paging as seen in the kubernetes api for example.
+
+    **Troubleshoot:**
+    *Coming Soon*
+    '''
+
+    message = ('Failed to page through tiller releases, possibly due to '
+               'releases being added between pages')

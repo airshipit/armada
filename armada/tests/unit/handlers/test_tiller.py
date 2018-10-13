@@ -153,7 +153,11 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch('armada.handlers.tiller.grpc', autospec=True)
-    def test_list_releases_empty(self, mock_grpc, _, mock_ip):
+    @mock.patch('armada.handlers.tiller.ReleaseServiceStub')
+    def test_list_releases_empty(self, mock_stub, _, __, mock_ip):
+        message_mock = mock.Mock(count=0, total=5, next='', releases=[])
+        mock_stub.return_value.ListReleases.return_value = [message_mock]
+
         # instantiate Tiller object
         tiller_obj = tiller.Tiller()
         self.assertEqual([], tiller_obj.list_releases())
@@ -161,7 +165,11 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch('armada.handlers.tiller.grpc', autospec=True)
-    def test_list_charts_empty(self, mock_grpc, _, mock_ip):
+    @mock.patch('armada.handlers.tiller.ReleaseServiceStub')
+    def test_list_charts_empty(self, mock_stub, _, __, mock_ip):
+        message_mock = mock.Mock(count=0, total=5, next='', releases=[])
+        mock_stub.return_value.ListReleases.return_value = [message_mock]
+
         # instantiate Tiller object
         tiller_obj = tiller.Tiller()
         self.assertEqual([], tiller_obj.list_charts())
@@ -170,29 +178,88 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch.object(tiller, 'ListReleasesRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_list_releases(self, mock_release_service_stub,
-                           mock_list_releases_request, mock_grpc, _):
-        mock_release_service_stub.return_value.ListReleases. \
-            return_value = [mock.Mock(releases=['foo', 'bar'])]
+    def test_list_releases_single_page(
+            self, mock_stub, mock_list_releases_request, mock_grpc, _):
+        releases = [mock.Mock(), mock.Mock()]
+        mock_stub.return_value.ListReleases.return_value = [
+            mock.Mock(
+                next='',
+                count=len(releases),
+                total=len(releases),
+                releases=releases)
+        ]
 
         tiller_obj = tiller.Tiller('host', '8080', None)
-        self.assertEqual(['foo', 'bar'], tiller_obj.list_releases())
+        self.assertEqual(releases, tiller_obj.list_releases())
 
-        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
-        list_releases_stub = mock_release_service_stub.return_value. \
-            ListReleases
-        list_releases_stub.assert_called_once_with(
+        mock_stub.assert_called_once_with(tiller_obj.channel)
+        mock_stub.return_value.ListReleases.assert_called_once_with(
             mock_list_releases_request.return_value,
             tiller_obj.timeout,
             metadata=tiller_obj.metadata)
 
         mock_list_releases_request.assert_called_once_with(
-            limit=tiller.RELEASE_LIMIT,
+            offset="",
+            limit=tiller.LIST_RELEASES_PAGE_SIZE,
             status_codes=[
                 tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
             ],
             sort_by='LAST_RELEASED',
             sort_order='DESC')
+
+    @mock.patch('armada.handlers.tiller.K8s')
+    @mock.patch('armada.handlers.tiller.grpc')
+    @mock.patch.object(tiller, 'ListReleasesRequest')
+    @mock.patch.object(tiller, 'ReleaseServiceStub')
+    def test_list_releases_paged(self, mock_stub, mock_list_releases_request,
+                                 mock_grpc, _):
+        page_count = 3
+        release_count = tiller.LIST_RELEASES_PAGE_SIZE * page_count
+        releases = [mock.Mock() for i in range(release_count)]
+        for i, release in enumerate(releases):
+            release.name = mock.PropertyMock(return_value=str(i))
+        pages = [[
+            mock.Mock(
+                count=release_count,
+                total=release_count + 5,
+                next='' if i == page_count - 1 else str(
+                    (tiller.LIST_RELEASES_PAGE_SIZE * (i + 1))),
+                releases=releases[tiller.LIST_RELEASES_PAGE_SIZE *
+                                  i:tiller.LIST_RELEASES_PAGE_SIZE * (i + 1)])
+        ] for i in range(page_count)]
+        mock_stub.return_value.ListReleases.side_effect = pages
+
+        mock_list_releases_side_effect = [
+            mock.Mock() for i in range(page_count)
+        ]
+        mock_list_releases_request.side_effect = mock_list_releases_side_effect
+
+        tiller_obj = tiller.Tiller('host', '8080', None)
+        self.assertEqual(releases, tiller_obj.list_releases())
+
+        mock_stub.assert_called_once_with(tiller_obj.channel)
+
+        list_releases_calls = [
+            mock.call(
+                mock_list_releases_side_effect[i],
+                tiller_obj.timeout,
+                metadata=tiller_obj.metadata) for i in range(page_count)
+        ]
+        mock_stub.return_value.ListReleases.assert_has_calls(
+            list_releases_calls)
+
+        list_release_request_calls = [
+            mock.call(
+                offset=''
+                if i == 0 else str(tiller.LIST_RELEASES_PAGE_SIZE * i),
+                limit=tiller.LIST_RELEASES_PAGE_SIZE,
+                status_codes=[
+                    tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
+                ],
+                sort_by='LAST_RELEASED',
+                sort_order='DESC') for i in range(page_count)
+        ]
+        mock_list_releases_request.assert_has_calls(list_release_request_calls)
 
     @mock.patch('armada.handlers.tiller.K8s')
     @mock.patch('armada.handlers.tiller.grpc')

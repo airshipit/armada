@@ -41,3 +41,8 @@ Tiller Exceptions
    :members:
    :show-inheritance:
    :undoc-members:
+
+.. autoexception:: armada.exceptions.tiller_exceptions.TillerListReleasesPagingException
+   :members:
+   :show-inheritance:
+   :undoc-members:

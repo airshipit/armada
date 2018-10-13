@@ -37,13 +37,12 @@ from armada.utils.release import label_selectors
 
 TILLER_VERSION = b'2.10.0'
 GRPC_EPSILON = 60
-RELEASE_LIMIT = 128  # TODO(mark-burnett): There may be a better page size.
+LIST_RELEASES_PAGE_SIZE = 32
+LIST_RELEASES_ATTEMPTS = 3
 
-# the standard gRPC max message size is 4MB
-# this expansion comes at a performance penalty
-# but until proper paging is supported, we need
-# to support a larger payload as the current
-# limit is exhausted with just 10 releases
+# NOTE(seaneagan): This has no effect on the message size limit that tiller
+# sets for itself which can be seen here:
+#   https://github.com/helm/helm/blob/2d77db11fa47005150e682fb13c3cf49eab98fbb/pkg/tiller/server.go#L34
 MAX_MESSAGE_LENGTH = 429496729
 
 CONF = cfg.CONF
@@ -190,28 +189,60 @@ class Tiller(object):
         '''
         # TODO(MarshM possibly combine list_releases() with list_charts()
         # since they do the same thing, grouping output differently
-        releases = []
         stub = ReleaseServiceStub(self.channel)
-        # TODO(mark-burnett): Since we're limiting page size, we need to
-        # iterate through all the pages when collecting this list.
-        # NOTE(MarshM): `Helm List` defaults to returning Deployed and Failed,
-        # but this might not be a desireable ListReleasesRequest default.
-        req = ListReleasesRequest(
-            limit=RELEASE_LIMIT,
-            status_codes=[const.STATUS_DEPLOYED, const.STATUS_FAILED],
-            sort_by='LAST_RELEASED',
-            sort_order='DESC')
 
-        LOG.debug('Tiller ListReleases() with timeout=%s', self.timeout)
-        release_list = stub.ListReleases(
-            req, self.timeout, metadata=self.metadata)
+        # NOTE(seaneagan): Paging through releases to prevent hitting the
+        # maximum message size limit that tiller sets for it's reponses.
+        def get_results():
+            releases = []
+            done = False
+            next_release_expected = ""
+            initial_total = None
+            while not done:
+                req = ListReleasesRequest(
+                    offset=next_release_expected,
+                    limit=LIST_RELEASES_PAGE_SIZE,
+                    status_codes=[const.STATUS_DEPLOYED, const.STATUS_FAILED],
+                    sort_by='LAST_RELEASED',
+                    sort_order='DESC')
 
-        for y in release_list:
-            # TODO(MarshM) this log is too noisy, fix later
-            # LOG.debug('Found release: %s', y.releases
-            releases.extend(y.releases)
+                LOG.debug('Tiller ListReleases() with timeout=%s, request=%s',
+                          self.timeout, req)
+                response = stub.ListReleases(
+                    req, self.timeout, metadata=self.metadata)
 
-        return releases
+                for message in response:
+                    page = message.releases
+
+                    if initial_total:
+                        if message.total != initial_total:
+                            LOG.warning(
+                                'Total releases changed between '
+                                'pages from (%s) to (%s)', initial_total,
+                                message.count)
+                            raise ex.TillerListReleasesPagingException()
+                    else:
+                        initial_total = message.total
+
+                    # Add page to results.
+                    releases.extend(page)
+
+                    if message.next:
+                        next_release_expected = message.next
+                    else:
+                        done = True
+
+            return releases
+
+        for index in range(LIST_RELEASES_ATTEMPTS):
+            attempt = index + 1
+            try:
+                return get_results()
+            except ex.TillerListReleasesPagingException:
+                LOG.warning('List releases paging failed on attempt %s/%s',
+                            attempt, LIST_RELEASES_ATTEMPTS)
+                if attempt == LIST_RELEASES_ATTEMPTS:
+                    raise
 
     def get_chart_templates(self, template_name, name, release_name, namespace,
                             chart, disable_hooks, values):
