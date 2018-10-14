@@ -19,13 +19,11 @@
     check:
       jobs:
         - openstack-tox-pep8
-        - airship-armada-lint-pep8
         - airship-armada-ubuntu
         - airship-armada-docker-build-gate
     gate:
       jobs:
         - openstack-tox-pep8
-        - airship-armada-lint-pep8
         - airship-armada-docker-build-gate
     post:
       jobs:
@@ -66,16 +64,6 @@
     nodes:
       - name: primary
         label: ubuntu-xenial
-
-- job:
-    name: airship-armada-lint-pep8
-    description: |
-      Lints Python files against the PEP8 standard
-    run: tools/gate/playbooks/pep8-linter.yaml
-    timeout: 300
-    nodeset: airship-armada-single-node
-    files:
-        - ^.*\.py$
 
 - job:
     name: airship-armada-docker-build-gate
