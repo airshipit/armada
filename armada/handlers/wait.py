@@ -230,8 +230,8 @@ class ResourceWait(ABC):
                 break
 
             LOG.debug(
-                'Continuing to wait: {} consecutive attempts without '
-                'modified resources of {} required.', successes,
+                'Continuing to wait: %s consecutive attempts without '
+                'modified resources of %s required.', successes,
                 self.chart_wait.k8s_wait_attempts)
             time.sleep(self.chart_wait.k8s_wait_attempt_sleep)
 
