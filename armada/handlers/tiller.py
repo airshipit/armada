@@ -211,7 +211,9 @@ class Tiller(object):
                 response = stub.ListReleases(
                     req, self.timeout, metadata=self.metadata)
 
+                found_message = False
                 for message in response:
+                    found_message = True
                     page = message.releases
 
                     if initial_total:
@@ -231,6 +233,11 @@ class Tiller(object):
                         next_release_expected = message.next
                     else:
                         done = True
+
+                # Ensure we break out was no message found which
+                # is seen if there are no releases in tiller.
+                if not found_message:
+                    done = True
 
             return releases
 
