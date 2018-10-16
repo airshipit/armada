@@ -12,7 +12,9 @@
 
 - project:
     templates:
+      - openstack-cover-jobs
       - docs-on-readthedocs
+      - openstack-python35-jobs
       - openstack-python36-jobs
     vars:
       rtd_webhook_id: '47578'
