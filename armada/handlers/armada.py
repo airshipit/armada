@@ -177,26 +177,6 @@ class Armada(object):
             chart_name = chart.get('chart_name')
             raise source_exceptions.ChartSourceException(ct_type, chart_name)
 
-    def _get_releases_by_status(self):
-        '''
-        Return a list of current releases with DEPLOYED or FAILED status
-        '''
-        deployed_releases = []
-        failed_releases = []
-        known_releases = self.tiller.list_charts()
-        for release in known_releases:
-            if release[4] == const.STATUS_DEPLOYED:
-                deployed_releases.append(release)
-            elif release[4] == const.STATUS_FAILED:
-                failed_releases.append(release)
-            else:
-                # tiller.list_charts() only looks at DEPLOYED/FAILED so
-                # this should be unreachable
-                LOG.debug('Ignoring release %s in status %s.', release[0],
-                          release[4])
-
-        return deployed_releases, failed_releases
-
     def sync(self):
         '''
         Synchronize Helm with the Armada Config(s)
@@ -216,8 +196,7 @@ class Armada(object):
         # a more cleaner format
         self.pre_flight_ops()
 
-        # extract known charts on tiller right now
-        deployed_releases, failed_releases = self._get_releases_by_status()
+        known_releases = self.tiller.list_releases()
 
         manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
         prefix = manifest_data.get(const.KEYWORD_PREFIX)
@@ -250,8 +229,7 @@ class Armada(object):
                 set_current_chart(chart)
                 try:
                     return self.chart_deploy.execute(chart, cg_test_all_charts,
-                                                     prefix, deployed_releases,
-                                                     failed_releases)
+                                                     prefix, known_releases)
                 finally:
                     set_current_chart(None)
 

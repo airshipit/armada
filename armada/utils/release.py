@@ -27,3 +27,13 @@ def label_selectors(labels):
     :return: string of k8s labels
     """
     return ",".join(["%s=%s" % (k, v) for k, v in labels.items()])
+
+
+def get_release_status(release):
+    """
+    :param release: protobuf release object
+
+    :return: status name of release
+    """
+
+    return release.info.status.Code.Name(release.info.status.code)

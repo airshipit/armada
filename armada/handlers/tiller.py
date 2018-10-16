@@ -33,7 +33,7 @@ from armada import const
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
 from armada.handlers import test
-from armada.utils.release import label_selectors
+from armada.utils.release import label_selectors, get_release_status
 
 TILLER_VERSION = b'2.10.0'
 GRPC_EPSILON = 60
@@ -202,7 +202,7 @@ class Tiller(object):
                 req = ListReleasesRequest(
                     offset=next_release_expected,
                     limit=LIST_RELEASES_PAGE_SIZE,
-                    status_codes=[const.STATUS_DEPLOYED, const.STATUS_FAILED])
+                    status_codes=const.STATUS_ALL)
 
                 LOG.debug('Tiller ListReleases() with timeout=%s, request=%s',
                           self.timeout, req)
@@ -242,12 +242,32 @@ class Tiller(object):
         for index in range(LIST_RELEASES_ATTEMPTS):
             attempt = index + 1
             try:
-                return get_results()
+                releases = get_results()
             except ex.TillerListReleasesPagingException:
                 LOG.warning('List releases paging failed on attempt %s/%s',
                             attempt, LIST_RELEASES_ATTEMPTS)
                 if attempt == LIST_RELEASES_ATTEMPTS:
                     raise
+            else:
+                # Filter out old releases, similar to helm cli:
+                # https://github.com/helm/helm/blob/1e26b5300b5166fabb90002535aacd2f9cc7d787/cmd/helm/list.go#L196
+                latest_versions = {}
+
+                for r in releases:
+                    max = latest_versions.get(r.name)
+                    if max is not None:
+                        if max > r.version:
+                            continue
+                    latest_versions[r.name] = r.version
+
+                latest_releases = []
+                for r in releases:
+                    if latest_versions[r.name] == r.version:
+                        LOG.debug('Found release %s, version %s, status: %s',
+                                  r.name, r.version, get_release_status(r))
+                        latest_releases.append(r)
+
+                return latest_releases
 
     def get_chart_templates(self, template_name, name, release_name, namespace,
                             chart, disable_hooks, values):
@@ -328,8 +348,6 @@ class Tiller(object):
                            latest_release.info.status.Code.Name(
                                latest_release.info.status.code))
                 charts.append(release)
-                LOG.debug('Found release %s, version %s, status: %s',
-                          release[0], release[1], release[4])
             except (AttributeError, IndexError) as e:
                 LOG.debug('%s while getting releases: %s, ex=%s',
                           e.__class__.__name__, latest_release, e)

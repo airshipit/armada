@@ -86,3 +86,15 @@ class WaitException(ArmadaException):
     def __init__(self, message):
         self._message = message
         super(WaitException, self).__init__(message)
+
+
+class UnexpectedReleaseStatusException(ArmadaException):
+    '''
+    Exception that occurs when armada encounters an existing release for a
+    chart with an unexpected status which armada does not know what to do with.
+    '''
+
+    def __init__(self, release_name, status):
+        self._message = "Found release {} in unexpected status {}".format(
+            release_name, status)
+        super(UnexpectedReleaseStatusException, self).__init__(self._message)
