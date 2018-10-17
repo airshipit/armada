@@ -203,9 +203,7 @@ class TillerTestCase(base.ArmadaTestCase):
             limit=tiller.LIST_RELEASES_PAGE_SIZE,
             status_codes=[
                 tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
-            ],
-            sort_by='LAST_RELEASED',
-            sort_order='DESC')
+            ])
 
     @mock.patch('armada.handlers.tiller.K8s')
     @mock.patch('armada.handlers.tiller.grpc')
@@ -255,9 +253,7 @@ class TillerTestCase(base.ArmadaTestCase):
                 limit=tiller.LIST_RELEASES_PAGE_SIZE,
                 status_codes=[
                     tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
-                ],
-                sort_by='LAST_RELEASED',
-                sort_order='DESC') for i in range(page_count)
+                ]) for i in range(page_count)
         ]
         mock_list_releases_request.assert_has_calls(list_release_request_calls)
 

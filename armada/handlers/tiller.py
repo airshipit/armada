@@ -202,9 +202,7 @@ class Tiller(object):
                 req = ListReleasesRequest(
                     offset=next_release_expected,
                     limit=LIST_RELEASES_PAGE_SIZE,
-                    status_codes=[const.STATUS_DEPLOYED, const.STATUS_FAILED],
-                    sort_by='LAST_RELEASED',
-                    sort_order='DESC')
+                    status_codes=[const.STATUS_DEPLOYED, const.STATUS_FAILED])
 
                 LOG.debug('Tiller ListReleases() with timeout=%s, request=%s',
                           self.timeout, req)
