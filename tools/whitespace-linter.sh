@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
-set -xe
+set -x
 
-RES=$(find . \
-  -not -path "*/\.*" \
-  -not -path "*/*.egg-info/*" \
-  -not -path "*/releasenotes/build/*" \
-  -not -path "*/doc/build/*" \
-  -not -name "*.tgz" \
-  -not -name "*.html" \
-  -not -name "*.pyc" \
-  -type f -exec egrep -l " +$" {} \;)
+RES=$(git grep -E -l " +$")
 
 if [[ -n $RES ]]; then
   exit 1
