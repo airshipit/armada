@@ -197,10 +197,19 @@ conf:
 
 pod:
   env:
+    # NOTE(@drewwalters96): These configuration values change the Armada API's
+    #    uWSGI configuration.
     armada_api:
-# ARMADA_API_PORT should = conf.armada.armada_api.bind_port in standard cases
-      - name: ARMADA_API_PORT
-        value: 8000
+#       # NOTE: ARMADA_UWSGI_PORT should match conf.armada.armada_api.bind_port in
+#       # standard use cases
+#      - name: ARMADA_UWSGI_PORT
+#        value: "8000"
+#      - name: ARMADA_UWSGI_TIMEOUT
+#        value: "3600"
+#      - name: ARMADA_UWSGI_WORKERS
+#        value: "4"
+#      - name: ARMADA_UWSGI_THREADS
+#        value: "1"
 #      - name: http_proxy
 #        value: http://proxy.example.com:8080
 #      - name: https_proxy
