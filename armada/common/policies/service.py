@@ -25,7 +25,7 @@ armada_policies = [
         }]),
     policy.DocumentedRuleDefault(
         name=base.ARMADA % 'validate_manifest',
-        check_str=base.RULE_ADMIN_REQUIRED,
+        check_str=base.RULE_ADMIN_VIEWER,
         description='Validate manifest',
         operations=[{
             'path': '/api/v1.0/validatedesign/',

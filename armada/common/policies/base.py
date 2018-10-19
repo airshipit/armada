@@ -18,13 +18,18 @@ RULE_ADMIN_REQUIRED = 'rule:admin_required'
 RULE_ADMIN_OR_TARGET_PROJECT = (
     'rule:admin_required or project_id:%(target.project.id)s')
 RULE_SERVICE_OR_ADMIN = 'rule:service_or_admin'
+RULE_ADMIN_VIEWER = 'rule:admin_viewer'
 
 rules = [
-    policy.RuleDefault(name='admin_required', check_str='role:admin'),
+    policy.RuleDefault(
+        name='admin_required', check_str='role:admin or role:admin_ucp'),
     policy.RuleDefault(
         name='service_or_admin',
         check_str='rule:admin_required or rule:service_role'),
     policy.RuleDefault(name='service_role', check_str='role:service'),
+    policy.RuleDefault(
+        name='admin_viewer',
+        check_str='role:admin_ucp_viewer or {}'.format(RULE_SERVICE_OR_ADMIN)),
 ]
 
 
