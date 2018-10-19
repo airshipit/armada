@@ -1,4 +1,4 @@
-ARG FROM=python:3.5
+ARG FROM=python:3.6
 FROM ${FROM}
 
 LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode'
