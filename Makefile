@@ -26,7 +26,7 @@ COMMIT            ?= commit-id
 PYTHON            = python3
 CHARTS            := $(patsubst charts/%/.,%,$(wildcard charts/*/.))
 IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}
-PYTHON_BASE_IMAGE ?= python:3.5
+PYTHON_BASE_IMAGE ?= python:3.6
 
 # VERSION INFO
 GIT_COMMIT = $(shell git rev-parse HEAD)
