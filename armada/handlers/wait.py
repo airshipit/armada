@@ -148,6 +148,16 @@ class ResourceWait(ABC):
         '''
         pass
 
+    def include_resource(self, resource):
+        '''
+        Test to include or exclude a resource in a wait operation. This method
+        can be used to exclude resources that should not be included in wait
+        operations (e.g. test pods).
+        :param resource: resource to test
+        :returns: boolean representing test result
+        '''
+        return True
+
     def handle_resource(self, resource):
         resource_name = resource.metadata.name
 
@@ -259,7 +269,9 @@ class ResourceWait(ABC):
 
         resource_list = self.get_resources(**kwargs)
         for resource in resource_list.items:
-            ready[resource.metadata.name] = self.handle_resource(resource)
+            # Only include resources that should be included in wait ops
+            if self.include_resource(resource):
+                ready[resource.metadata.name] = self.handle_resource(resource)
         if not resource_list.items:
             if self.skip_if_none_found:
                 msg = 'Skipping wait, no %s resources found.'
@@ -279,6 +291,11 @@ class ResourceWait(ABC):
             resource = event['object']
             resource_name = resource.metadata.name
             resource_version = resource.metadata.resource_version
+
+            # Skip resources that should be excluded from wait operations
+            if not self.include_resource(resource):
+                continue
+
             msg = ('Watch event: type=%s, name=%s, namespace=%s,'
                    'resource_version=%s')
             LOG.debug(msg, event_type, resource_name,
@@ -329,6 +346,28 @@ class PodWait(ResourceWait):
         super(PodWait, self).__init__(
             resource_type, chart_wait, labels,
             chart_wait.k8s.client.list_namespaced_pod, **kwargs)
+
+    def include_resource(self, resource):
+        pod = resource
+        annotations = pod.metadata.annotations
+
+        # Retrieve pod's Helm test hooks
+        test_hooks = None
+        if annotations:
+            hook_string = annotations.get(const.HELM_HOOK_ANNOTATION)
+            if hook_string:
+                hooks = hook_string.split(',')
+                test_hooks = [h for h in hooks if h in const.HELM_TEST_HOOKS]
+
+        # NOTE(drewwalters96): Test pods may cause wait operations to fail
+        # when old resources remain from previous upgrades/tests. Indicate that
+        # test pods should not be included in wait operations.
+        if test_hooks:
+            LOG.debug('Pod %s will be skipped during wait operations.',
+                      pod.metadata.name)
+            return False
+        else:
+            return True
 
     def is_resource_ready(self, resource):
         pod = resource
