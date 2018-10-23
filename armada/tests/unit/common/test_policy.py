@@ -29,8 +29,8 @@ class PolicyTestCase(testtools.TestCase):
         super(PolicyTestCase, self).setUp()
         self.rules = {
             "true": [],
-            "example:allowed": [],
-            "example:disallowed": [["false:false"]]
+            "armada:validate_manifest": [],
+            "armada:create_endpoints": [["false:false"]]
         }
         self.useFixture(fixtures.RealPolicyFixture(False))
         self._set_rules()
@@ -41,24 +41,30 @@ class PolicyTestCase(testtools.TestCase):
         curr_rules = common_policy.Rules.from_dict(self.rules)
         policy._ENFORCER.set_rules(curr_rules)
 
-    @mock.patch('armada.api.ArmadaRequestContext')
-    def test_enforce_nonexistent_action(self, mock_ctx):
+    @mock.patch.object(policy, 'LOG', autospec=True)
+    @mock.patch('armada.api.ArmadaRequestContext', autospec=True)
+    def test_enforce_nonexistent_action(self, mock_ctx, mock_log):
+        """Validates that unregistered default policy throws exception."""
         action = "example:nope"
         mock_ctx.to_policy_view.return_value = self.credentials
 
         self.assertRaises(exc.ActionForbidden, policy._enforce_policy, action,
                           self.target, mock_ctx)
+        mock_log.exception.assert_called_once_with(
+            'Policy not registered for %(action)s', {'action': 'example:nope'})
 
-    @mock.patch('armada.api.ArmadaRequestContext')
-    def test_enforce_good_action(self, mock_ctx):
-        action = "example:allowed"
+    @mock.patch('armada.api.ArmadaRequestContext', autospec=True)
+    def test_enforce_allowed_action(self, mock_ctx):
+        """Validates that allowed policy action can be performed."""
+        action = "armada:validate_manifest"
         mock_ctx.to_policy_view.return_value = self.credentials
 
         policy._enforce_policy(action, self.target, mock_ctx)
 
-    @mock.patch('armada.api.ArmadaRequestContext')
-    def test_enforce_bad_action(self, mock_ctx):
-        action = "example:disallowed"
+    @mock.patch('armada.api.ArmadaRequestContext', autospec=True)
+    def test_enforce_disallowed_action(self, mock_ctx):
+        """Validates that disallowed policy action cannot be performed."""
+        action = "armada:create_endpoints"
         mock_ctx.to_policy_view.return_value = self.credentials
 
         self.assertRaises(exc.ActionForbidden, policy._enforce_policy, action,
