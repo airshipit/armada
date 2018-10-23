@@ -46,3 +46,8 @@ Armada Exceptions
    :members:
    :show-inheritance:
    :undoc-members:
+
+.. autoexception:: armada.exceptions.armada_exceptions.UnexpectedReleaseStatusException
+   :members:
+   :show-inheritance:
+   :undoc-members:

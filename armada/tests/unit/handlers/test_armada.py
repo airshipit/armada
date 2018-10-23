@@ -20,7 +20,7 @@ from armada.handlers import armada
 from armada.handlers import chart_deploy
 from armada.tests.unit import base
 from armada.tests.test_utils import AttrDict, makeMockThreadSafe
-from armada.utils.release import release_prefixer
+from armada.utils.release import release_prefixer, get_release_status
 from armada.exceptions import ManifestException
 from armada.exceptions.override_exceptions import InvalidOverrideValueException
 from armada.exceptions.validate_exceptions import InvalidManifestException
@@ -354,7 +354,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             cg_test_all_charts = chart_group.get('test_charts', True)
 
             m_tiller = mock_tiller.return_value
-            m_tiller.list_charts.return_value = known_releases
+            m_tiller.list_releases.return_value = known_releases
 
             if test_failure_to_run:
 
@@ -393,7 +393,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     'enabled', True))
 
                 expected_apply = True
-                if release_name not in [x[0] for x in known_releases]:
+                if release_name not in [x.name for x in known_releases]:
                     expected_install_release_calls.append(
                         mock.call(
                             mock_chartbuilder().get_helm_chart(),
@@ -407,11 +407,11 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 else:
                     target_release = None
                     for known_release in known_releases:
-                        if known_release[0] == release_name:
+                        if known_release.name == release_name:
                             target_release = known_release
                             break
                     if target_release:
-                        status = target_release[4]
+                        status = get_release_status(target_release)
                         if status == const.STATUS_FAILED:
                             protected = chart.get('protected', {})
                             if not protected:
@@ -527,6 +527,19 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             c for c in yaml_documents if c['data'].get('chart_name') == name
         ][0]
 
+    def get_mock_release(self, name, status):
+        status_mock = mock.Mock()
+        status_mock.return_value = status
+        chart = self._get_chart_by_name(name)
+        mock_release = mock.Mock(
+            version=1,
+            chart=chart,
+            config=mock.Mock(raw="{}"),
+            info=mock.Mock(
+                status=mock.Mock(Code=mock.MagicMock(Name=status_mock))))
+        mock_release.name = name
+        return mock_release
+
     def test_armada_sync_with_no_deployed_releases(self):
         known_releases = []
         self._test_sync(known_releases)
@@ -534,50 +547,45 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
     def test_armada_sync_with_one_deployed_release(self):
         c1 = 'armada-test_chart_1'
 
-        known_releases = [[c1, None, None, "{}", const.STATUS_DEPLOYED]]
+        known_releases = [self.get_mock_release(c1, const.STATUS_DEPLOYED)]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_one_deployed_release_no_diff(self):
         c1 = 'armada-test_chart_1'
 
-        known_releases = [[c1, None, None, "{}", const.STATUS_DEPLOYED]]
+        known_releases = [self.get_mock_release(c1, const.STATUS_DEPLOYED)]
         self._test_sync(known_releases, diff=set())
 
     def test_armada_sync_with_both_deployed_releases(self):
         c1 = 'armada-test_chart_1'
         c2 = 'armada-test_chart_2'
 
-        known_releases = [[c1, None, None, "{}", const.STATUS_DEPLOYED],
-                          [c2, None, None, "{}", const.STATUS_DEPLOYED]]
+        known_releases = [
+            self.get_mock_release(c1, const.STATUS_DEPLOYED),
+            self.get_mock_release(c2, const.STATUS_DEPLOYED)
+        ]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_unprotected_releases(self):
         c1 = 'armada-test_chart_1'
 
-        known_releases = [[
-            c1, None,
-            self._get_chart_by_name(c1), None, const.STATUS_FAILED
-        ]]
+        known_releases = [self.get_mock_release(c1, const.STATUS_FAILED)]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_protected_releases_continue(self):
         c1 = 'armada-test_chart_1'
         c2 = 'armada-test_chart_2'
 
-        known_releases = [[
-            c2, None,
-            self._get_chart_by_name(c2), None, const.STATUS_FAILED
-        ], [c1, None,
-            self._get_chart_by_name(c1), None, const.STATUS_FAILED]]
+        known_releases = [
+            self.get_mock_release(c2, const.STATUS_FAILED),
+            self.get_mock_release(c1, const.STATUS_FAILED)
+        ]
         self._test_sync(known_releases)
 
     def test_armada_sync_with_protected_releases_halt(self):
         c3 = 'armada-test_chart_3'
 
-        known_releases = [[
-            c3, None,
-            self._get_chart_by_name(c3), None, const.STATUS_FAILED
-        ]]
+        known_releases = [self.get_mock_release(c3, const.STATUS_FAILED)]
 
         def _test_method():
             self._test_sync(known_releases)

@@ -16,13 +16,14 @@ from oslo_log import log as logging
 import time
 import yaml
 
+from armada import const
 from armada.exceptions import armada_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.test import test_release_for_success
 from armada.handlers.release_diff import ReleaseDiff
 from armada.handlers.wait import ChartWait
 from armada.exceptions import tiller_exceptions
-from armada.utils.release import release_prefixer
+from armada.utils.release import release_prefixer, get_release_status
 
 LOG = logging.getLogger(__name__)
 
@@ -39,8 +40,7 @@ class ChartDeploy(object):
         self.timeout = timeout
         self.tiller = tiller
 
-    def execute(self, chart, cg_test_all_charts, prefix, deployed_releases,
-                failed_releases):
+    def execute(self, chart, cg_test_all_charts, prefix, known_releases):
         namespace = chart.get('namespace')
         release = chart.get('release')
         release_name = release_prefixer(prefix, release)
@@ -55,8 +55,35 @@ class ChartDeploy(object):
         protected = chart.get('protected', {})
         p_continue = protected.get('continue_processing', False)
 
+        old_release = self.find_chart_release(known_releases, release_name)
+
+        status = None
+        if old_release:
+            status = get_release_status(old_release)
+
+            if status not in [const.STATUS_FAILED, const.STATUS_DEPLOYED]:
+                raise armada_exceptions.UnexpectedReleaseStatusException(
+                    release_name, status)
+
+        chart_wait = ChartWait(
+            self.tiller.k8s,
+            release_name,
+            chart,
+            namespace,
+            k8s_wait_attempts=self.k8s_wait_attempts,
+            k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
+            timeout=self.timeout)
+
+        native_wait_enabled = chart_wait.is_native_enabled()
+
+        # Begin Chart timeout deadline
+        deadline = time.time() + chart_wait.get_timeout()
+
+        chartbuilder = ChartBuilder(chart)
+        new_chart = chartbuilder.get_helm_chart()
+
         # Check for existing FAILED release, and purge
-        if release_name in [rel[0] for rel in failed_releases]:
+        if status == const.STATUS_FAILED:
             LOG.info('Purging FAILED release %s before deployment.',
                      release_name)
             if protected:
@@ -78,35 +105,19 @@ class ChartDeploy(object):
                 self.tiller.uninstall_release(release_name)
                 result['purge'] = release_name
 
-        chart_wait = ChartWait(
-            self.tiller.k8s,
-            release_name,
-            chart,
-            namespace,
-            k8s_wait_attempts=self.k8s_wait_attempts,
-            k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,
-            timeout=self.timeout)
-
-        native_wait_enabled = chart_wait.is_native_enabled()
-
-        # Begin Chart timeout deadline
-        deadline = time.time() + chart_wait.get_timeout()
-
-        chartbuilder = ChartBuilder(chart)
-        new_chart = chartbuilder.get_helm_chart()
-
         # TODO(mark-burnett): It may be more robust to directly call
         # tiller status to decide whether to install/upgrade rather
         # than checking for list membership.
-        if release_name in [rel[0] for rel in deployed_releases]:
+        if status == const.STATUS_DEPLOYED:
 
             # indicate to the end user what path we are taking
             LOG.info("Upgrading release %s in namespace %s", release_name,
                      namespace)
+
             # extract the installed chart and installed values from the
             # latest release so we can compare to the intended state
-            old_chart, old_values_string = self.find_release_chart(
-                deployed_releases, release_name)
+            old_chart = old_release.chart
+            old_values_string = old_release.config.raw
 
             upgrade = chart.get('upgrade', {})
             disable_hooks = upgrade.get('no_hooks', False)
@@ -236,10 +247,13 @@ class ChartDeploy(object):
     def get_diff(self, old_chart, old_values, new_chart, values):
         return ReleaseDiff(old_chart, old_values, new_chart, values).get_diff()
 
-    def find_release_chart(self, known_releases, release_name):
+    def find_chart_release(self, known_releases, release_name):
         '''
         Find a release given a list of known_releases and a release name
         '''
-        for release, _, chart, values, _ in known_releases:
-            if release == release_name:
-                return chart, values
+        for release in known_releases:
+            if release.name == release_name:
+                return release
+        LOG.info("known: %s, release_name: %s",
+                 list(map(lambda r: r.name, known_releases)), release_name)
+        return None

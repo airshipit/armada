@@ -201,9 +201,39 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_list_releases_request.assert_called_once_with(
             offset="",
             limit=tiller.LIST_RELEASES_PAGE_SIZE,
-            status_codes=[
-                tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
-            ])
+            status_codes=tiller.const.STATUS_ALL)
+
+    @mock.patch('armada.handlers.tiller.K8s')
+    @mock.patch('armada.handlers.tiller.grpc')
+    @mock.patch.object(tiller, 'ListReleasesRequest')
+    @mock.patch.object(tiller, 'ReleaseServiceStub')
+    def test_list_releases_returns_latest_only(
+            self, mock_stub, mock_list_releases_request, mock_grpc, _):
+        latest = mock.Mock(version=3)
+        releases = [mock.Mock(version=2), latest, mock.Mock(version=1)]
+        for r in releases:
+            r.name = 'test'
+        mock_stub.return_value.ListReleases.return_value = [
+            mock.Mock(
+                next='',
+                count=len(releases),
+                total=len(releases),
+                releases=releases)
+        ]
+
+        tiller_obj = tiller.Tiller('host', '8080', None)
+        self.assertEqual([latest], tiller_obj.list_releases())
+
+        mock_stub.assert_called_once_with(tiller_obj.channel)
+        mock_stub.return_value.ListReleases.assert_called_once_with(
+            mock_list_releases_request.return_value,
+            tiller_obj.timeout,
+            metadata=tiller_obj.metadata)
+
+        mock_list_releases_request.assert_called_once_with(
+            offset="",
+            limit=tiller.LIST_RELEASES_PAGE_SIZE,
+            status_codes=tiller.const.STATUS_ALL)
 
     @mock.patch('armada.handlers.tiller.K8s')
     @mock.patch('armada.handlers.tiller.grpc')
@@ -251,9 +281,8 @@ class TillerTestCase(base.ArmadaTestCase):
                 offset=''
                 if i == 0 else str(tiller.LIST_RELEASES_PAGE_SIZE * i),
                 limit=tiller.LIST_RELEASES_PAGE_SIZE,
-                status_codes=[
-                    tiller.const.STATUS_DEPLOYED, tiller.const.STATUS_FAILED
-                ]) for i in range(page_count)
+                status_codes=tiller.const.STATUS_ALL)
+            for i in range(page_count)
         ]
         mock_list_releases_request.assert_has_calls(list_release_request_calls)
 
