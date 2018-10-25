@@ -15,7 +15,6 @@
 import os
 import shutil
 
-import fixtures
 import mock
 import testtools
 
@@ -159,23 +158,6 @@ class GitTestCase(base.ArmadaTestCase):
     @test_utils.attr(type=['negative'])
     @mock.patch.object(source, 'LOG')
     @mock.patch('armada.utils.source.shutil')
-    def test_source_cleanup_fake_git_path(self, mock_shutil, mock_log):
-        # Verify that passing in a fake path does nothing but log a warning.
-        # Don't want anyone using the function to delete random directories.
-        fake_path = self.useFixture(fixtures.TempDir()).path
-        self.addCleanup(shutil.rmtree, fake_path)
-        source.source_cleanup(fake_path)
-
-        mock_shutil.rmtree.assert_not_called()
-        self.assertTrue(mock_log.warning.called)
-        actual_call = mock_log.warning.mock_calls[0][1][:2]
-        self.assertEqual(
-            ('%s is not a valid git repository. Details: %s', fake_path),
-            actual_call)
-
-    @test_utils.attr(type=['negative'])
-    @mock.patch.object(source, 'LOG')
-    @mock.patch('armada.utils.source.shutil')
     @mock.patch('armada.utils.source.os.path')
     def test_source_cleanup_missing_git_path(self, mock_path, mock_shutil,
                                              mock_log):
@@ -187,9 +169,8 @@ class GitTestCase(base.ArmadaTestCase):
         mock_shutil.rmtree.assert_not_called()
         self.assertTrue(mock_log.warning.called)
         actual_call = mock_log.warning.mock_calls[0][1]
-        self.assertEqual(
-            ('Could not delete the path %s. Is it a git repository?', path),
-            actual_call)
+        self.assertEqual(('Could not find the chart path %s to delete.', path),
+                         actual_call)
 
     @testtools.skipUnless(base.is_connected(),
                           'git clone requires network connectivity.')

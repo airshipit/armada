@@ -103,7 +103,7 @@ class Armada(object):
             raise
         self.manifest = Manifest(
             self.documents, target_manifest=target_manifest).get_manifest()
-        self.cloned_dirs = set()
+        self.chart_cache = {}
         self.chart_deploy = ChartDeploy(
             disable_update_pre, disable_update_post, self.dry_run,
             k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, self.tiller)
@@ -119,16 +119,12 @@ class Armada(object):
             raise tiller_exceptions.TillerServicesUnavailableException()
 
         # Clone the chart sources
-        repos = {}
         manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
         for group in manifest_data.get(const.KEYWORD_GROUPS, []):
             for ch in group.get(const.KEYWORD_CHARTS, []):
-                self.tag_cloned_repo(ch, repos)
+                self.get_chart(ch)
 
-                for dep in ch.get('chart', {}).get('dependencies', []):
-                    self.tag_cloned_repo(dep, repos)
-
-    def tag_cloned_repo(self, ch, repos):
+    def get_chart(self, ch):
         chart = ch.get('chart', {})
         chart_source = chart.get('source', {})
         location = chart_source.get('location')
@@ -138,25 +134,30 @@ class Armada(object):
         if ct_type == 'local':
             chart['source_dir'] = (location, subpath)
         elif ct_type == 'tar':
-            LOG.info('Downloading tarball from: %s', location)
+            source_key = (ct_type, location)
 
-            if not CONF.certs:
-                LOG.warn('Disabling server validation certs to extract charts')
-                tarball_dir = source.get_tarball(location, verify=False)
-            else:
-                tarball_dir = source.get_tarball(location, verify=CONF.cert)
+            if source_key not in self.chart_cache:
+                LOG.info('Downloading tarball from: %s', location)
 
-            chart['source_dir'] = (tarball_dir, subpath)
+                if not CONF.certs:
+                    LOG.warn(
+                        'Disabling server validation certs to extract charts')
+                    tarball_dir = source.get_tarball(location, verify=False)
+                else:
+                    tarball_dir = source.get_tarball(
+                        location, verify=CONF.cert)
+                self.chart_cache[source_key] = tarball_dir
+            chart['source_dir'] = (self.chart_cache.get(source_key), subpath)
         elif ct_type == 'git':
             reference = chart_source.get('reference', 'master')
-            repo_branch = (location, reference)
+            source_key = (ct_type, location, reference)
 
-            if repo_branch not in repos:
+            if source_key not in self.chart_cache:
                 auth_method = chart_source.get('auth_method')
                 proxy_server = chart_source.get('proxy_server')
 
                 logstr = 'Cloning repo: {} from branch: {}'.format(
-                    *repo_branch)
+                    location, reference)
                 if proxy_server:
                     logstr += ' proxy: {}'.format(proxy_server)
                 if auth_method:
@@ -164,18 +165,19 @@ class Armada(object):
                 LOG.info(logstr)
 
                 repo_dir = source.git_clone(
-                    *repo_branch,
+                    location,
+                    reference,
                     proxy_server=proxy_server,
                     auth_method=auth_method)
-                self.cloned_dirs.add(repo_dir)
 
-                repos[repo_branch] = repo_dir
-                chart['source_dir'] = (repo_dir, subpath)
-            else:
-                chart['source_dir'] = (repos.get(repo_branch), subpath)
+                self.chart_cache[source_key] = repo_dir
+            chart['source_dir'] = (self.chart_cache.get(source_key), subpath)
         else:
             chart_name = chart.get('chart_name')
             raise source_exceptions.ChartSourceException(ct_type, chart_name)
+
+        for dep in ch.get('chart', {}).get('dependencies', []):
+            self.get_chart(dep)
 
     def sync(self):
         '''
@@ -293,9 +295,9 @@ class Armada(object):
         LOG.info("Performing post-flight operations.")
 
         # Delete temp dirs used for deployment
-        for cloned_dir in self.cloned_dirs:
-            LOG.debug('Removing cloned temp directory: %s', cloned_dir)
-            source.source_cleanup(cloned_dir)
+        for chart_dir in self.chart_cache.values():
+            LOG.debug('Removing temp chart directory: %s', chart_dir)
+            source.source_cleanup(chart_dir)
 
     def _chart_cleanup(self, prefix, charts, msg):
         LOG.info('Processing chart cleanup to remove unspecified releases.')

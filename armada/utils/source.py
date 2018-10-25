@@ -153,27 +153,19 @@ def extract_tarball(tarball_path):
     return temp_dir
 
 
-def source_cleanup(git_path):
-    '''Clean up the git repository that was created by ``git_clone`` above.
+def source_cleanup(chart_path):
+    '''Clean up the chart path that was created above.
 
-    Removes the ``git_path`` repository and all associated files if they
+    Removes the ``chart_path`` and all associated files if they
     exist.
 
-    :param str git_path: The git repository to delete.
+    :param str chart_path: The chart path to delete.
     '''
-    if os.path.exists(git_path):
+    if os.path.exists(chart_path):
         try:
-            # Internally validates whether the path points to an actual repo.
-            Repo(git_path)
-        except git_exc.InvalidGitRepositoryError as e:
-            LOG.warning('%s is not a valid git repository. Details: %s',
-                        git_path, e)
-        else:
-            try:
-                shutil.rmtree(git_path)
-            except OSError as e:
-                LOG.warning('Could not delete the path %s. Details: %s',
-                            git_path, e)
+            shutil.rmtree(chart_path)
+        except OSError as e:
+            LOG.warning('Could not delete the path %s. Details: %s',
+                        chart_path, e)
     else:
-        LOG.warning('Could not delete the path %s. Is it a git repository?',
-                    git_path)
+        LOG.warning('Could not find the chart path %s to delete.', chart_path)
