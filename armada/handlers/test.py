@@ -26,6 +26,9 @@ def test_release_for_success(tiller,
                              cleanup=False):
     test_suite_run = tiller.test_release(
         release, timeout=timeout, cleanup=cleanup)
-    results = getattr(test_suite_run, 'results', [])
-    failed_results = [r for r in results if r.status != TESTRUN_STATUS_SUCCESS]
-    return len(failed_results) == 0
+    return get_test_suite_run_success(test_suite_run)
+
+
+def get_test_suite_run_success(test_suite_run):
+    return all(
+        r.status == TESTRUN_STATUS_SUCCESS for r in test_suite_run.results)
