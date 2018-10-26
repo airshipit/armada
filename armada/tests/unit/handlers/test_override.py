@@ -322,7 +322,8 @@ class OverrideNegativeTestCase(testtools.TestCase):
         with open(self.base_manifest) as f:
             original_documents = list(yaml.safe_load_all(f.read()))
 
-        override = ('manifest:simple-armada:release_prefix=' '\overridden', )
+        # Provide invalid JSON to compel the error to get thrown.
+        override = ('manifest:simple-armada:release_prefix=\\overridden', )
         ovr = Override(original_documents, override)
         self.assertRaises(json.decoder.JSONDecodeError, ovr.update_manifests)
 

@@ -52,11 +52,11 @@ def _enforce_policy(action, target, credentials, do_raise=True):
     try:
         _ENFORCER.authorize(action, target, credentials.to_policy_view(),
                             **extras)
-    except policy.PolicyNotRegistered as e:
+    except policy.PolicyNotRegistered:
         LOG.exception('Policy not registered for %(action)s',
                       {'action': action})
         raise exc.ActionForbidden()
-    except Exception as e:
+    except Exception:
         with excutils.save_and_reraise_exception():
             LOG.debug(
                 'Policy check for %(action)s failed with credentials '

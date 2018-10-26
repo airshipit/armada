@@ -115,7 +115,7 @@ class ChartWait():
                 return DaemonSetWait(resource_type, self, labels, **kwargs)
             elif resource_type == 'statefulset':
                 return StatefulSetWait(resource_type, self, labels, **kwargs)
-        except TypeError as e:
+        except TypeError:
             raise manifest_exceptions.ManifestException(
                 'invalid config for item in `wait.resources`: {}'.format(
                     resource_config))

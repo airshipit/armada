@@ -120,7 +120,7 @@ class ReferenceResolver(object):
                            reference
         """
         ks_sess = ks_utils.get_keystone_session()
-        (new_scheme, foo) = re.subn('^[^+]+\+', '', design_uri.scheme)
+        (new_scheme, foo) = re.subn('^[^+]+\+', '', design_uri.scheme)  # noqa
         url = urllib.parse.urlunparse(
             (new_scheme, design_uri.netloc, design_uri.path, design_uri.params,
              design_uri.query, design_uri.fragment))
