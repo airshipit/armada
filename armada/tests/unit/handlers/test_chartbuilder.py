@@ -461,9 +461,8 @@ class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(test_chart)
 
         # Confirm it failed for both encodings.
-        error_re = (
-            r'.*A str exception occurred while trying to read file:'  # noqa
-            '.*Details:\n.*\(encoding=utf-8\).*\n\(encoding=latin1\)')
+        error_re = (r'.*A str exception occurred while trying to read file:'
+                    r'.*Details:\n.*\(encoding=utf-8\).*\n\(encoding=latin1\)')
         with mock.patch("builtins.open", mock.mock_open(read_data="")) \
                 as mock_file:
             mock_file.return_value.read.side_effect = self.exc_to_raise
