@@ -31,6 +31,7 @@ from armada.api.controller.tiller import Release
 from armada.api.controller.tiller import Status
 from armada.api.controller.validation import Validate
 from armada.api.controller.versions import Versions
+from armada.exceptions import base_exception as exceptions
 
 conf.set_app_default_configs()
 CONF = cfg.CONF
@@ -75,6 +76,15 @@ def create(enable_middleware=CONF.middleware):
 
     # Initialize policy config options.
     policy.Enforcer(CONF)
+
+    # Error handlers (FILO handling)
+    api.add_error_handler(exceptions.ArmadaBaseException,
+                          exceptions.default_exception_handler)
+    api.add_error_handler(exceptions.ArmadaAPIException,
+                          exceptions.ArmadaAPIException.handle)
+
+    # Built-in error serializer
+    api.set_error_serializer(exceptions.default_error_serializer)
 
     return api
 
