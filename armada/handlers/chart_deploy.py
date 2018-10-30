@@ -111,7 +111,7 @@ class ChartDeploy(object):
         if status == const.STATUS_DEPLOYED:
 
             # indicate to the end user what path we are taking
-            LOG.info("Upgrading release %s in namespace %s", release_name,
+            LOG.info("Existing release %s found in namespace %s", release_name,
                      namespace)
 
             # extract the installed chart and installed values from the
@@ -124,7 +124,6 @@ class ChartDeploy(object):
             force = upgrade.get('force', False)
             recreate_pods = upgrade.get('recreate_pods', False)
 
-            LOG.info("Checking Pre/Post Actions")
             if upgrade:
                 upgrade_pre = upgrade.get('pre', {})
                 upgrade_post = upgrade.get('post', {})
@@ -159,8 +158,10 @@ class ChartDeploy(object):
 
             # do actual update
             timer = int(round(deadline - time.time()))
-            LOG.info('Beginning Upgrade, wait=%s, timeout=%ss',
-                     native_wait_enabled, timer)
+            LOG.info(
+                "Upgrading release %s in namespace %s, wait=%s, "
+                "timeout=%ss", release_name, namespace, native_wait_enabled,
+                timer)
             tiller_result = self.tiller.update_release(
                 new_chart,
                 release_name,
@@ -180,12 +181,11 @@ class ChartDeploy(object):
 
         # process install
         else:
-            LOG.info("Installing release %s in namespace %s", release_name,
-                     namespace)
-
             timer = int(round(deadline - time.time()))
-            LOG.info('Beginning Install, wait=%s, timeout=%ss',
-                     native_wait_enabled, timer)
+            LOG.info(
+                "Installing release %s in namespace %s, wait=%s, "
+                "timeout=%ss", release_name, namespace, native_wait_enabled,
+                timer)
             tiller_result = self.tiller.install_release(
                 new_chart,
                 release_name,
