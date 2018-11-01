@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from armada.handlers.test import get_test_suite_run_success
+
 
 def release_prefixer(prefix, release):
     '''
@@ -36,4 +38,18 @@ def get_release_status(release):
     :return: status name of release
     """
 
-    return release.info.status.Code.Name(release.info.status.code)
+    status = release.info.status
+    return status.Code.Name(status.code)
+
+
+def get_last_test_result(release):
+    """
+    :param release: protobuf release object
+
+    :return: status name of release
+    """
+
+    status = release.info.status
+    if not status.HasField('last_test_suite_run'):
+        return None
+    return get_test_suite_run_success(status.last_test_suite_run)

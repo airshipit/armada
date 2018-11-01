@@ -18,6 +18,7 @@ import yaml
 from armada import const
 from armada.handlers import armada
 from armada.handlers import chart_deploy
+from armada.handlers.test import TESTRUN_STATUS_SUCCESS, TESTRUN_STATUS_FAILURE
 from armada.tests.unit import base
 from armada.tests.test_utils import AttrDict, makeMockThreadSafe
 from armada.utils.release import release_prefixer, get_release_status
@@ -334,6 +335,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                    known_releases,
                    test_success=True,
                    test_failure_to_run=False,
+                   expected_last_test_result=None,
                    diff={'some_key': {'some diff'}}):
         """Test install functionality from the sync() method."""
 
@@ -476,7 +478,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     test_cleanup = test_chart_override.get('options', {}).get(
                         'cleanup', False)
 
-                if test_this_chart and expected_apply:
+                if test_this_chart and (expected_apply or
+                                        not expected_last_test_result):
                     expected_test_release_for_success_calls.append(
                         mock.call(
                             m_tiller,
@@ -527,16 +530,35 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             c for c in yaml_documents if c['data'].get('chart_name') == name
         ][0]
 
-    def get_mock_release(self, name, status):
+    def get_mock_release(self, name, status, last_test_results=None):
         status_mock = mock.Mock()
         status_mock.return_value = status
         chart = self._get_chart_by_name(name)
+
+        def get_test_result(success):
+            status = (TESTRUN_STATUS_SUCCESS
+                      if success else TESTRUN_STATUS_FAILURE)
+            return mock.Mock(status=status)
+
+        last_test_suite_run = None
+        if last_test_results is not None:
+            results = [get_test_result(r) for r in last_test_results]
+            last_test_suite_run = mock.Mock(results=results)
+
+        def has_last_test(name):
+            if name == 'last_test_suite_run':
+                return last_test_results is not None
+            self.fail('Called HasField() with unexpected field')
+
         mock_release = mock.Mock(
             version=1,
             chart=chart,
             config=mock.Mock(raw="{}"),
             info=mock.Mock(
-                status=mock.Mock(Code=mock.MagicMock(Name=status_mock))))
+                status=mock.Mock(
+                    Code=mock.MagicMock(Name=status_mock),
+                    HasField=mock.MagicMock(side_effect=has_last_test),
+                    last_test_suite_run=last_test_suite_run)))
         mock_release.name = name
         return mock_release
 
@@ -555,6 +577,36 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         known_releases = [self.get_mock_release(c1, const.STATUS_DEPLOYED)]
         self._test_sync(known_releases, diff=set())
+
+    def test_armada_sync_with_failed_test_result(self):
+        c1 = 'armada-test_chart_1'
+
+        known_releases = [
+            self.get_mock_release(
+                c1, const.STATUS_DEPLOYED, last_test_results=[False])
+        ]
+        self._test_sync(
+            known_releases, diff=set(), expected_last_test_result=False)
+
+    def test_armada_sync_with_success_test_result(self):
+        c1 = 'armada-test_chart_1'
+
+        known_releases = [
+            self.get_mock_release(
+                c1, const.STATUS_DEPLOYED, last_test_results=[True])
+        ]
+        self._test_sync(
+            known_releases, diff=set(), expected_last_test_result=True)
+
+    def test_armada_sync_with_success_test_result_no_tests(self):
+        c1 = 'armada-test_chart_1'
+
+        known_releases = [
+            self.get_mock_release(
+                c1, const.STATUS_DEPLOYED, last_test_results=[])
+        ]
+        self._test_sync(
+            known_releases, diff=set(), expected_last_test_result=True)
 
     def test_armada_sync_with_both_deployed_releases(self):
         c1 = 'armada-test_chart_1'

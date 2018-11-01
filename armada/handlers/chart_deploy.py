@@ -23,7 +23,7 @@ from armada.handlers.test import test_release_for_success
 from armada.handlers.release_diff import ReleaseDiff
 from armada.handlers.wait import ChartWait
 from armada.exceptions import tiller_exceptions
-from armada.utils.release import release_prefixer, get_release_status
+import armada.utils.release as r
 
 LOG = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class ChartDeploy(object):
     def execute(self, chart, cg_test_all_charts, prefix, known_releases):
         namespace = chart.get('namespace')
         release = chart.get('release')
-        release_name = release_prefixer(prefix, release)
+        release_name = r.release_prefixer(prefix, release)
         LOG.info('Processing Chart, release=%s', release_name)
 
         values = chart.get('values', {})
@@ -59,7 +59,7 @@ class ChartDeploy(object):
 
         status = None
         if old_release:
-            status = get_release_status(old_release)
+            status = r.get_release_status(old_release)
 
             if status not in [const.STATUS_FAILED, const.STATUS_DEPLOYED]:
                 raise armada_exceptions.UnexpectedReleaseStatusException(
@@ -147,39 +147,36 @@ class ChartDeploy(object):
 
             if not diff:
                 LOG.info("Found no updates to chart release inputs")
-                return result
+            else:
+                LOG.info("Found updates to chart release inputs")
+                LOG.debug("%s", diff)
+                result['diff'] = {chart['release']: str(diff)}
 
-            LOG.info("Found updates to chart release inputs")
-            LOG.debug("%s", diff)
-            result['diff'] = {chart['release']: str(diff)}
+                # TODO(MarshM): Add tiller dry-run before upgrade and
+                # consider deadline impacts
 
-            # TODO(MarshM): Add tiller dry-run before upgrade and
-            # consider deadline impacts
+                # do actual update
+                timer = int(round(deadline - time.time()))
+                LOG.info(
+                    "Upgrading release %s in namespace %s, wait=%s, "
+                    "timeout=%ss", release_name, namespace,
+                    native_wait_enabled, timer)
+                tiller_result = self.tiller.update_release(
+                    new_chart,
+                    release_name,
+                    namespace,
+                    pre_actions=pre_actions,
+                    post_actions=post_actions,
+                    disable_hooks=disable_hooks,
+                    values=yaml.safe_dump(values),
+                    wait=native_wait_enabled,
+                    timeout=timer,
+                    force=force,
+                    recreate_pods=recreate_pods)
 
-            # do actual update
-            timer = int(round(deadline - time.time()))
-            LOG.info(
-                "Upgrading release %s in namespace %s, wait=%s, "
-                "timeout=%ss", release_name, namespace, native_wait_enabled,
-                timer)
-            tiller_result = self.tiller.update_release(
-                new_chart,
-                release_name,
-                namespace,
-                pre_actions=pre_actions,
-                post_actions=post_actions,
-                disable_hooks=disable_hooks,
-                values=yaml.safe_dump(values),
-                wait=native_wait_enabled,
-                timeout=timer,
-                force=force,
-                recreate_pods=recreate_pods)
-
-            LOG.info('Upgrade completed with results from Tiller: %s',
-                     tiller_result.__dict__)
-            result['upgrade'] = release_name
-
-        # process install
+                LOG.info('Upgrade completed with results from Tiller: %s',
+                         tiller_result.__dict__)
+                result['upgrade'] = release_name
         else:
             timer = int(round(deadline - time.time()))
             LOG.info(
@@ -198,26 +195,33 @@ class ChartDeploy(object):
                      tiller_result.__dict__)
             result['install'] = release_name
 
+        # Wait
         timer = int(round(deadline - time.time()))
         chart_wait.wait(timer)
 
+        # Test
         test_chart_override = chart.get('test')
         # Use old default value when not using newer `test` key
         test_cleanup = True
         if test_chart_override is None:
-            test_this_chart = cg_test_all_charts
+            test_enabled = cg_test_all_charts
         elif isinstance(test_chart_override, bool):
             LOG.warn('Boolean value for chart `test` key is'
                      ' deprecated and support for this will'
                      ' be removed. Use `test.enabled` '
                      'instead.')
-            test_this_chart = test_chart_override
+            test_enabled = test_chart_override
         else:
             # NOTE: helm tests are enabled by default
-            test_this_chart = test_chart_override.get('enabled', True)
+            test_enabled = test_chart_override.get('enabled', True)
             test_cleanup = test_chart_override.get('options', {}).get(
                 'cleanup', False)
-        if test_this_chart:
+
+        just_deployed = ('install' in result) or ('upgrade' in result)
+        last_test_passed = old_release and r.get_last_test_result(old_release)
+        run_test = test_enabled and (just_deployed or not last_test_passed)
+
+        if run_test:
             timer = int(round(deadline - time.time()))
             self._test_chart(release_name, timer, test_cleanup)
 
