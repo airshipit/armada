@@ -127,6 +127,7 @@ class Tiller(object):
                          ('grpc.max_receive_message_length',
                           MAX_MESSAGE_LENGTH)])
         except Exception:
+            LOG.exception('Failed to initialize grpc channel to tiller.')
             raise ex.ChannelException()
 
     def _get_tiller_pod(self):
@@ -312,7 +313,12 @@ class Tiller(object):
                     name, release_name, namespace, labels, action_type, chart,
                     disable_hooks, values, timeout)
         except Exception:
-            LOG.warn("Pre: Could not update anything, please check yaml")
+            LOG.excpetion(
+                "Pre-action failure: could not perform rolling upgrade for "
+                "%(res_type)s %(res_name)s.", {
+                    'res_type': action_type,
+                    'res_name': name
+                })
             raise ex.PreUpdateJobDeleteException(name, namespace)
 
         try:
@@ -329,7 +335,12 @@ class Tiller(object):
                     namespace,
                     timeout=timeout)
         except Exception:
-            LOG.warn("PRE: Could not delete anything, please check yaml")
+            LOG.excpetion(
+                "Pre-action failure: could not delete %(res_type)s "
+                "%(res_name)s.", {
+                    'res_type': action_type,
+                    'res_name': name
+                })
             raise ex.PreUpdateJobDeleteException(name, namespace)
 
     def list_charts(self):
@@ -530,6 +541,7 @@ class Tiller(object):
             return release_status
 
         except Exception:
+            LOG.exception('Cannot get tiller release status.')
             raise ex.GetReleaseStatusException(release, version)
 
     def get_release_content(self, release, version=0):
@@ -551,6 +563,7 @@ class Tiller(object):
             return release_content
 
         except Exception:
+            LOG.exception('Cannot get tiller release content.')
             raise ex.GetReleaseContentException(release, version)
 
     def tiller_version(self):
@@ -570,7 +583,7 @@ class Tiller(object):
             return tiller_version
 
         except Exception:
-            LOG.debug('Failed to get Tiller version')
+            LOG.exception('Failed to get Tiller version.')
             raise ex.TillerVersionException()
 
     def uninstall_release(self, release, disable_hooks=False, purge=True):
@@ -794,6 +807,7 @@ class Tiller(object):
             return
 
         except Exception:
+            LOG.exception('Error while rolling back tiller release.')
             raise ex.RollbackReleaseException(release_name, version)
 
     def _check_timeout(self, wait, timeout):
