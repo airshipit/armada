@@ -152,6 +152,7 @@ CHART_SOURCES = [('git://github.com/dummy/armada', 'chart_1'),
                  ('/tmp/dummy/armada', 'chart_4')]
 
 
+# TODO(seaneagan): Add unit tests with dependencies, including transitive.
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
     def _test_pre_flight_ops(self, armada_obj):
