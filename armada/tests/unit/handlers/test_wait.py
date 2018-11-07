@@ -185,3 +185,49 @@ class ChartWaitTestCase(base.ArmadaTestCase):
         self.assertEqual(2, len(unit.waits))
         for w in unit.waits:
             w.wait.assert_called_once()
+
+
+class PodWaitTestCase(base.ArmadaTestCase):
+
+    def get_unit(self, labels):
+        return wait.PodWait(
+            resource_type='pod', chart_wait=mock.MagicMock(), labels=labels)
+
+    def test_include_resource(self):
+
+        def mock_resource(annotations):
+            resource = mock.Mock()
+            resource.metadata.annotations = annotations
+            return resource
+
+        test_resources = [
+            mock_resource({
+                'key': 'value',
+                'helm.sh/hook': 'test-success'
+            }),
+            mock_resource({
+                'helm.sh/hook': 'test-failure'
+            }),
+            mock_resource({
+                'helm.sh/hook': 'test-success,pre-install'
+            })
+        ]
+        non_test_resources = [
+            mock_resource({
+                'helm.sh/hook': 'pre-install'
+            }),
+            mock_resource({
+                'key': 'value'
+            }),
+            mock_resource({})
+        ]
+
+        unit = self.get_unit({})
+
+        # Validate test resources excluded
+        for resource in test_resources:
+            self.assertFalse(unit.include_resource(resource))
+
+        # Validate other resources included
+        for resource in non_test_resources:
+            self.assertTrue(unit.include_resource(resource))
