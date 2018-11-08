@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -23,6 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='hapi/chart/chart.proto',
   package='hapi.chart',
   syntax='proto3',
+  serialized_options=_b('Z\005chart'),
   serialized_pb=_b('\n\x16hapi/chart/chart.proto\x12\nhapi.chart\x1a\x17hapi/chart/config.proto\x1a\x19hapi/chart/metadata.proto\x1a\x19hapi/chart/template.proto\x1a\x19google/protobuf/any.proto\"\xca\x01\n\x05\x43hart\x12&\n\x08metadata\x18\x01 \x01(\x0b\x32\x14.hapi.chart.Metadata\x12\'\n\ttemplates\x18\x02 \x03(\x0b\x32\x14.hapi.chart.Template\x12\'\n\x0c\x64\x65pendencies\x18\x03 \x03(\x0b\x32\x11.hapi.chart.Chart\x12\"\n\x06values\x18\x04 \x01(\x0b\x32\x12.hapi.chart.Config\x12#\n\x05\x66iles\x18\x05 \x03(\x0b\x32\x14.google.protobuf.AnyB\x07Z\x05\x63hartb\x06proto3')
   ,
   dependencies=[hapi_dot_chart_dot_config__pb2.DESCRIPTOR,hapi_dot_chart_dot_metadata__pb2.DESCRIPTOR,hapi_dot_chart_dot_template__pb2.DESCRIPTOR,google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
@@ -43,42 +43,42 @@ _CHART = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='templates', full_name='hapi.chart.Chart.templates', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dependencies', full_name='hapi.chart.Chart.dependencies', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='values', full_name='hapi.chart.Chart.values', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='files', full_name='hapi.chart.Chart.files', index=4,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -104,6 +104,5 @@ Chart = _reflection.GeneratedProtocolMessageType('Chart', (_message.Message,), d
 _sym_db.RegisterMessage(Chart)
 
 
-DESCRIPTOR.has_options = True
-DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('Z\005chart'))
+DESCRIPTOR._options = None
 # @@protoc_insertion_point(module_scope)

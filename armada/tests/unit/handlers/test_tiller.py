@@ -33,7 +33,7 @@ class TillerTestCase(base.ArmadaTestCase):
     def test_install_release(self, mock_stub, mock_install_request,
                              mock_config, mock_grpc, mock_k8s, mock_ip):
         # instantiate Tiller object
-        mock_grpc.insecure_channel.return_value = None
+        mock_grpc.insecure_channel.return_value = mock.Mock()
         mock_ip.return_value = '0.0.0.0'
         tiller_obj = tiller.Tiller()
         assert tiller_obj._get_tiller_ip() == '0.0.0.0'
@@ -74,12 +74,14 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_port.return_value = mock.sentinel.port
         mock_ip.return_value = mock.sentinel.ip
 
+        mock_channel = mock.Mock()
+
         # instantiate Tiller object
-        mock_grpc.insecure_channel.return_value = 'connected'
+        mock_grpc.insecure_channel.return_value = mock_channel
         tiller_obj = tiller.Tiller()
 
         self.assertIsNotNone(tiller_obj.channel)
-        self.assertEqual('connected', tiller_obj.channel)
+        self.assertEqual(mock_channel, tiller_obj.channel)
 
         mock_grpc.insecure_channel.assert_called_once_with(
             '%s:%s' % (str(mock.sentinel.ip), str(mock.sentinel.port)),

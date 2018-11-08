@@ -78,8 +78,7 @@ def create(enable_middleware=CONF.middleware):
     policy.Enforcer(CONF)
 
     # Error handlers (FILO handling)
-    api.add_error_handler(exceptions.ArmadaBaseException,
-                          exceptions.default_exception_handler)
+    api.add_error_handler(Exception, exceptions.default_exception_handler)
     api.add_error_handler(exceptions.ArmadaAPIException,
                           exceptions.ArmadaAPIException.handle)
 

@@ -105,10 +105,14 @@ class TestChartManifest(CliAction):
         self.cleanup = cleanup
 
     def invoke(self):
-        tiller = Tiller(
-            tiller_host=self.tiller_host,
-            tiller_port=self.tiller_port,
-            tiller_namespace=self.tiller_namespace)
+        with Tiller(
+                tiller_host=self.tiller_host,
+                tiller_port=self.tiller_port,
+                tiller_namespace=self.tiller_namespace) as tiller:
+
+            self.handle(tiller)
+
+    def handle(self, tiller):
         known_release_names = [release[0] for release in tiller.list_charts()]
 
         if self.release:

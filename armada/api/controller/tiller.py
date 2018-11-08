@@ -20,7 +20,6 @@ from oslo_log import log as logging
 
 from armada import api
 from armada.common import policy
-from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -34,27 +33,23 @@ class Status(api.BaseResource):
         get tiller status
         '''
         try:
-            tiller = Tiller(
-                tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int('tiller_port') or
-                CONF.tiller_port,
-                tiller_namespace=req.get_param(
-                    'tiller_namespace', default=CONF.tiller_namespace))
+            with self.get_tiller(req, resp) as tiller:
 
-            LOG.debug('Tiller (Status) at: %s:%s, namespace=%s, '
-                      'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                      tiller.tiller_namespace, tiller.timeout)
+                LOG.debug(
+                    'Tiller (Status) at: %s:%s, namespace=%s, '
+                    'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+                    tiller.tiller_namespace, tiller.timeout)
 
-            message = {
-                'tiller': {
-                    'state': tiller.tiller_status(),
-                    'version': tiller.tiller_version()
+                message = {
+                    'tiller': {
+                        'state': tiller.tiller_status(),
+                        'version': tiller.tiller_version()
+                    }
                 }
-            }
 
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps(message)
-            resp.content_type = 'application/json'
+                resp.status = falcon.HTTP_200
+                resp.body = json.dumps(message)
+                resp.content_type = 'application/json'
 
         except Exception as e:
             err_message = 'Failed to get Tiller Status: {}'.format(e)
@@ -69,26 +64,21 @@ class Release(api.BaseResource):
         '''Controller for listing Tiller releases.
         '''
         try:
-            tiller = Tiller(
-                tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int('tiller_port') or
-                CONF.tiller_port,
-                tiller_namespace=req.get_param(
-                    'tiller_namespace', default=CONF.tiller_namespace))
+            with self.get_tiller(req, resp) as tiller:
 
-            LOG.debug(
-                'Tiller (Release) at: %s:%s, namespace=%s, '
-                'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                tiller.tiller_namespace, tiller.timeout)
+                LOG.debug(
+                    'Tiller (Release) at: %s:%s, namespace=%s, '
+                    'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+                    tiller.tiller_namespace, tiller.timeout)
 
-            releases = {}
-            for release in tiller.list_releases():
-                releases.setdefault(release.namespace, [])
-                releases[release.namespace].append(release.name)
+                releases = {}
+                for release in tiller.list_releases():
+                    releases.setdefault(release.namespace, [])
+                    releases[release.namespace].append(release.name)
 
-            resp.body = json.dumps({'releases': releases})
-            resp.content_type = 'application/json'
-            resp.status = falcon.HTTP_200
+                resp.body = json.dumps({'releases': releases})
+                resp.content_type = 'application/json'
+                resp.status = falcon.HTTP_200
 
         except Exception as e:
             err_message = 'Unable to find Tiller Releases: {}'.format(e)

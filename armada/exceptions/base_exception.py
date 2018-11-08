@@ -165,7 +165,7 @@ def default_exception_handler(ex, req, resp, params):
     else:
         # take care of the uncaught stuff
         exc_string = traceback.format_exc()
-        logging.error('Unhanded Exception being handled: \n%s', exc_string)
+        LOG.error('Unhanded Exception being handled: \n%s', exc_string)
         format_error_resp(
             req,
             resp,
