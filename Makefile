@@ -13,11 +13,12 @@
 # limitations under the License.
 
 # APP INFO
+BUILD_DIR         := $(shell mktemp -d)
 DOCKER_REGISTRY   ?= quay.io
 IMAGE_PREFIX      ?= airshipit
 IMAGE_NAME        ?= armada
 IMAGE_TAG         ?= latest
-HELM              ?= helm
+HELM              ?= $(BUILD_DIR)/helm
 PROXY             ?= http://proxy.foo.com:8000
 NO_PROXY          ?= localhost,127.0.0.1,.svc.cluster.local
 USE_PROXY         ?= false
@@ -35,6 +36,8 @@ GIT_COMMIT = $(shell git rev-parse HEAD)
 GIT_SHA    = $(shell git rev-parse --short HEAD)
 GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 GIT_DIRTY  = $(shell test -n "`git status --porcelain`" && echo "dirty" || echo "clean")
+
+HELM_PIDFILE ?= $(abspath ./.helm-pid)
 
 ifdef VERSION
 	DOCKER_VERSION = $(VERSION)
@@ -81,12 +84,6 @@ check-tox:
 
 .PHONY: images
 images: check-docker build_armada
-
-.PHONY: dry-run
-dry-run: clean
-	tools/helm_tk.sh $(HELM)
-	$(HELM) dep up charts/$(CHART)
-	$(HELM) template charts/$(CHART)
 
 .PHONY: docs
 docs: clean build_docs
@@ -187,7 +184,7 @@ helm-init-%: helm-serve
 	cd charts;if [ -s $*/requirements.yaml ]; then echo "Initializing $*";$(HELM) dep up $*; fi
 
 .PHONY: helm-serve
-helm-serve:
+helm-serve: helm-install
 	./tools/helm_tk.sh $(HELM) $(HELM_PIDFILE)
 
 .PHONY: helm-lint
@@ -199,7 +196,7 @@ helm-lint-%: helm-init-%
 	cd charts;$(HELM) lint $*
 
 .PHONY: dry-run
-dry-run: $(addprefix dry-run-,$(CHARTS))
+dry-run: clean $(addprefix dry-run-,$(CHARTS))
 
 .PHONY: dry-run-%
 dry-run-%: helm-lint-%
@@ -209,3 +206,8 @@ dry-run-%: helm-lint-%
 .PHONY: $(CHARTS)
 $(CHARTS): $(addprefix dry-run-,$(CHARTS)) chartbanner
 	$(HELM) package -d charts charts/$@
+
+# Install helm binary
+.PHONY: helm-install
+helm-install:
+	./tools/helm_install.sh $(HELM)
