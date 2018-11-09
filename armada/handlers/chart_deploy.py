@@ -132,6 +132,8 @@ class ChartDeploy(object):
                     pre_actions = upgrade_pre
 
                 if not self.disable_update_post and upgrade_post:
+                    LOG.warning('Post upgrade actions are ignored by Armada'
+                                'and will not affect deployment.')
                     post_actions = upgrade_post
 
             try:

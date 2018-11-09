@@ -208,17 +208,14 @@ Test options to pass through directly to helm.
     next upgrade.
 
 
-Upgrade, Install - Pre or Post
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Upgrade - Pre
+^^^^^^^^^^^^^
 
 +-------------+----------+---------------------------------------------------------------+
 | keyword     | type     | action                                                        |
 +=============+==========+===============================================================+
-| pre         | object   | actions prior to updating/installing chart                    |
+| pre         | object   | actions performed prior to updating a release                 |
 +-------------+----------+---------------------------------------------------------------+
-| post        | object   | actions post updating/installing chart                        |
-+-------------+----------+---------------------------------------------------------------+
-
 
 Upgrade - Actions
 ^^^^^^^^^^^^^^^^^
@@ -226,16 +223,10 @@ Upgrade - Actions
 +-------------+----------+---------------------------------------------------------------+
 | keyword     | type     | action                                                        |
 +=============+==========+===============================================================+
-| update      | object   | updates daemonsets in pre update actions                      |
+| update      | object   | update daemonsets in pre-upgrade update actions               |
 +-------------+----------+---------------------------------------------------------------+
-| delete      | sequence | delete jobs in pre delete actions and child pods              |
+| delete      | sequence | delete jobs and pods in pre-upgrade delete actions            |
 +-------------+----------+---------------------------------------------------------------+
-
-
-.. note::
-
-    Update actions are performed in the pre/post sections of upgrade
-
 
 Upgrade - Actions - Update/Delete
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

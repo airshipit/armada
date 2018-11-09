@@ -146,6 +146,8 @@ data:
               $ref: '#/definitions/hook_action'
             create:
               $ref: '#/definitions/hook_action'
+        # TODO(drewwalters96): Armada ignores post-update actions. Remove them
+        # in future schemas.
         post:
           type: object
           additionalProperties: false
