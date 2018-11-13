@@ -84,11 +84,14 @@ class TillerServices(CliAction):
 
     def invoke(self):
 
-        tiller = Tiller(
-            tiller_host=self.tiller_host,
-            tiller_port=self.tiller_port,
-            tiller_namespace=self.tiller_namespace)
+        with Tiller(
+                tiller_host=self.tiller_host,
+                tiller_port=self.tiller_port,
+                tiller_namespace=self.tiller_namespace) as tiller:
 
+            self.handle(tiller)
+
+    def handle(self, tiller):
         if self.status:
             if not self.ctx.obj.get('api', False):
                 self.logger.info('Tiller Service: %s', tiller.tiller_status())

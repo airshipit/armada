@@ -88,8 +88,12 @@ class DeleteChartManifest(CliAction):
         self.tiller_port = tiller_port
 
     def invoke(self):
-        tiller = Tiller(
-            tiller_host=self.tiller_host, tiller_port=self.tiller_port)
+        with Tiller(
+                tiller_host=self.tiller_host,
+                tiller_port=self.tiller_port) as tiller:
+            self.handle(tiller)
+
+    def handle(self, tiller):
         known_release_names = [release[0] for release in tiller.list_charts()]
 
         if self.releases:

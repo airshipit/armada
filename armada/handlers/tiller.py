@@ -80,12 +80,11 @@ class Tiller(object):
                  tiller_host=None,
                  tiller_port=None,
                  tiller_namespace=None,
-                 dry_run=False):
+                 dry_run=None):
         self.tiller_host = tiller_host
         self.tiller_port = tiller_port or CONF.tiller_port
         self.tiller_namespace = tiller_namespace or CONF.tiller_namespace
-
-        self.dry_run = dry_run
+        self.dry_run = dry_run or False
 
         # init k8s connectivity
         self.k8s = K8s()
@@ -818,3 +817,14 @@ class Tiller(object):
                     'using default %ss.', self.timeout)
             timeout = self.timeout
         return timeout
+
+    def close(self):
+        # Ensure channel was actually initialized before closing
+        if getattr(self, 'channel', None):
+            self.channel.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()

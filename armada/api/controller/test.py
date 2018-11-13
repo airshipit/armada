@@ -22,7 +22,6 @@ from armada import api
 from armada.common import policy
 from armada import const
 from armada.handlers.test import test_release_for_success
-from armada.handlers.tiller import Tiller
 from armada.handlers.manifest import Manifest
 from armada.utils.release import release_prefixer
 from armada.utils import validate
@@ -38,24 +37,13 @@ class TestReleasesReleaseNameController(api.BaseResource):
     @policy.enforce('armada:test_release')
     def on_get(self, req, resp, release):
         self.logger.info('RUNNING: %s', release)
-        try:
-            tiller = Tiller(
-                tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int('tiller_port') or
-                CONF.tiller_port,
-                tiller_namespace=req.get_param(
-                    'tiller_namespace', default=CONF.tiller_namespace))
+        with self.get_tiller(req, resp) as tiller:
+
             cleanup = req.get_param_as_bool('cleanup')
             if cleanup is None:
                 cleanup = False
             success = test_release_for_success(
                 tiller, release, cleanup=cleanup)
-        # TODO(fmontei): Provide more sensible exception(s) here.
-        except Exception as e:
-            err_message = 'Failed to test {}: {}'.format(release, e)
-            self.error(req.context, err_message)
-            return self.return_error(
-                resp, falcon.HTTP_500, message=err_message)
 
         if success:
             msg = {
@@ -119,23 +107,10 @@ class TestReleasesManifestController(api.BaseResource):
     @policy.enforce('armada:test_manifest')
     def on_post(self, req, resp):
         # TODO(fmontei): Validation Content-Type is application/x-yaml.
+        with self.get_tiller(req, resp) as tiller:
+            return self.handle(req, resp, tiller)
 
-        target_manifest = req.get_param('target_manifest', None)
-
-        try:
-            tiller = Tiller(
-                tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int('tiller_port') or
-                CONF.tiller_port,
-                tiller_namespace=req.get_param(
-                    'tiller_namespace', default=CONF.tiller_namespace))
-        # TODO(fmontei): Provide more sensible exception(s) here.
-        except Exception:
-            err_message = 'Failed to initialize Tiller handler.'
-            self.error(req.context, err_message)
-            return self.return_error(
-                resp, falcon.HTTP_500, message=err_message)
-
+    def handle(self, req, resp, tiller):
         try:
             documents = self.req_yaml(req, default=[])
         except yaml.YAMLError:
@@ -143,9 +118,10 @@ class TestReleasesManifestController(api.BaseResource):
             return self.return_error(
                 resp, falcon.HTTP_400, message=err_message)
 
+        target_manifest = req.get_param('target_manifest', None)
         is_valid = self._validate_documents(req, resp, documents)
         if not is_valid:
-            return resp
+            return
 
         armada_obj = Manifest(
             documents, target_manifest=target_manifest).get_manifest()

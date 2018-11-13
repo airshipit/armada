@@ -26,7 +26,6 @@ from armada.exceptions import validate_exceptions
 from armada.handlers.chart_deploy import ChartDeploy
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
-from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
 from armada.utils import source
 
@@ -42,6 +41,7 @@ class Armada(object):
 
     def __init__(self,
                  documents,
+                 tiller,
                  disable_update_pre=False,
                  disable_update_post=False,
                  enable_chart_cleanup=False,
@@ -49,9 +49,6 @@ class Armada(object):
                  set_ovr=None,
                  force_wait=False,
                  timeout=None,
-                 tiller_host=None,
-                 tiller_port=None,
-                 tiller_namespace=None,
                  values=None,
                  target_manifest=None,
                  k8s_wait_attempts=1,
@@ -60,6 +57,7 @@ class Armada(object):
         Initialize the Armada engine and establish a connection to Tiller.
 
         :param List[dict] documents: Armada documents.
+        :param tiller: Tiller instance to use.
         :param bool disable_update_pre: Disable pre-update Tiller operations.
         :param bool disable_update_post: Disable post-update Tiller
             operations.
@@ -69,11 +67,6 @@ class Armada(object):
             deployed, rather than using each chart's specified wait policy.
         :param int timeout: Specifies overall time in seconds that Tiller
             should wait for charts until timing out.
-        :param str tiller_host: Tiller host IP. Default is None.
-        :param int tiller_port: Tiller host port. Default is
-            ``CONF.tiller_port``.
-        :param str tiller_namespace: Tiller host namespace. Default is
-            ``CONF.tiller_namespace``.
         :param str target_manifest: The target manifest to run. Useful for
             specifying which manifest to run when multiple are available.
         :param int k8s_wait_attempts: The number of times to attempt waiting
@@ -81,19 +74,11 @@ class Armada(object):
         :param int k8s_wait_attempt_sleep: The time in seconds to sleep
             between attempts.
         '''
-        tiller_port = tiller_port or CONF.tiller_port
-        tiller_namespace = tiller_namespace or CONF.tiller_namespace
 
         self.enable_chart_cleanup = enable_chart_cleanup
         self.dry_run = dry_run
         self.force_wait = force_wait
-        # TODO: Use dependency injection i.e. pass in a Tiller instead of
-        #       creating it here.
-        self.tiller = Tiller(
-            tiller_host=tiller_host,
-            tiller_port=tiller_port,
-            tiller_namespace=tiller_namespace,
-            dry_run=dry_run)
+        self.tiller = tiller
         try:
             self.documents = Override(
                 documents, overrides=set_ovr,

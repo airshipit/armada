@@ -19,7 +19,6 @@ from oslo_config import cfg
 
 from armada import api
 from armada.common import policy
-from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
 
@@ -33,26 +32,20 @@ class Rollback(api.BaseResource):
         try:
             dry_run = req.get_param_as_bool('dry_run')
 
-            tiller = Tiller(
-                tiller_host=req.get_param('tiller_host'),
-                tiller_port=req.get_param_as_int('tiller_port') or
-                CONF.tiller_port,
-                tiller_namespace=req.get_param(
-                    'tiller_namespace', default=CONF.tiller_namespace),
-                dry_run=dry_run)
+            with self.get_tiller(req, resp) as tiller:
 
-            tiller.rollback_release(
-                release,
-                req.get_param_as_int('version') or 0,
-                wait=req.get_param_as_bool('wait'),
-                timeout=req.get_param_as_int('timeout') or 0,
-                force=req.get_param_as_bool('force'),
-                recreate_pods=req.get_param_as_bool('recreate_pods'))
+                tiller.rollback_release(
+                    release,
+                    req.get_param_as_int('version') or 0,
+                    wait=req.get_param_as_bool('wait'),
+                    timeout=req.get_param_as_int('timeout') or 0,
+                    force=req.get_param_as_bool('force'),
+                    recreate_pods=req.get_param_as_bool('recreate_pods'))
 
-            resp.body = json.dumps({
-                'message': ('(dry run) ' if dry_run else '') +
-                'Rollback of {} complete.'.format(release),
-            })
+                resp.body = json.dumps({
+                    'message': ('(dry run) ' if dry_run else '') +
+                    'Rollback of {} complete.'.format(release),
+                })
 
             resp.content_type = 'application/json'
             resp.status = falcon.HTTP_200

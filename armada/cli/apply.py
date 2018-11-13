@@ -21,6 +21,7 @@ from armada.cli import CliAction
 from armada.exceptions.source_exceptions import InvalidPathException
 from armada.handlers.armada import Armada
 from armada.handlers.document import ReferenceResolver
+from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
 
@@ -198,23 +199,26 @@ class ApplyManifest(CliAction):
             return
 
         if not self.ctx.obj.get('api', False):
-            armada = Armada(
-                documents,
-                disable_update_pre=self.disable_update_pre,
-                disable_update_post=self.disable_update_post,
-                enable_chart_cleanup=self.enable_chart_cleanup,
-                dry_run=self.dry_run,
-                set_ovr=self.set,
-                force_wait=self.wait,
-                timeout=self.timeout,
-                tiller_host=self.tiller_host,
-                tiller_port=self.tiller_port,
-                tiller_namespace=self.tiller_namespace,
-                values=self.values,
-                target_manifest=self.target_manifest)
+            with Tiller(
+                    tiller_host=self.tiller_host,
+                    tiller_port=self.tiller_port,
+                    tiller_namespace=self.tiller_namespace,
+                    dry_run=self.dry_run) as tiller:
+                armada = Armada(
+                    documents,
+                    disable_update_pre=self.disable_update_pre,
+                    disable_update_post=self.disable_update_post,
+                    enable_chart_cleanup=self.enable_chart_cleanup,
+                    dry_run=self.dry_run,
+                    set_ovr=self.set,
+                    force_wait=self.wait,
+                    timeout=self.timeout,
+                    tiller=tiller,
+                    values=self.values,
+                    target_manifest=self.target_manifest)
 
-            resp = armada.sync()
-            self.output(resp)
+                resp = armada.sync()
+                self.output(resp)
         else:
             if len(self.values) > 0:
                 self.logger.error(

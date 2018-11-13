@@ -281,24 +281,18 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         self.assertEqual(expected_config, armada_obj.manifest)
 
     @mock.patch.object(armada, 'source')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_pre_flight_ops(self, mock_tiller, mock_source):
+    def test_pre_flight_ops(self, mock_source):
         """Test pre-flight checks and operations."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        armada_obj = armada.Armada(yaml_documents)
+        m_tiller = mock.Mock()
+        m_tiller.tiller_status.return_value = True
+        armada_obj = armada.Armada(yaml_documents, m_tiller)
 
         # Mock methods called by `pre_flight_ops()`.
-        m_tiller = mock_tiller.return_value
-        m_tiller.tiller_status.return_value = True
         mock_source.git_clone.return_value = CHART_SOURCES[0][0]
 
         self._test_pre_flight_ops(armada_obj)
 
-        mock_tiller.assert_called_once_with(
-            tiller_host=None,
-            tiller_namespace='kube-system',
-            tiller_port=44134,
-            dry_run=False)
         mock_source.git_clone.assert_called_once_with(
             'git://github.com/dummy/armada',
             'master',
@@ -306,16 +300,16 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             proxy_server=None)
 
     @mock.patch.object(armada, 'source')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_post_flight_ops(self, mock_tiller, mock_source):
+    def test_post_flight_ops(self, mock_source):
         """Test post-flight operations."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        armada_obj = armada.Armada(yaml_documents)
 
         # Mock methods called by `pre_flight_ops()`.
-        m_tiller = mock_tiller.return_value
+        m_tiller = mock.Mock()
         m_tiller.tiller_status.return_value = True
         mock_source.git_clone.return_value = CHART_SOURCES[0][0]
+
+        armada_obj = armada.Armada(yaml_documents, m_tiller)
 
         self._test_pre_flight_ops(armada_obj)
 
@@ -343,21 +337,21 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada.Armada, 'pre_flight_ops')
         @mock.patch('armada.handlers.chart_deploy.ChartBuilder')
-        @mock.patch('armada.handlers.armada.Tiller')
         @mock.patch.object(chart_deploy, 'test_release_for_success')
-        def _do_test(mock_test_release_for_success, mock_tiller,
-                     mock_chartbuilder, mock_pre_flight, mock_post_flight):
+        def _do_test(mock_test_release_for_success, mock_chartbuilder,
+                     mock_pre_flight, mock_post_flight):
             # Instantiate Armada object.
             yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-            armada_obj = armada.Armada(yaml_documents)
+
+            m_tiller = mock.MagicMock()
+            m_tiller.list_releases.return_value = known_releases
+
+            armada_obj = armada.Armada(yaml_documents, m_tiller)
             armada_obj.chart_deploy.get_diff = mock.Mock()
 
             chart_group = armada_obj.manifest['armada']['chart_groups'][0]
             charts = chart_group['chart_group']
             cg_test_all_charts = chart_group.get('test_charts', True)
-
-            m_tiller = mock_tiller.return_value
-            m_tiller.list_releases.return_value = known_releases
 
             if test_failure_to_run:
 
@@ -663,30 +657,26 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
 
     @mock.patch.object(armada, 'source')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_armada_get_manifest_exception(self, mock_tiller, mock_source):
+    def test_armada_get_manifest_exception(self, mock_source):
         """Test armada handling with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         error_re = ('Documents must be a list of documents with at least one '
                     'of each of the following schemas: .*')
         self.assertRaisesRegexp(ManifestException, error_re, armada.Armada,
-                                yaml_documents[:1])
+                                yaml_documents[:1], mock.MagicMock())
 
     @mock.patch.object(armada, 'source')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_armada_override_exception(self, mock_tiller, mock_source):
+    def test_armada_override_exception(self, mock_source):
         """Test Armada checks with invalid chart override."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         override = ('chart:example-chart-2:name=' 'overridden', )
 
         error_re = ('is not a valid override statement')
         with self.assertRaisesRegexp(InvalidOverrideValueException, error_re):
-            armada.Armada(yaml_documents, set_ovr=override)
+            armada.Armada(yaml_documents, mock.MagicMock(), set_ovr=override)
 
     @mock.patch.object(armada, 'source')
-    @mock.patch('armada.handlers.armada.Tiller')
-    def test_armada_manifest_exception_override_none(self, mock_tiller,
-                                                     mock_source):
+    def test_armada_manifest_exception_override_none(self, mock_source):
         """Test Armada checks with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         example_document = [
@@ -697,4 +687,4 @@ class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
 
         error_re = ('Invalid document .*')
         with self.assertRaisesRegexp(InvalidManifestException, error_re):
-            armada.Armada(yaml_documents, set_ovr=None)
+            armada.Armada(yaml_documents, mock.MagicMock(), set_ovr=None)

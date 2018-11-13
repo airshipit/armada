@@ -16,7 +16,7 @@ import json
 
 import mock
 
-from armada.api.controller import rollback
+from armada import api
 from armada.common.policies import base as policy_base
 from armada.tests import test_utils
 from armada.tests.unit.api import base
@@ -24,12 +24,14 @@ from armada.tests.unit.api import base
 
 class RollbackReleaseControllerTest(base.BaseControllerTest):
 
-    @mock.patch.object(rollback, 'Tiller')
+    @mock.patch.object(api, 'Tiller')
     def test_rollback_controller_pass(self, mock_tiller):
         rules = {'armada:rollback_release': '@'}
         self.policy.set_rules(rules)
 
-        rollback_release = mock_tiller.return_value.rollback_release
+        m_tiller = mock_tiller.return_value
+        m_tiller.__enter__.return_value = m_tiller
+        rollback_release = m_tiller.rollback_release
         rollback_release.return_value = None
 
         tiller_host = 'host'
@@ -69,12 +71,13 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
         self.assertEqual(200, resp.status_code)
         self.assertEqual('Rollback of test-release complete.',
                          json.loads(resp.text)['message'])
+        m_tiller.__exit__.assert_called()
 
 
 @test_utils.attr(type=['negative'])
 class RollbackReleaseControllerNegativeTest(base.BaseControllerTest):
 
-    @mock.patch.object(rollback, 'Tiller')
+    @mock.patch.object(api, 'Tiller')
     def test_rollback_controller_tiller_exc_return_500(self, mock_tiller):
         rules = {'armada:rollback_release': '@'}
         self.policy.set_rules(rules)

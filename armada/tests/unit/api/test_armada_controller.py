@@ -17,6 +17,7 @@ import mock
 
 from oslo_config import cfg
 
+from armada import api
 from armada.api.controller import armada as armada_api
 from armada.common.policies import base as policy_base
 from armada.tests import test_utils
@@ -27,9 +28,11 @@ CONF = cfg.CONF
 
 class ArmadaControllerTest(base.BaseControllerTest):
 
+    @mock.patch.object(api, 'Tiller')
     @mock.patch.object(armada_api, 'Armada')
     @mock.patch.object(armada_api, 'ReferenceResolver')
-    def test_armada_apply_resource(self, mock_resolver, mock_armada):
+    def test_armada_apply_resource(self, mock_resolver, mock_armada,
+                                   mock_tiller):
         """Tests the POST /api/v1.0/apply endpoint."""
         rules = {'armada:create_endpoints': '@'}
         self.policy.set_rules(rules)
@@ -45,6 +48,9 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'timeout': '100'
         }
 
+        m_tiller = mock_tiller.return_value
+        m_tiller.__enter__.return_value = m_tiller
+
         expected_armada_options = {
             'disable_update_pre': False,
             'disable_update_post': False,
@@ -52,9 +58,7 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'dry_run': False,
             'force_wait': False,
             'timeout': 100,
-            'tiller_host': None,
-            'tiller_port': 44134,
-            'tiller_namespace': 'kube-system',
+            'tiller': m_tiller,
             'target_manifest': None
         }
 
@@ -82,6 +86,13 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'foo': 'bar'
         }], **expected_armada_options)
         mock_armada.return_value.sync.assert_called()
+
+        mock_tiller.assert_called_with(
+            tiller_host=None,
+            tiller_port=44134,
+            tiller_namespace='kube-system',
+            dry_run=False)
+        m_tiller.__exit__.assert_called()
 
     def test_armada_apply_no_href(self):
         """Tests /api/v1.0/apply returns 400 when hrefs list is empty."""

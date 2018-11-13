@@ -110,21 +110,21 @@ class Rollback(CliAction):
         self.recreate_pods = recreate_pods
 
     def invoke(self):
-        tiller = Tiller(
-            tiller_host=self.tiller_host,
-            tiller_port=self.tiller_port,
-            tiller_namespace=self.tiller_namespace,
-            dry_run=self.dry_run)
+        with Tiller(
+                tiller_host=self.tiller_host,
+                tiller_port=self.tiller_port,
+                tiller_namespace=self.tiller_namespace,
+                dry_run=self.dry_run) as tiller:
 
-        response = tiller.rollback_release(
-            self.release,
-            self.version,
-            wait=self.wait,
-            timeout=self.timeout,
-            force=self.force,
-            recreate_pods=self.recreate_pods)
+            response = tiller.rollback_release(
+                self.release,
+                self.version,
+                wait=self.wait,
+                timeout=self.timeout,
+                force=self.force,
+                recreate_pods=self.recreate_pods)
 
-        self.output(response)
+            self.output(response)
 
     def output(self, response):
         self.logger.info(('(dry run) ' if self.dry_run else '') +
