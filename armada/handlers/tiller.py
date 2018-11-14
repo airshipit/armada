@@ -327,12 +327,7 @@ class Tiller(object):
                 labels = action.get('labels', None)
 
                 self.delete_resources(
-                    release_name,
-                    name,
-                    action_type,
-                    labels,
-                    namespace,
-                    timeout=timeout)
+                    action_type, labels, namespace, timeout=timeout)
         except Exception:
             LOG.excpetion(
                 "Pre-action failure: could not delete %(res_type)s "
@@ -620,21 +615,18 @@ class Tiller(object):
             raise ex.ReleaseException(release, status, 'Delete')
 
     def delete_resources(self,
-                         release_name,
-                         resource_name,
                          resource_type,
                          resource_labels,
                          namespace,
                          wait=False,
                          timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
-        :param release_name: release name the specified resource is under
-        :param resource_name: name of specific resource
-        :param resource_type: type of resource e.g. job, pod, etc.
-        :param resource_labels: labels by which to identify the resource
-        :param namespace: namespace of the resource
+        Delete resources matching provided resource type, labels, and
+        namespace.
 
-        Apply deletion logic based on type of resource
+        :param resource_type: type of resource e.g. job, pod, etc.
+        :param resource_labels: labels for selecting the resources
+        :param namespace: namespace of resources
         '''
         timeout = self._check_timeout(wait, timeout)
 
@@ -709,8 +701,8 @@ class Tiller(object):
             handled = True
 
         if not handled:
-            LOG.error("Unable to execute name: %s type: %s ", resource_name,
-                      resource_type)
+            LOG.error('No resources found with labels=%s type=%s namespace=%s',
+                      resource_labels, resource_type, namespace)
 
     def rolling_upgrade_pod_deployment(self,
                                        name,
@@ -759,8 +751,6 @@ class Tiller(object):
 
                     # delete pods
                     self.delete_resources(
-                        release_name,
-                        name,
                         'pod',
                         resource_labels,
                         namespace,
