@@ -17,7 +17,6 @@ import yaml
 
 from armada import const
 from armada.handlers import armada
-from armada.handlers import chart_deploy
 from armada.handlers.test import TESTRUN_STATUS_SUCCESS, TESTRUN_STATUS_FAILURE
 from armada.tests.unit import base
 from armada.tests.test_utils import AttrDict, makeMockThreadSafe
@@ -337,9 +336,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada.Armada, 'pre_flight_ops')
         @mock.patch('armada.handlers.chart_deploy.ChartBuilder')
-        @mock.patch.object(chart_deploy, 'test_release_for_success')
-        def _do_test(mock_test_release_for_success, mock_chartbuilder,
-                     mock_pre_flight, mock_post_flight):
+        @mock.patch('armada.handlers.chart_deploy.Test')
+        def _do_test(mock_test, mock_chartbuilder, mock_pre_flight,
+                     mock_post_flight):
             # Instantiate Armada object.
             yaml_documents = list(yaml.safe_load_all(TEST_YAML))
 
@@ -351,8 +350,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
             chart_group = armada_obj.manifest['armada']['chart_groups'][0]
             charts = chart_group['chart_group']
-            cg_test_all_charts = chart_group.get('test_charts', True)
+            cg_test_all_charts = chart_group.get('test_charts')
 
+            mock_test_release = mock_test.return_value.test_release_for_success
             if test_failure_to_run:
 
                 def fail(tiller, release, timeout=None, cleanup=False):
@@ -361,9 +361,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     raise tiller_exceptions.ReleaseException(
                         release, status, 'Test')
 
-                mock_test_release_for_success.side_effect = fail
+                mock_test_release.side_effect = fail
             else:
-                mock_test_release_for_success.return_value = test_success
+                mock_test_release.return_value = test_success
 
             # Stub out irrelevant methods called by `armada.sync()`.
             mock_chartbuilder.get_source_path.return_value = None
@@ -377,7 +377,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             expected_install_release_calls = []
             expected_update_release_calls = []
             expected_uninstall_release_calls = []
-            expected_test_release_for_success_calls = []
+            expected_test_constructor_calls = []
 
             for c in charts:
                 chart = c['chart']
@@ -389,7 +389,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 native_wait_enabled = (chart['wait'].get('native', {}).get(
                     'enabled', True))
 
-                expected_apply = True
                 if release_name not in [x.name for x in known_releases]:
                     expected_install_release_calls.append(
                         mock.call(
@@ -435,9 +434,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         break
 
                         if status == const.STATUS_DEPLOYED:
-                            if not diff:
-                                expected_apply = False
-                            else:
+                            if diff:
                                 upgrade = chart.get('upgrade', {})
                                 disable_hooks = upgrade.get('no_hooks', False)
                                 force = upgrade.get('force', False)
@@ -462,25 +459,12 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         timeout=mock.ANY))
 
                 test_chart_override = chart.get('test')
-                # Use old default value when not using newer `test` key
-                test_cleanup = True
-                if test_chart_override is None:
-                    test_this_chart = cg_test_all_charts
-                elif isinstance(test_chart_override, bool):
-                    test_this_chart = test_chart_override
-                else:
-                    test_this_chart = test_chart_override.get('enabled', True)
-                    test_cleanup = test_chart_override.get('options', {}).get(
-                        'cleanup', False)
-
-                if test_this_chart and (expected_apply or
-                                        not expected_last_test_result):
-                    expected_test_release_for_success_calls.append(
-                        mock.call(
-                            m_tiller,
-                            release_name,
-                            timeout=mock.ANY,
-                            cleanup=test_cleanup))
+                expected_test_constructor_calls.append(
+                    mock.call(
+                        release_name,
+                        m_tiller,
+                        cg_test_charts=cg_test_all_charts,
+                        test_values=test_chart_override))
 
             any_order = not chart_group['sequenced']
             # Verify that at least 1 release is either installed or updated.
@@ -511,10 +495,10 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             # Verify that the expected number of deployed releases are
             # tested with expected arguments.
             self.assertEqual(
-                len(expected_test_release_for_success_calls),
-                mock_test_release_for_success.call_count)
-            mock_test_release_for_success.assert_has_calls(
-                expected_test_release_for_success_calls, any_order=any_order)
+                len(expected_test_constructor_calls), mock_test.call_count)
+
+            mock_test.assert_has_calls(
+                expected_test_constructor_calls, any_order=True)
 
         _do_test()
 

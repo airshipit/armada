@@ -155,6 +155,7 @@ paths:
         - $ref: "#/components/parameters/tiller-port"
         - $ref: "#/components/parameters/tiller-namespace"
         - $ref: "#/components/parameters/target-manifest"
+        - $ref: "#/components/parameters/enable-all"
       requestBody:
         $ref: "#/components/requestBodies/manifest-body"
       responses:
@@ -335,6 +336,13 @@ components:
       name: enable_chart_cleanup
       required: false
       description: Flag to allow for chart cleanup
+      schema:
+        type: boolean
+    enable-all:
+      in: query
+      name: enable_all
+      required: false
+      description: Flag to test disabled tests
       schema:
         type: boolean
     dry-run:

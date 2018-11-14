@@ -200,14 +200,6 @@ class Armada(object):
 
             # TODO(MarshM): Deprecate the `test_charts` key
             cg_test_all_charts = chartgroup.get('test_charts')
-            if isinstance(cg_test_all_charts, bool):
-                LOG.warn('The ChartGroup `test_charts` key is deprecated, '
-                         'and support for this will be removed. See the '
-                         'Chart `test` key for more information.')
-            else:
-                # This key defaults to True. Individual charts must
-                # explicitly disable helm tests if they choose
-                cg_test_all_charts = True
 
             cg_charts = chartgroup.get(const.KEYWORD_CHARTS, [])
             charts = map(lambda x: x.get('chart', {}), cg_charts)

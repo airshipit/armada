@@ -21,8 +21,8 @@ from oslo_config import cfg
 from armada import api
 from armada.common import policy
 from armada import const
-from armada.handlers.test import test_release_for_success
 from armada.handlers.manifest import Manifest
+from armada.handlers.test import Test
 from armada.utils.release import release_prefixer
 from armada.utils import validate
 
@@ -36,14 +36,11 @@ class TestReleasesReleaseNameController(api.BaseResource):
 
     @policy.enforce('armada:test_release')
     def on_get(self, req, resp, release):
-        self.logger.info('RUNNING: %s', release)
         with self.get_tiller(req, resp) as tiller:
-
             cleanup = req.get_param_as_bool('cleanup')
-            if cleanup is None:
-                cleanup = False
-            success = test_release_for_success(
-                tiller, release, cleanup=cleanup)
+
+            test_handler = Test(release, tiller, cleanup=cleanup)
+            success = test_handler.test_release_for_success()
 
         if success:
             msg = {
@@ -55,8 +52,6 @@ class TestReleasesReleaseNameController(api.BaseResource):
                 'result': 'FAILED: {}'.format(release),
                 'message': 'MESSAGE: Test Fail'
             }
-
-        self.logger.info(msg)
 
         resp.body = json.dumps(msg)
         resp.status = falcon.HTTP_200
@@ -135,29 +130,29 @@ class TestReleasesManifestController(api.BaseResource):
                 const.KEYWORD_GROUPS):
             for ch in group.get(const.KEYWORD_CHARTS):
                 chart = ch['chart']
+
                 release_name = release_prefixer(prefix, chart.get('release'))
-                cleanup = req.get_param_as_bool('cleanup')
-                if cleanup is None:
-                    test_chart_override = chart.get('test', {})
-                    if isinstance(test_chart_override, bool):
-                        self.logger.warn(
-                            'Boolean value for chart `test` key is deprecated '
-                            'and will be removed. Use `test.enabled` instead.')
-                        # Use old default value.
-                        cleanup = True
-                    else:
-                        cleanup = test_chart_override.get('options', {}).get(
-                            'cleanup', False)
                 if release_name in known_releases:
-                    self.logger.info('RUNNING: %s tests', release_name)
-                    success = test_release_for_success(
-                        tiller, release_name, cleanup=cleanup)
-                    if success:
-                        self.logger.info("PASSED: %s", release_name)
-                        message['test']['passed'].append(release_name)
-                    else:
-                        self.logger.info("FAILED: %s", release_name)
-                        message['test']['failed'].append(release_name)
+                    cleanup = req.get_param_as_bool('cleanup')
+                    enable_all = req.get_param_as_bool('enable_all')
+                    cg_test_charts = group.get('test_charts')
+                    test_values = chart.get('test', {})
+
+                    test_handler = Test(
+                        release_name,
+                        tiller,
+                        cg_test_charts=cg_test_charts,
+                        cleanup=cleanup,
+                        enable_all=enable_all,
+                        test_values=test_values)
+
+                    if test_handler.test_enabled:
+                        success = test_handler.test_release_for_success()
+
+                        if success:
+                            message['test']['passed'].append(release_name)
+                        else:
+                            message['test']['failed'].append(release_name)
                 else:
                     self.logger.info('Release %s not found - SKIPPING',
                                      release_name)

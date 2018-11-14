@@ -19,8 +19,8 @@ import yaml
 from armada import const
 from armada.exceptions import armada_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
-from armada.handlers.test import test_release_for_success
 from armada.handlers.release_diff import ReleaseDiff
+from armada.handlers.test import Test
 from armada.handlers.wait import ChartWait
 from armada.exceptions import tiller_exceptions
 import armada.utils.release as r
@@ -202,34 +202,25 @@ class ChartDeploy(object):
         chart_wait.wait(timer)
 
         # Test
-        test_chart_override = chart.get('test')
-        # Use old default value when not using newer `test` key
-        test_cleanup = True
-        if test_chart_override is None:
-            test_enabled = cg_test_all_charts
-        elif isinstance(test_chart_override, bool):
-            LOG.warn('Boolean value for chart `test` key is'
-                     ' deprecated and support for this will'
-                     ' be removed. Use `test.enabled` '
-                     'instead.')
-            test_enabled = test_chart_override
-        else:
-            # NOTE: helm tests are enabled by default
-            test_enabled = test_chart_override.get('enabled', True)
-            test_cleanup = test_chart_override.get('options', {}).get(
-                'cleanup', False)
-
         just_deployed = ('install' in result) or ('upgrade' in result)
         last_test_passed = old_release and r.get_last_test_result(old_release)
-        run_test = test_enabled and (just_deployed or not last_test_passed)
 
+        test_values = chart.get('test')
+        test_handler = Test(
+            release_name,
+            self.tiller,
+            cg_test_charts=cg_test_all_charts,
+            test_values=test_values)
+
+        run_test = test_handler.test_enabled and (just_deployed or
+                                                  not last_test_passed)
         if run_test:
             timer = int(round(deadline - time.time()))
-            self._test_chart(release_name, timer, test_cleanup)
+            self._test_chart(release_name, timer, test_handler)
 
         return result
 
-    def _test_chart(self, release_name, timeout, cleanup):
+    def _test_chart(self, release_name, timeout, test_handler):
         if self.dry_run:
             LOG.info(
                 'Skipping test during `dry-run`, would have tested '
@@ -242,12 +233,8 @@ class ChartDeploy(object):
             LOG.error(reason)
             raise armada_exceptions.ArmadaTimeoutException(reason)
 
-        success = test_release_for_success(
-            self.tiller, release_name, timeout=timeout, cleanup=cleanup)
-        if success:
-            LOG.info("Test passed for release: %s", release_name)
-        else:
-            LOG.info("Test failed for release: %s", release_name)
+        success = test_handler.test_release_for_success(timeout=timeout)
+        if not success:
             raise tiller_exceptions.TestFailedException(release_name)
 
     def get_diff(self, old_chart, old_values, new_chart, values):
