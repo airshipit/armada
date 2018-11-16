@@ -14,6 +14,8 @@
 
 import mock
 
+from armada import const
+
 from armada.handlers import test
 from armada.handlers import tiller
 from armada.tests.unit import base
@@ -188,6 +190,16 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         assert test_handler.test_enabled is True
         assert test_handler.cleanup is True
 
+    def test_deprecated_test_key_timeout(self):
+        """Test that the default Tiller timeout is used when tests are enabled
+        using the deprecated, boolean value for a chart's `test` key.
+        """
+        mock_tiller = mock.Mock()
+        test_handler = test.Test(
+            chart={'test': True}, release_name='release', tiller=mock_tiller)
+
+        assert test_handler.timeout == const.DEFAULT_TEST_TIMEOUT
+
     def test_tests_disabled(self):
         """Test that tests are disabled by a chart's values using the
         `test.enabled` path.
@@ -276,3 +288,31 @@ class TestHandlerTestCase(base.ArmadaTestCase):
 
         assert test_handler.test_enabled is True
         assert test_handler.cleanup is True
+
+    def test_default_timeout_value(self):
+        """Test that the default timeout value is used if a test timeout value,
+        `test.timeout` is not provided.
+        """
+        test_handler = test.Test(
+            chart={'test': {
+                'enabled': True
+            }},
+            release_name='release',
+            tiller=mock.Mock(),
+            cleanup=True)
+
+        assert test_handler.timeout == const.DEFAULT_TILLER_TIMEOUT
+
+    def test_timeout_value(self):
+        """Test that a chart's test timeout value, `test.timeout` overrides the
+        default test timeout.
+        """
+        chart = {'test': {'enabled': True, 'timeout': 800}}
+
+        test_handler = test.Test(
+            chart=chart,
+            release_name='release',
+            tiller=mock.Mock(),
+            cleanup=True)
+
+        assert test_handler.timeout is chart['test']['timeout']

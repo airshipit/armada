@@ -244,25 +244,18 @@ class ChartDeploy(object):
         run_test = test_handler.test_enabled and (just_deployed or
                                                   not last_test_passed)
         if run_test:
-            timer = int(round(deadline - time.time()))
-            self._test_chart(release_name, timer, test_handler)
+            self._test_chart(release_name, test_handler)
 
         return result
 
-    def _test_chart(self, release_name, timeout, test_handler):
+    def _test_chart(self, release_name, test_handler):
         if self.dry_run:
             LOG.info(
                 'Skipping test during `dry-run`, would have tested '
-                'release=%s with timeout %ss.', release_name, timeout)
+                'release=%s', release_name)
             return True
 
-        if timeout <= 0:
-            reason = ('Timeout expired before testing '
-                      'release %s' % release_name)
-            LOG.error(reason)
-            raise armada_exceptions.ArmadaTimeoutException(reason)
-
-        success = test_handler.test_release_for_success(timeout=timeout)
+        success = test_handler.test_release_for_success()
         if not success:
             raise tiller_exceptions.TestFailedException(release_name)
 

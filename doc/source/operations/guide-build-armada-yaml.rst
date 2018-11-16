@@ -174,6 +174,8 @@ Run helm tests on the chart after install/upgrade.
 +=============+==========+====================================================================+
 | enabled     | bool     | whether to enable/disable helm tests for this chart (default True) |
 +-------------+----------+--------------------------------------------------------------------+
+| timeout     | int      | time (in sec) to wait for completion of Helm tests                 |
++-------------+----------+--------------------------------------------------------------------+
 | options     | object   | See `Test Options`_.                                               |
 +-------------+----------+--------------------------------------------------------------------+
 

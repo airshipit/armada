@@ -66,6 +66,8 @@ data:
           properties:
             enabled:
               type: boolean
+            timeout:
+              type: integer
             options:
               type: object
               properties:

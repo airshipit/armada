@@ -58,6 +58,8 @@ class Test(object):
 
         test_values = self.chart.get('test', None)
 
+        self.timeout = const.DEFAULT_TEST_TIMEOUT
+
         # NOTE(drewwalters96): Support the chart_group `test_charts` key until
         # its deprecation period ends. The `test.enabled`, `enable_all` flag,
         # and deprecated, boolean `test` key override this value if provided.
@@ -79,6 +81,7 @@ class Test(object):
             # provided.
             if self.cleanup is None:
                 self.cleanup = True
+
         elif test_values:
             test_enabled_opt = test_values.get('enabled')
             if test_enabled_opt is not None:
@@ -90,6 +93,8 @@ class Test(object):
             if self.cleanup is None:
                 test_options = test_values.get('options', {})
                 self.cleanup = test_options.get('cleanup', False)
+
+            self.timeout = test_values.get('timeout', self.timeout)
         else:
             # Default cleanup value
             if self.cleanup is None:
@@ -98,16 +103,14 @@ class Test(object):
         if enable_all:
             self.test_enabled = True
 
-    def test_release_for_success(self, timeout=const.DEFAULT_TILLER_TIMEOUT):
+    def test_release_for_success(self):
         """Run the Helm tests corresponding to a release for success (i.e. exit
         code 0).
 
-        :param timeout: Timeout value for a release's tests completion
-        :type timeout: int
-
-        :rtype: Helm test suite run result
+        :return: Helm test suite run result
         """
-        LOG.info('RUNNING: %s tests', self.release_name)
+        LOG.info('RUNNING: %s tests with timeout=%ds', self.release_name,
+                 self.timeout)
 
         try:
             self.delete_test_pods()
@@ -116,7 +119,7 @@ class Test(object):
                           self.release_name)
 
         test_suite_run = self.tiller.test_release(
-            self.release_name, timeout=timeout, cleanup=self.cleanup)
+            self.release_name, timeout=self.timeout, cleanup=self.cleanup)
 
         success = get_test_suite_run_success(test_suite_run)
         if success:
