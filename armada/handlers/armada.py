@@ -228,8 +228,8 @@ class Armada(object):
                 name = chart['chart_name']
                 try:
                     result = get_result()
-                except Exception as e:
-                    LOG.error('Chart deploy [%s] failed: %s', name, e)
+                except Exception:
+                    LOG.exception('Chart deploy [{}] failed'.format(name))
                     failures.append(name)
                     return True
                 else:
