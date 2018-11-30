@@ -23,7 +23,8 @@ data:
   chart_name: mariadb-tarball
   release: mariadb-tarball
   namespace: tarball
-  timeout: 3600
+  wait:
+    timeout: 3600
   install:
     no_hooks: false
   upgrade:
