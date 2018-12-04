@@ -24,6 +24,8 @@ Commands
           $ armada test --release blog-1
 
     Options:
+      --cleanup                     Delete test pods after test completion
+      --enable-all                  Run disabled chart tests
       --file TEXT                   armada manifest
       --release TEXT                helm release
       --tiller-host TEXT            Tiller Host IP

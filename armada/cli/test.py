@@ -19,8 +19,8 @@ from oslo_config import cfg
 
 from armada.cli import CliAction
 from armada import const
-from armada.handlers.test import test_release_for_success
 from armada.handlers.manifest import Manifest
+from armada.handlers.test import Test
 from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
 
@@ -79,20 +79,26 @@ SHORT_DESC = "Command tests releases."
     help=("Delete test pods upon completion."),
     is_flag=True,
     default=None)
+@click.option(
+    '--enable-all',
+    help=("Run all tests for all releases regardless of any disabled chart "
+          "tests."),
+    is_flag=True,
+    default=False)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def test_charts(ctx, file, release, tiller_host, tiller_port, tiller_namespace,
-                target_manifest, cleanup, debug):
+                target_manifest, cleanup, enable_all, debug):
     CONF.debug = debug
     TestChartManifest(ctx, file, release, tiller_host, tiller_port,
-                      tiller_namespace, target_manifest,
-                      cleanup).safe_invoke()
+                      tiller_namespace, target_manifest, cleanup,
+                      enable_all).safe_invoke()
 
 
 class TestChartManifest(CliAction):
 
     def __init__(self, ctx, file, release, tiller_host, tiller_port,
-                 tiller_namespace, target_manifest, cleanup):
+                 tiller_namespace, target_manifest, cleanup, enable_all):
 
         super(TestChartManifest, self).__init__()
         self.ctx = ctx
@@ -103,6 +109,7 @@ class TestChartManifest(CliAction):
         self.tiller_namespace = tiller_namespace
         self.target_manifest = target_manifest
         self.cleanup = cleanup
+        self.enable_all = enable_all
 
     def invoke(self):
         with Tiller(
@@ -117,13 +124,8 @@ class TestChartManifest(CliAction):
 
         if self.release:
             if not self.ctx.obj.get('api', False):
-                self.logger.info("RUNNING: %s tests", self.release)
-                success = test_release_for_success(
-                    tiller, self.release, cleanup=self.cleanup)
-                if success:
-                    self.logger.info("PASSED: %s", self.release)
-                else:
-                    self.logger.info("FAILED: %s", self.release)
+                test_handler = Test(self.release, tiller, cleanup=self.cleanup)
+                test_handler.test_release_for_success()
             else:
                 client = self.ctx.obj.get('CLIENT')
                 query = {
@@ -150,32 +152,21 @@ class TestChartManifest(CliAction):
                         const.KEYWORD_GROUPS):
                     for ch in group.get(const.KEYWORD_CHARTS):
                         chart = ch['chart']
+
                         release_name = release_prefixer(
                             prefix, chart.get('release'))
-
                         if release_name in known_release_names:
-                            cleanup = self.cleanup
-                            if cleanup is None:
-                                test_chart_override = chart.get('test', {})
-                                if isinstance(test_chart_override, bool):
-                                    self.logger.warn(
-                                        'Boolean value for chart `test` key is'
-                                        ' deprecated and support for this will'
-                                        ' be removed. Use `test.enabled` '
-                                        'instead.')
-                                    # Use old default value.
-                                    cleanup = True
-                                else:
-                                    cleanup = test_chart_override.get(
-                                        'options', {}).get('cleanup', False)
-                            self.logger.info('RUNNING: %s tests', release_name)
-                            success = test_release_for_success(
-                                tiller, release_name, cleanup=cleanup)
-                            if success:
-                                self.logger.info("PASSED: %s", release_name)
-                            else:
-                                self.logger.info("FAILED: %s", release_name)
+                            test_values = chart.get('test', {})
 
+                            test_handler = Test(
+                                release_name,
+                                tiller,
+                                cleanup=self.cleanup,
+                                enable_all=self.enable_all,
+                                test_values=test_values)
+
+                            if test_handler.test_enabled:
+                                test_handler.test_release_for_success()
                         else:
                             self.logger.info('Release %s not found - SKIPPING',
                                              release_name)
