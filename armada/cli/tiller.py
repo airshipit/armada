@@ -60,7 +60,7 @@ SHORT_DESC = "Command gets Tiller information."
     type=str,
     default=CONF.tiller_namespace)
 @click.option('--releases', help="List of deployed releases.", is_flag=True)
-@click.option('--status', help="Status of Armada services.", is_flag=True)
+@click.option('--status', help="Status of Tiller services.", is_flag=True)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def tiller_service(ctx, tiller_host, tiller_port, tiller_namespace, releases,
