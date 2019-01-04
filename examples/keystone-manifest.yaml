@@ -27,7 +27,6 @@ data:
   chart_name: mariadb
   release: mariadb
   namespace: openstack
-  timeout: 3600
   wait:
     timeout: 3600
     labels:
@@ -53,7 +52,6 @@ data:
   chart_name: memcached
   release: memcached
   namespace: openstack
-  timeout: 100
   wait:
     timeout: 100
     labels:
@@ -74,6 +72,33 @@ data:
 schema: armada/Chart/v1
 metadata:
   schema: metadata/Document/v1
+  name: rabbitmq
+data:
+  chart_name: rabbitmq
+  test:
+    enabled: true
+  release: rabbitmq
+  namespace: openstack
+  wait:
+    timeout: 100
+    labels:
+      release_group: armada-rabbitmq
+  install:
+    no_hooks: false
+  upgrade:
+    no_hooks: false
+  values: {}
+  source:
+    type: git
+    location: https://git.openstack.org/openstack/openstack-helm-infra
+    subpath: rabbitmq
+    reference: master
+  dependencies:
+    - helm-toolkit
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
   name: keystone
 data:
   chart_name: keystone
@@ -81,7 +106,6 @@ data:
     enabled: true
   release: keystone
   namespace: openstack
-  timeout: 100
   wait:
     timeout: 100
     labels:
@@ -117,6 +141,7 @@ data:
   chart_group:
     - mariadb
     - memcached
+    - rabbitmq
 ---
 schema: armada/ChartGroup/v1
 metadata:
