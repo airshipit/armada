@@ -312,7 +312,7 @@ class Tiller(object):
                     name, release_name, namespace, labels, action_type, chart,
                     disable_hooks, values, timeout)
         except Exception:
-            LOG.excpetion(
+            LOG.exception(
                 "Pre-action failure: could not perform rolling upgrade for "
                 "%(res_type)s %(res_name)s.", {
                     'res_type': action_type,
@@ -329,7 +329,7 @@ class Tiller(object):
                 self.delete_resources(
                     action_type, labels, namespace, timeout=timeout)
         except Exception:
-            LOG.excpetion(
+            LOG.exception(
                 "Pre-action failure: could not delete %(res_type)s "
                 "%(res_name)s.", {
                     'res_type': action_type,
