@@ -16,10 +16,9 @@ from oslo_log import log as logging
 
 from armada import const
 
-TESTRUN_STATUS_UNKNOWN = 0
-TESTRUN_STATUS_SUCCESS = 1
-TESTRUN_STATUS_FAILURE = 2
-TESTRUN_STATUS_RUNNING = 3
+from armada.handlers.wait import get_wait_labels
+from armada.utils.release import label_selectors
+from armada.utils.helm import get_test_suite_run_success, is_test_pod
 
 LOG = logging.getLogger(__name__)
 
@@ -27,33 +26,37 @@ LOG = logging.getLogger(__name__)
 class Test(object):
 
     def __init__(self,
+                 chart,
                  release_name,
                  tiller,
                  cg_test_charts=None,
                  cleanup=None,
-                 enable_all=False,
-                 test_values=None):
+                 enable_all=False):
         """Initialize a test handler to run Helm tests corresponding to a
         release.
 
+        :param chart: The armada chart document
         :param release_name: Name of a Helm release
         :param tiller: Tiller object
         :param cg_test_charts: Chart group `test_charts` key
         :param cleanup: Triggers cleanup; overrides `test.options.cleanup`
         :param enable_all: Run tests regardless of the value of `test.enabled`
-        :param test_values: Test values retrieved from a chart's `test` key
 
+        :type chart: dict
         :type release_name: str
         :type tiller: Tiller object
         :type cg_test_charts: bool
         :type cleanup: bool
         :type enable_all: bool
-        :type test_values: dict or bool (deprecated)
         """
 
+        self.chart = chart
         self.release_name = release_name
         self.tiller = tiller
         self.cleanup = cleanup
+        self.k8s_timeout = const.DEFAULT_K8S_TIMEOUT
+
+        test_values = self.chart.get('test', None)
 
         # NOTE(drewwalters96): Support the chart_group `test_charts` key until
         # its deprecation period ends. The `test.enabled`, `enable_all` flag,
@@ -106,10 +109,16 @@ class Test(object):
         """
         LOG.info('RUNNING: %s tests', self.release_name)
 
+        try:
+            self.delete_test_pods()
+        except Exception:
+            LOG.exception("Exception when deleting test pods for release: %s",
+                          self.release_name)
+
         test_suite_run = self.tiller.test_release(
             self.release_name, timeout=timeout, cleanup=self.cleanup)
 
-        success = self.get_test_suite_run_success(test_suite_run)
+        success = get_test_suite_run_success(test_suite_run)
         if success:
             LOG.info('PASSED: %s', self.release_name)
         else:
@@ -117,7 +126,37 @@ class Test(object):
 
         return success
 
-    @classmethod
-    def get_test_suite_run_success(self, test_suite_run):
-        return all(
-            r.status == TESTRUN_STATUS_SUCCESS for r in test_suite_run.results)
+    def delete_test_pods(self):
+        """Deletes any existing test pods for the release, as identified by the
+        wait labels for the chart, to avoid test pod name conflicts when
+        creating the new test pod as well as just for general cleanup since
+        the new test pod should supercede it.
+        """
+        labels = get_wait_labels(self.chart)
+
+        # Guard against labels being left empty, so we don't delete other
+        # chart's test pods.
+        if labels:
+            label_selector = label_selectors(labels)
+
+            namespace = self.chart['namespace']
+
+            list_args = {
+                'namespace': namespace,
+                'label_selector': label_selector,
+                'timeout_seconds': self.k8s_timeout
+            }
+
+            pod_list = self.tiller.k8s.client.list_namespaced_pod(**list_args)
+            test_pods = (pod for pod in pod_list.items if is_test_pod(pod))
+
+            if test_pods:
+                LOG.info(
+                    'Found existing test pods for release with '
+                    'namespace=%s, labels=(%s)', namespace, label_selector)
+
+            for test_pod in test_pods:
+                pod_name = test_pod.metadata.name
+                LOG.info('Deleting existing test pod: %s', pod_name)
+                self.tiller.k8s.delete_pod_action(
+                    pod_name, namespace, timeout=self.k8s_timeout)

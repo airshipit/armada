@@ -17,7 +17,7 @@ import yaml
 
 from armada import const
 from armada.handlers import armada
-from armada.handlers.test import TESTRUN_STATUS_SUCCESS, TESTRUN_STATUS_FAILURE
+from armada.utils.helm import TESTRUN_STATUS_SUCCESS, TESTRUN_STATUS_FAILURE
 from armada.tests.unit import base
 from armada.tests.test_utils import AttrDict, makeMockThreadSafe
 from armada.utils.release import release_prefixer, get_release_status
@@ -459,13 +459,12 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                         wait=native_wait_enabled,
                                         timeout=mock.ANY))
 
-                test_chart_override = chart.get('test')
                 expected_test_constructor_calls.append(
                     mock.call(
+                        chart,
                         release_name,
                         m_tiller,
-                        cg_test_charts=cg_test_all_charts,
-                        test_values=test_chart_override))
+                        cg_test_charts=cg_test_all_charts))
 
             any_order = not chart_group['sequenced']
             # Verify that at least 1 release is either installed or updated.

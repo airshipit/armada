@@ -17,7 +17,7 @@ from mock import MagicMock
 
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers import tiller
-from armada.handlers import test
+from armada.utils import helm
 from armada.tests.unit import base
 from armada.tests.test_utils import AttrDict
 
@@ -552,7 +552,7 @@ class TillerTestCase(base.ArmadaTestCase):
         self._test_test_release([
             AttrDict(**{
                 'msg': 'No Tests Found',
-                'status': test.TESTRUN_STATUS_UNKNOWN
+                'status': helm.TESTRUN_STATUS_UNKNOWN
             })
         ])
 
@@ -560,11 +560,11 @@ class TillerTestCase(base.ArmadaTestCase):
         self._test_test_release([
             AttrDict(**{
                 'msg': 'RUNNING: ...',
-                'status': test.TESTRUN_STATUS_RUNNING
+                'status': helm.TESTRUN_STATUS_RUNNING
             }),
             AttrDict(**{
                 'msg': 'SUCCESS: ...',
-                'status': test.TESTRUN_STATUS_SUCCESS
+                'status': helm.TESTRUN_STATUS_SUCCESS
             })
         ])
 
@@ -572,11 +572,11 @@ class TillerTestCase(base.ArmadaTestCase):
         self._test_test_release([
             AttrDict(**{
                 'msg': 'RUNNING: ...',
-                'status': test.TESTRUN_STATUS_RUNNING
+                'status': helm.TESTRUN_STATUS_RUNNING
             }),
             AttrDict(**{
                 'msg': 'FAILURE: ...',
-                'status': test.TESTRUN_STATUS_FAILURE
+                'status': helm.TESTRUN_STATUS_FAILURE
             })
         ])
 

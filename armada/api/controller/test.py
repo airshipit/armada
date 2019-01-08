@@ -39,7 +39,7 @@ class TestReleasesReleaseNameController(api.BaseResource):
         with self.get_tiller(req, resp) as tiller:
             cleanup = req.get_param_as_bool('cleanup')
 
-            test_handler = Test(release, tiller, cleanup=cleanup)
+            test_handler = Test({}, release, tiller, cleanup=cleanup)
             success = test_handler.test_release_for_success()
 
         if success:
@@ -136,15 +136,14 @@ class TestReleasesManifestController(api.BaseResource):
                     cleanup = req.get_param_as_bool('cleanup')
                     enable_all = req.get_param_as_bool('enable_all')
                     cg_test_charts = group.get('test_charts')
-                    test_values = chart.get('test', {})
 
                     test_handler = Test(
+                        chart,
                         release_name,
                         tiller,
                         cg_test_charts=cg_test_charts,
                         cleanup=cleanup,
-                        enable_all=enable_all,
-                        test_values=test_values)
+                        enable_all=enable_all)
 
                     if test_handler.test_enabled:
                         success = test_handler.test_release_for_success()
