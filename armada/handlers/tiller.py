@@ -35,7 +35,7 @@ from armada.handlers.k8s import K8s
 from armada.handlers import test
 from armada.utils.release import label_selectors, get_release_status
 
-TILLER_VERSION = b'2.10.0'
+TILLER_VERSION = b'2.12.1'
 GRPC_EPSILON = 60
 LIST_RELEASES_PAGE_SIZE = 32
 LIST_RELEASES_ATTEMPTS = 3
