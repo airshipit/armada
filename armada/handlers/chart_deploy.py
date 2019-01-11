@@ -20,6 +20,7 @@ from armada import const
 from armada.exceptions import armada_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.release_diff import ReleaseDiff
+from armada.handlers.chart_delete import ChartDelete
 from armada.handlers.test import Test
 from armada.handlers.wait import ChartWait
 from armada.exceptions import tiller_exceptions
@@ -204,7 +205,9 @@ class ChartDeploy(object):
                     # Purge the release
                     LOG.info('Purging release %s with status %s', release_name,
                              status)
-                    self.tiller.uninstall_release(release_name)
+                    chart_delete = ChartDelete(chart, release_name,
+                                               self.tiller)
+                    chart_delete.delete()
                     result['purge'] = release_name
 
             timer = int(round(deadline - time.time()))
