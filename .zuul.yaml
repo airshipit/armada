@@ -21,7 +21,6 @@
     check:
       jobs:
         - openstack-tox-pep8
-        - airship-armada-ubuntu
         - airship-armada-docker-build-gate
     gate:
       jobs:
@@ -30,36 +29,6 @@
     post:
       jobs:
         - airship-armada-docker-publish
-
-- job:
-    name: airship-armada
-    roles:
-      - zuul: openstack/openstack-helm-infra
-    vars:
-      zuul_osh_infra_relative_path: ../openstack-helm-infra/
-    timeout: 7200
-    pre-run:
-      - tools/gate/playbooks/osh-infra-upgrade-host.yaml
-      - tools/gate/playbooks/osh-infra-deploy-docker.yaml
-      - tools/gate/playbooks/osh-infra-build.yaml
-      - tools/gate/playbooks/osh-infra-deploy-k8s.yaml
-    run: tools/gate/playbooks/airship-armada-check.yaml
-    post-run: tools/gate/playbooks/osh-infra-collect-logs.yaml
-    required-projects:
-      - openstack/openstack-helm-infra
-
-- job:
-    name: airship-armada-ubuntu
-    parent: airship-armada
-    nodeset: openstack-helm-single-node
-    voting: false
-    irrelevant-files:
-      - ^.*\.rst$
-      - ^doc/.*$
-      - ^etc/.*$
-      - ^releasenotes/.*$
-      - ^setup.cfg$
-      - ^armada/tests/unit/.*$
 
 - nodeset:
     name: airship-armada-single-node
