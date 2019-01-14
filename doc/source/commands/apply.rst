@@ -54,6 +54,7 @@ Commands
       --target-manifest TEXT        The target manifest to run. Required for
                                     specifying which manifest to run when multiple
                                     are available.
+      --bearer-token                User bearer token.
       --debug                       Enable debug logging.
       --help                        Show this message and exit.
 

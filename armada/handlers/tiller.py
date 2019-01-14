@@ -80,14 +80,16 @@ class Tiller(object):
                  tiller_host=None,
                  tiller_port=None,
                  tiller_namespace=None,
+                 bearer_token=None,
                  dry_run=None):
         self.tiller_host = tiller_host
         self.tiller_port = tiller_port or CONF.tiller_port
         self.tiller_namespace = tiller_namespace or CONF.tiller_namespace
+        self.bearer_token = bearer_token
         self.dry_run = dry_run or False
 
         # init k8s connectivity
-        self.k8s = K8s()
+        self.k8s = K8s(bearer_token=self.bearer_token)
 
         # init Tiller channel
         self.channel = self.get_channel()

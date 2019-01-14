@@ -24,6 +24,7 @@ Commands
       --timeout INTEGER             Tiller Host IP
       --version INTEGER             Version of release to rollback to. 0 represents the previous release
       --wait                        Version of release to rollback to. 0 represents the previous release
+      --bearer-token                User bearer token
       --help                        Show this message and exit.
 
 Synopsis
