@@ -47,7 +47,7 @@ Armada Exceptions
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.UnexpectedReleaseStatusException
+.. autoexception:: armada.exceptions.armada_exceptions.DeploymentLikelyPendingException
    :members:
    :show-inheritance:
    :undoc-members:
