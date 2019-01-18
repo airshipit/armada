@@ -121,8 +121,9 @@ class ChartDeploy(object):
 
             upgrade = chart.get('upgrade', {})
             disable_hooks = upgrade.get('no_hooks', False)
-            force = upgrade.get('force', False)
-            recreate_pods = upgrade.get('recreate_pods', False)
+            options = upgrade.get('options', {})
+            force = options.get('force', False)
+            recreate_pods = options.get('recreate_pods', False)
 
             if upgrade:
                 upgrade_pre = upgrade.get('pre', {})

@@ -437,8 +437,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                             if diff:
                                 upgrade = chart.get('upgrade', {})
                                 disable_hooks = upgrade.get('no_hooks', False)
-                                force = upgrade.get('force', False)
-                                recreate_pods = upgrade.get(
+                                options = upgrade.get('options', {})
+                                force = options.get('force', False)
+                                recreate_pods = options.get(
                                     'recreate_pods', False)
 
                                 expected_update_release_calls.append(
