@@ -21,6 +21,7 @@ from oslo_config import cfg
 from armada import api
 from armada.common import policy
 from armada import const
+from armada.handlers.lock import lock_and_thread, LockException
 from armada.handlers.manifest import Manifest
 from armada.handlers.test import Test
 from armada.utils.release import release_prefixer
@@ -36,24 +37,29 @@ class TestReleasesReleaseNameController(api.BaseResource):
 
     @policy.enforce('armada:test_release')
     def on_get(self, req, resp, release):
-        with self.get_tiller(req, resp) as tiller:
-            success = self.handle(req, release, tiller)
+        try:
 
-        if success:
-            msg = {
-                'result': 'PASSED: {}'.format(release),
-                'message': 'MESSAGE: Test Pass'
-            }
-        else:
-            msg = {
-                'result': 'FAILED: {}'.format(release),
-                'message': 'MESSAGE: Test Fail'
-            }
+            with self.get_tiller(req, resp) as tiller:
+                success = self.handle(req, release, tiller)
 
-        resp.body = json.dumps(msg)
-        resp.status = falcon.HTTP_200
-        resp.content_type = 'application/json'
+            if success:
+                msg = {
+                    'result': 'PASSED: {}'.format(release),
+                    'message': 'MESSAGE: Test Pass'
+                }
+            else:
+                msg = {
+                    'result': 'FAILED: {}'.format(release),
+                    'message': 'MESSAGE: Test Fail'
+                }
 
+            resp.body = json.dumps(msg)
+            resp.status = falcon.HTTP_200
+            resp.content_type = 'application/json'
+        except LockException as e:
+            self.return_error(resp, falcon.HTTP_409, message=str(e))
+
+    @lock_and_thread()
     def handle(self, req, release, tiller):
         cleanup = req.get_param_as_bool('cleanup')
         test_handler = Test({}, release, tiller, cleanup=cleanup)
@@ -104,9 +110,13 @@ class TestReleasesManifestController(api.BaseResource):
     @policy.enforce('armada:test_manifest')
     def on_post(self, req, resp):
         # TODO(fmontei): Validation Content-Type is application/x-yaml.
-        with self.get_tiller(req, resp) as tiller:
-            return self.handle(req, resp, tiller)
+        try:
+            with self.get_tiller(req, resp) as tiller:
+                return self.handle(req, resp, tiller)
+        except LockException as e:
+            self.return_error(resp, falcon.HTTP_409, message=str(e))
 
+    @lock_and_thread()
     def handle(self, req, resp, tiller):
         try:
             documents = self.req_yaml(req, default=[])

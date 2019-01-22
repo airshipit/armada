@@ -26,6 +26,8 @@ from armada.tests import test_utils
 from armada.tests.unit.api import base
 
 
+@mock.patch.object(test.TestReleasesManifestController, 'handle',
+                   test.TestReleasesManifestController.handle.__wrapped__)
 class TestReleasesManifestControllerTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'Manifest')
@@ -57,6 +59,8 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
         m_tiller.__exit__.assert_called()
 
 
+@mock.patch.object(test.TestReleasesReleaseNameController, 'handle',
+                   test.TestReleasesReleaseNameController.handle.__wrapped__)
 class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
 
     @mock.patch.object(test.Test, 'test_release_for_success')
@@ -119,6 +123,8 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
 
 
 @test_utils.attr(type=['negative'])
+@mock.patch.object(test.TestReleasesManifestController, 'handle',
+                   test.TestReleasesManifestController.handle.__wrapped__)
 class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
 
     @mock.patch.object(test, 'Manifest')

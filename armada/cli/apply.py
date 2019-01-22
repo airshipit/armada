@@ -21,6 +21,7 @@ from armada.cli import CliAction
 from armada.exceptions.source_exceptions import InvalidPathException
 from armada.handlers.armada import Armada
 from armada.handlers.document import ReferenceResolver
+from armada.handlers.lock import lock_and_thread
 from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
@@ -234,6 +235,7 @@ class ApplyManifest(CliAction):
                     manifest=documents, set=self.set, query=query)
             self.output(resp.get('message'))
 
+    @lock_and_thread()
     def handle(self, documents, tiller):
         armada = Armada(
             documents,

@@ -26,6 +26,8 @@ from armada.tests.unit.api import base
 CONF = cfg.CONF
 
 
+@mock.patch.object(armada_api.Apply, 'handle',
+                   armada_api.Apply.handle.__wrapped__)
 class ArmadaControllerTest(base.BaseControllerTest):
 
     @mock.patch.object(api, 'Tiller')

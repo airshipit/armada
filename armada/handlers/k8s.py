@@ -63,6 +63,8 @@ class K8s(object):
         self.client = client.CoreV1Api(api_client)
         self.batch_api = client.BatchV1Api(api_client)
         self.batch_v1beta1_api = client.BatchV1beta1Api(api_client)
+        self.custom_objects = client.CustomObjectsApi(api_client)
+        self.api_extensions = client.ApiextensionsV1beta1Api(api_client)
         self.extension_api = client.ExtensionsV1beta1Api(api_client)
         self.apps_v1_api = client.AppsV1Api(api_client)
 
@@ -340,3 +342,79 @@ class K8s(object):
                 'using default %ss.', DEFAULT_K8S_TIMEOUT)
             timeout = DEFAULT_K8S_TIMEOUT
         return timeout
+
+    def create_custom_resource_definition(self, crd):
+        """Creates a custom resource definition
+
+        :param crd: custom resource definition to create
+
+        :type crd: kubernetes.client.V1beta1CustomResourceDefinition
+
+        :return: new custom resource definition
+        :rtype: kubernetes.client.V1beta1CustomResourceDefinition
+        """
+        return self.api_extensions.create_custom_resource_definition(crd)
+
+    def create_custom_resource(self, group, version, namespace, plural, body):
+        """Creates a custom resource
+
+        :param group: the custom resource's group
+        :param version: the custom resource's version
+        :param namespace: the custom resource's namespace
+        :param plural: the custom resource's plural name
+        :param body: the data to go into the body of the custom resource
+
+        :return: k8s client response
+        :rtype: object
+        """
+        return self.custom_objects.create_namespaced_custom_object(
+            group, version, namespace, plural, body)
+
+    def delete_custom_resource(self, group, version, namespace, plural, name,
+                               body):
+        """Deletes a custom resource
+
+        :param group: the custom resource's group
+        :param version: the custom resource's version
+        :param namespace: the custom resource's namespace
+        :param plural: the custom resource's plural name
+        :param name: the custom resource's full name
+        :param body: the data to go into the body of the custom resource
+
+        :return: k8s client response
+        :rtype: object
+        """
+        return self.custom_objects.delete_namespaced_custom_object(
+            group, version, namespace, plural, name, body)
+
+    def read_custom_resource(self, group, version, namespace, plural, name):
+        """Gets information on a specified custom resource
+
+        :param group: the custom resource's group
+        :param version: the custom resource's version
+        :param namespace: the custom resource's namespace
+        :param plural: the custom resource's plural name
+        :param name: the custom resource's full name
+
+        :return: k8s client response
+        :rtype: object
+        """
+        return self.custom_objects.get_namespaced_custom_object(
+            group, version, namespace, plural, name)
+
+    def replace_custom_resource(self, group, version, namespace, plural, name,
+                                body):
+        """Replaces a custom resource
+
+        :param group: the custom resource's group
+        :param version: the custom resource's version
+        :param namespace: the custom resource's namespace
+        :param plural: the custom resource's plural name
+        :param name: the custom resource's full name
+        :param body: the data to go into the body of the custom resource
+
+        :return: k8s client response
+        :rtype: object
+        """
+        return self.custom_objects.replace_namespaced_custom_object(
+            group, version, namespace, plural, name, body)

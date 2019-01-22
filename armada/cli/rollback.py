@@ -16,6 +16,7 @@ import click
 from oslo_config import cfg
 
 from armada.cli import CliAction
+from armada.handlers.lock import lock_and_thread
 from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
@@ -120,6 +121,7 @@ class Rollback(CliAction):
 
             self.output(response)
 
+    @lock_and_thread()
     def handle(self, tiller):
         return tiller.rollback_release(
             self.release,

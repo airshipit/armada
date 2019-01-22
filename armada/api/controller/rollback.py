@@ -19,6 +19,7 @@ from oslo_config import cfg
 
 from armada import api
 from armada.common import policy
+from armada.handlers.lock import lock_and_thread, LockException
 
 CONF = cfg.CONF
 
@@ -37,12 +38,15 @@ class Rollback(api.BaseResource):
                 })
                 resp.content_type = 'application/json'
                 resp.status = falcon.HTTP_200
+        except LockException as e:
+            self.return_error(resp, falcon.HTTP_409, message=str(e))
         except Exception as e:
             self.logger.exception('Caught unexpected exception')
             err_message = 'Failed to rollback release: {}'.format(e)
             self.error(req.context, err_message)
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
+    @lock_and_thread()
     def handle(self, req, release, tiller):
         dry_run = req.get_param_as_bool('dry_run')
         tiller.rollback_release(

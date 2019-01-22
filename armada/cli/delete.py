@@ -20,6 +20,7 @@ from oslo_config import cfg
 from armada.cli import CliAction
 from armada import const
 from armada.handlers.chart_delete import ChartDelete
+from armada.handlers.lock import lock_and_thread
 from armada.handlers.manifest import Manifest
 from armada.handlers.tiller import Tiller
 from armada.utils.release import release_prefixer
@@ -97,6 +98,7 @@ class DeleteChartManifest(CliAction):
                 bearer_token=self.bearer_token) as tiller:
             self.handle(tiller)
 
+    @lock_and_thread()
     def handle(self, tiller):
         known_release_names = [release[0] for release in tiller.list_charts()]
 

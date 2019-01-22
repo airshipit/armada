@@ -81,6 +81,31 @@ path to the private key that includes the name of the key itself.""")),
         'tiller_release_roles',
         default=['admin'],
         help=utils.fmt('IDs of approved API access roles.')),
+    cfg.IntOpt(
+        'lock_acquire_timeout',
+        default=60,
+        min=0,
+        help=utils.fmt("""Time in seconds of how long armada will attempt to
+        acquire a lock before an exception is raised""")),
+    cfg.IntOpt(
+        'lock_acquire_delay',
+        default=5,
+        min=0,
+        help=utils.fmt("""Time in seconds of how long to wait between attempts
+    to acquire a lock""")),
+    cfg.IntOpt(
+        'lock_update_interval',
+        default=60,
+        min=0,
+        help=utils.fmt("""Time in seconds of how often armada will update the
+        lock while it is continuing to do work""")),
+    cfg.IntOpt(
+        'lock_expiration',
+        default=600,
+        min=0,
+        help=utils.fmt("""Time in seconds of how much time needs to pass since
+        the last update of an existing lock before armada forcibly removes it
+        and tries to acquire its own lock""")),
 ]
 
 

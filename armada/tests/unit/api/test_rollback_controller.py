@@ -20,8 +20,11 @@ from armada import api
 from armada.common.policies import base as policy_base
 from armada.tests import test_utils
 from armada.tests.unit.api import base
+from armada.api.controller import rollback
 
 
+@mock.patch.object(rollback.Rollback, 'handle',
+                   rollback.Rollback.handle.__wrapped__)
 class RollbackReleaseControllerTest(base.BaseControllerTest):
 
     @mock.patch.object(api, 'Tiller')

@@ -22,6 +22,7 @@ from armada.common import policy
 from armada import exceptions
 from armada.handlers.armada import Armada
 from armada.handlers.document import ReferenceResolver
+from armada.handlers.lock import lock_and_thread, LockException
 from armada.handlers.override import Override
 
 
@@ -78,12 +79,15 @@ class Apply(api.BaseResource):
 
         except exceptions.ManifestException as e:
             self.return_error(resp, falcon.HTTP_400, message=str(e))
+        except LockException as e:
+            self.return_error(resp, falcon.HTTP_409, message=str(e))
         except Exception as e:
             self.logger.exception('Caught unexpected exception')
             err_message = 'Failed to apply manifest: {}'.format(e)
             self.error(req.context, err_message)
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
+    @lock_and_thread()
     def handle(self, req, documents, tiller):
         armada = Armada(
             documents,

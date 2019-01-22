@@ -19,6 +19,7 @@ from oslo_config import cfg
 
 from armada.cli import CliAction
 from armada import const
+from armada.handlers.lock import lock_and_thread
 from armada.handlers.manifest import Manifest
 from armada.handlers.test import Test
 from armada.handlers.tiller import Tiller
@@ -116,6 +117,7 @@ class TestChartManifest(CliAction):
 
             self.handle(tiller)
 
+    @lock_and_thread()
     def handle(self, tiller):
         known_release_names = [release[0] for release in tiller.list_charts()]
 
