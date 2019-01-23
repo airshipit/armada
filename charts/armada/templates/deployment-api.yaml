@@ -134,6 +134,48 @@ spec:
               mountPath: /etc/armada/policy.yaml
               subPath: policy.yaml
               readOnly: true
+{{- if .Values.conf.tiller.enabled }}
+        - name: tiller
+{{ tuple $envAll "tiller" | include "helm-toolkit.snippets.image" | indent 10 }}
+{{ tuple $envAll $envAll.Values.pod.resources.tiller | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
+          env:
+            - name: TILLER_NAMESPACE
+              value: {{ .Values.conf.tiller.namespace | quote }}
+            - name: TILLER_HISTORY_MAX
+              value: {{ .Values.conf.tiller.history_max | quote }}
+          command:
+            - /tiller
+            - -logtostderr
+            - -v
+            - {{ .Values.conf.tiller.verbosity | quote }}
+{{- if .Values.conf.tiller.trace }}
+            - -trace
+{{- end }}
+          ports:
+            - name: tiller
+              containerPort: {{ .Values.conf.tiller.port }}
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /readiness
+              port: 44135
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /liveness
+              port: 44135
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+{{- end }}
 {{ if $mounts_armada_api.volumeMounts }}{{ toYaml $mounts_armada_api.volumeMounts | indent 12 }}{{ end }}
       volumes:
         - name: pod-etc-armada

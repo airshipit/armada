@@ -47,11 +47,7 @@ class TillerControllerTest(base.BaseControllerTest):
 
         self.assertEqual(expected, result.json)
         self.assertEqual('application/json', result.headers['content-type'])
-        mock_tiller.assert_called_once_with(
-            tiller_host=None,
-            tiller_port=44134,
-            tiller_namespace='kube-system',
-            dry_run=None)
+        mock_tiller.assert_called_once_with(dry_run=None)
         m_tiller.__exit__.assert_called()
 
     @mock.patch.object(api, 'Tiller')
@@ -66,13 +62,7 @@ class TillerControllerTest(base.BaseControllerTest):
         m_tiller.tiller_version.return_value = 'fake_version'
 
         result = self.app.simulate_get(
-            '/api/v1.0/status',
-            params_csv=False,
-            params={
-                'tiller_host': 'fake_host',
-                'tiller_port': '98765',
-                'tiller_namespace': 'fake_ns'
-            })
+            '/api/v1.0/status', params_csv=False, params={})
         expected = {
             'tiller': {
                 'version': 'fake_version',
@@ -82,11 +72,7 @@ class TillerControllerTest(base.BaseControllerTest):
 
         self.assertEqual(expected, result.json)
         self.assertEqual('application/json', result.headers['content-type'])
-        mock_tiller.assert_called_once_with(
-            tiller_host='fake_host',
-            tiller_port=98765,
-            tiller_namespace='fake_ns',
-            dry_run=None)
+        mock_tiller.assert_called_once_with(dry_run=None)
         m_tiller.__exit__.assert_called()
 
     @mock.patch.object(api, 'Tiller')
@@ -116,11 +102,7 @@ class TillerControllerTest(base.BaseControllerTest):
         }
 
         self.assertEqual(expected, result.json)
-        mock_tiller.assert_called_once_with(
-            tiller_host=None,
-            tiller_port=44134,
-            tiller_namespace='kube-system',
-            dry_run=None)
+        mock_tiller.assert_called_once_with(dry_run=None)
         m_tiller.list_releases.assert_called_once_with()
         m_tiller.__exit__.assert_called()
 
@@ -143,13 +125,7 @@ class TillerControllerTest(base.BaseControllerTest):
         ]
 
         result = self.app.simulate_get(
-            '/api/v1.0/releases',
-            params_csv=False,
-            params={
-                'tiller_host': 'fake_host',
-                'tiller_port': '98765',
-                'tiller_namespace': 'fake_ns'
-            })
+            '/api/v1.0/releases', params_csv=False, params={})
         expected = {
             'releases': {
                 'bar_namespace': ['foo'],
@@ -158,11 +134,7 @@ class TillerControllerTest(base.BaseControllerTest):
         }
 
         self.assertEqual(expected, result.json)
-        mock_tiller.assert_called_once_with(
-            tiller_host='fake_host',
-            tiller_port=98765,
-            tiller_namespace='fake_ns',
-            dry_run=None)
+        mock_tiller.assert_called_once_with(dry_run=None)
         m_tiller.list_releases.assert_called_once_with()
         m_tiller.__exit__.assert_called()
 

@@ -112,17 +112,7 @@ class BaseResource(object):
         self.log_error(ctx, log.ERROR, msg)
 
     def get_tiller(self, req, resp):
-        dry_run = req.get_param_as_bool('dry_run')
-        tiller_port = req.get_param_as_int('tiller_port') or CONF.tiller_port
-        tiller_namespace = req.get_param(
-            'tiller_namespace',
-            default=CONF.tiller_namespace) or CONF.tiller_namespace
-
-        return Tiller(
-            tiller_host=req.get_param('tiller_host'),
-            tiller_port=tiller_port,
-            tiller_namespace=tiller_namespace,
-            dry_run=dry_run)
+        return Tiller(dry_run=req.get_param_as_bool('dry_run'))
 
 
 class ArmadaRequestContext(object):

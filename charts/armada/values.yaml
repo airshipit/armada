@@ -31,12 +31,14 @@ images:
     ks_service: 'docker.io/openstackhelm/heat:newton'
     ks_user: 'docker.io/openstackhelm/heat:newton'
     image_repo_sync: docker.io/docker:17.07.0
+    tiller: gcr.io/kubernetes-helm/tiller:v2.12.1
   pull_policy: "IfNotPresent"
   local_registry:
     active: false
     exclude:
       - dep_check
       - image_repo_sync
+      - tiller
 
 network:
   api:
@@ -168,6 +170,9 @@ secrets:
 
 conf:
   armada:
+    DEFAULT: {}
+      # When .conf.tiller.enabled is true `tiller_host` and `tiller_port` will
+      # be overridden by 127.0.0.1 and `.conf.tiller.port` respectively
     armada_api:
       bind_port: 8000
     keystone_authtoken:
@@ -195,6 +200,15 @@ conf:
     'armada:validate_manifest': 'rule:admin_viewer'
     'tiller:get_release': 'rule:admin_viewer'
     'tiller:get_status': 'rule:admin_viewer'
+  tiller:
+    # If set to false then some form of Tiller needs to be provided
+    enabled: true
+    port: 44134
+    verbosity: 5
+    trace: false
+    namespace: kube-system
+    # Limit the maximum number of revisions saved per release. 0 for no limit.
+    history_max: 0
 
 pod:
   env:
@@ -254,6 +268,13 @@ pod:
   resources:
     enabled: false
     api:
+      limits:
+        memory: "128Mi"
+        cpu: "100m"
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+    tiller:
       limits:
         memory: "128Mi"
         cpu: "100m"

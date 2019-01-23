@@ -42,6 +42,10 @@ limitations under the License.
 {{- set .Values.conf.armada.keystone_authtoken "password" $userIdentity.password | quote | trunc 0 -}}
 {{- end -}}
 
+{{- if .Values.conf.tiller.enabled }}
+{{- set .Values.conf.armada.DEFAULT "tiller_host" "127.0.0.1" | quote | trunc 0 -}}
+{{- set .Values.conf.armada.DEFAULT "tiller_port" .Values.conf.tiller.port | quote | trunc 0 -}}
+{{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -89,11 +89,7 @@ class ArmadaControllerTest(base.BaseControllerTest):
         }], **expected_armada_options)
         mock_armada.return_value.sync.assert_called()
 
-        mock_tiller.assert_called_with(
-            tiller_host=None,
-            tiller_port=44134,
-            tiller_namespace='kube-system',
-            dry_run=False)
+        mock_tiller.assert_called_with(dry_run=False)
         m_tiller.__exit__.assert_called()
 
     def test_armada_apply_no_href(self):

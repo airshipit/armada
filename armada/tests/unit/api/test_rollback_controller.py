@@ -37,9 +37,6 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
         rollback_release = m_tiller.rollback_release
         rollback_release.return_value = None
 
-        tiller_host = 'host'
-        tiller_port = '8080'
-        tiller_namespace = 'tn'
         release = 'test-release'
         version = '2'
         dry_run = 'false'
@@ -51,9 +48,6 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
         resp = self.app.simulate_post(
             '/api/v1.0/rollback/{}'.format(release),
             params={
-                'tiller_host': tiller_host,
-                'tiller_port': tiller_port,
-                'tiller_namespace': tiller_namespace,
                 'dry_run': dry_run,
                 'version': version,
                 'wait': wait,
@@ -62,11 +56,7 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
                 'recreate_pods': recreate_pods
             })
 
-        mock_tiller.assert_called_once_with(
-            tiller_host=tiller_host,
-            tiller_port=8080,
-            tiller_namespace=tiller_namespace,
-            dry_run=False)
+        mock_tiller.assert_called_once_with(dry_run=False)
 
         rollback_release.assert_called_once_with(
             release, 2, wait=True, timeout=123, force=True, recreate_pods=True)
