@@ -69,6 +69,10 @@ path to the private key that includes the name of the key itself.""")),
         'tiller_namespace',
         default='kube-system',
         help=utils.fmt('Namespace for the Tiller pod.')),
+    cfg.StrOpt(
+        'tiller_host',
+        default=None,
+        help=utils.fmt('IP/hostname of the Tiller pod.')),
     cfg.IntOpt(
         'tiller_port',
         default=44134,
