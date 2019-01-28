@@ -52,18 +52,11 @@ class ChartDeploy(object):
 
         result = {}
 
-        protected = chart.get('protected', {})
-        p_continue = protected.get('continue_processing', False)
-
         old_release = self.find_chart_release(known_releases, release_name)
 
         status = None
         if old_release:
             status = r.get_release_status(old_release)
-
-            if status not in [const.STATUS_FAILED, const.STATUS_DEPLOYED]:
-                raise armada_exceptions.UnexpectedReleaseStatusException(
-                    release_name, status)
 
         chart_wait = ChartWait(
             self.tiller.k8s,
@@ -81,29 +74,6 @@ class ChartDeploy(object):
 
         chartbuilder = ChartBuilder(chart)
         new_chart = chartbuilder.get_helm_chart()
-
-        # Check for existing FAILED release, and purge
-        if status == const.STATUS_FAILED:
-            LOG.info('Purging FAILED release %s before deployment.',
-                     release_name)
-            if protected:
-                if p_continue:
-                    LOG.warn(
-                        'Release %s is `protected`, '
-                        'continue_processing=True. Operator must '
-                        'handle FAILED release manually.', release_name)
-                    result['protected'] = release_name
-                    return result
-                else:
-                    LOG.error(
-                        'Release %s is `protected`, '
-                        'continue_processing=False.', release_name)
-                    raise armada_exceptions.ProtectedReleaseException(
-                        release_name)
-            else:
-                # Purge the release
-                self.tiller.uninstall_release(release_name)
-                result['purge'] = release_name
 
         # TODO(mark-burnett): It may be more robust to directly call
         # tiller status to decide whether to install/upgrade rather
@@ -181,6 +151,62 @@ class ChartDeploy(object):
                          tiller_result.__dict__)
                 result['upgrade'] = release_name
         else:
+            # Check for release with status other than DEPLOYED
+            if status:
+                if status != const.STATUS_FAILED:
+                    LOG.warn(
+                        'Unexpected release status encountered '
+                        'release=%s, status=%s', release_name, status)
+
+                    # Make best effort to determine whether a deployment is
+                    # likely pending, by checking if the last deployment
+                    # was started within the timeout window of the chart.
+                    last_deployment_age = r.get_last_deployment_age(
+                        old_release)
+                    wait_timeout = chart_wait.get_timeout()
+                    likely_pending = last_deployment_age <= wait_timeout
+                    if likely_pending:
+                        # Give up if a deployment is likely pending, we do not
+                        # want to have multiple operations going on for the
+                        # same release at the same time.
+                        raise armada_exceptions.\
+                            DeploymentLikelyPendingException(
+                                release_name, status, last_deployment_age,
+                                wait_timeout)
+                    else:
+                        # Release is likely stuck in an unintended (by tiller)
+                        # state. Log and continue on with remediation steps
+                        # below.
+                        LOG.info(
+                            'Old release %s likely stuck in status %s, '
+                            '(last deployment age=%ss) >= '
+                            '(chart wait timeout=%ss)', release, status,
+                            last_deployment_age, wait_timeout)
+
+                protected = chart.get('protected', {})
+                if protected:
+                    p_continue = protected.get('continue_processing', False)
+                    if p_continue:
+                        LOG.warn(
+                            'Release %s is `protected`, '
+                            'continue_processing=True. Operator must '
+                            'handle %s release manually.', release_name,
+                            status)
+                        result['protected'] = release_name
+                        return result
+                    else:
+                        LOG.error(
+                            'Release %s is `protected`, '
+                            'continue_processing=False.', release_name)
+                        raise armada_exceptions.ProtectedReleaseException(
+                            release_name, status)
+                else:
+                    # Purge the release
+                    LOG.info('Purging release %s with status %s', release_name,
+                             status)
+                    self.tiller.uninstall_release(release_name)
+                    result['purge'] = release_name
+
             timer = int(round(deadline - time.time()))
             LOG.info(
                 "Installing release %s in namespace %s, wait=%s, "

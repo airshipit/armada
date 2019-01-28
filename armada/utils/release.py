@@ -14,6 +14,8 @@
 
 from armada.handlers.test import Test
 
+import time
+
 
 def release_prefixer(prefix, release):
     '''
@@ -53,3 +55,17 @@ def get_last_test_result(release):
     if not status.HasField('last_test_suite_run'):
         return None
     return Test.get_test_suite_run_success(status.last_test_suite_run)
+
+
+def get_last_deployment_age(release):
+    """
+    :param release: protobuf release object
+
+    :return: age in seconds of last deployment of release
+    """
+
+    last_deployed = release.info.last_deployed.seconds
+    now = int(time.time())
+    last_deployment_age = now - last_deployed
+
+    return last_deployment_age

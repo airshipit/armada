@@ -31,14 +31,15 @@ class ArmadaTimeoutException(ArmadaException):
 
 class ProtectedReleaseException(ArmadaException):
     '''
-    Exception that occurs when Armada encounters a FAILED release that is
-    designated `protected` in the Chart and `continue_processing` is False.
+    Exception that occurs when Armada encounters a release with status other
+    than DEPLOYED that is designated `protected` in the Chart and
+    `continue_processing` is False.
     '''
 
-    def __init__(self, reason):
+    def __init__(self, release, status):
         self._message = (
-            'Armada encountered protected release %s in FAILED status' %
-            reason)
+            'Armada encountered protected release {} in {} status'.format(
+                release, status))
         super(ProtectedReleaseException, self).__init__(self._message)
 
 
@@ -88,13 +89,16 @@ class WaitException(ArmadaException):
         super(WaitException, self).__init__(message)
 
 
-class UnexpectedReleaseStatusException(ArmadaException):
+class DeploymentLikelyPendingException(ArmadaException):
     '''
-    Exception that occurs when armada encounters an existing release for a
-    chart with an unexpected status which armada does not know what to do with.
+    Exception that occurs when it is detected that an existing release
+    operation (e.g. install, update, rollback, delete) is likely still pending.
     '''
 
-    def __init__(self, release_name, status):
-        self._message = "Found release {} in unexpected status {}".format(
-            release_name, status)
-        super(UnexpectedReleaseStatusException, self).__init__(self._message)
+    def __init__(self, release, status, last_deployment_age, timeout):
+        self._message = (
+            'Existing deployment likely pending '
+            'release={}, status={}, '
+            '(last deployment age={}s) < (chart wait timeout={}s)'.format(
+                release, status, last_deployment_age, timeout))
+        super(DeploymentLikelyPendingException, self).__init__(self._message)
