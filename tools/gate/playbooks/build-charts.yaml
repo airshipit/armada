@@ -1,4 +1,4 @@
-# Copyright 2017 The Openstack-Helm Authors.
+# Copyright 2019, AT&T Intellectual Property
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-description: A Helm chart for Armada
-name: armada
-version: 0.1.0
-keywords:
-- armada
-home: https://airship-armada.readthedocs.io
-sources:
-- https://github.com/openstack/airship-armada
-engine: gotpl
+- hosts: primary
+  tasks:
+    - name: Build charts
+      shell: |
+        make charts
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
