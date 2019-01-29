@@ -124,7 +124,10 @@ class TestChartManifest(CliAction):
 
         if self.release:
             if not self.ctx.obj.get('api', False):
-                test_handler = Test(self.release, tiller, cleanup=self.cleanup)
+                test_handler = Test({},
+                                    self.release,
+                                    tiller,
+                                    cleanup=self.cleanup)
                 test_handler.test_release_for_success()
             else:
                 client = self.ctx.obj.get('CLIENT')
@@ -156,14 +159,12 @@ class TestChartManifest(CliAction):
                         release_name = release_prefixer(
                             prefix, chart.get('release'))
                         if release_name in known_release_names:
-                            test_values = chart.get('test', {})
-
                             test_handler = Test(
+                                chart,
                                 release_name,
                                 tiller,
                                 cleanup=self.cleanup,
-                                enable_all=self.enable_all,
-                                test_values=test_values)
+                                enable_all=self.enable_all)
 
                             if test_handler.test_enabled:
                                 test_handler.test_release_for_success()

@@ -21,6 +21,7 @@ import time
 from oslo_log import log as logging
 
 from armada import const
+from armada.utils.helm import is_test_pod
 from armada.utils.release import label_selectors
 from armada.exceptions import k8s_exceptions
 from armada.exceptions import manifest_exceptions
@@ -30,6 +31,11 @@ from kubernetes import watch
 LOG = logging.getLogger(__name__)
 
 ROLLING_UPDATE_STRATEGY_TYPE = 'RollingUpdate'
+
+
+def get_wait_labels(chart):
+    wait_config = chart.get('wait', {})
+    return wait_config.get('labels', {})
 
 
 # TODO: Validate this object up front in armada validate flow.
@@ -46,7 +52,7 @@ class ChartWait():
         self.k8s_wait_attempt_sleep = max(k8s_wait_attempt_sleep, 1)
 
         resources = self.wait_config.get('resources')
-        labels = self.wait_config.get('labels', {})
+        labels = get_wait_labels(self.chart)
 
         if resources is not None:
             waits = []
@@ -349,25 +355,16 @@ class PodWait(ResourceWait):
 
     def include_resource(self, resource):
         pod = resource
-        annotations = pod.metadata.annotations
-
-        # Retrieve pod's Helm test hooks
-        test_hooks = None
-        if annotations:
-            hook_string = annotations.get(const.HELM_HOOK_ANNOTATION)
-            if hook_string:
-                hooks = hook_string.split(',')
-                test_hooks = [h for h in hooks if h in const.HELM_TEST_HOOKS]
+        include = not is_test_pod(pod)
 
         # NOTE(drewwalters96): Test pods may cause wait operations to fail
         # when old resources remain from previous upgrades/tests. Indicate that
         # test pods should not be included in wait operations.
-        if test_hooks:
-            LOG.debug('Pod %s will be skipped during wait operations.',
+        if not include:
+            LOG.debug('Test pod %s will be skipped during wait operations.',
                       pod.metadata.name)
-            return False
-        else:
-            return True
+
+        return include
 
     def is_resource_ready(self, resource):
         pod = resource

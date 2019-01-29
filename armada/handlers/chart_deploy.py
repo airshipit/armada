@@ -232,12 +232,11 @@ class ChartDeploy(object):
         just_deployed = ('install' in result) or ('upgrade' in result)
         last_test_passed = old_release and r.get_last_test_result(old_release)
 
-        test_values = chart.get('test')
         test_handler = Test(
+            chart,
             release_name,
             self.tiller,
-            cg_test_charts=cg_test_all_charts,
-            test_values=test_values)
+            cg_test_charts=cg_test_all_charts)
 
         run_test = test_handler.test_enabled and (just_deployed or
                                                   not last_test_passed)

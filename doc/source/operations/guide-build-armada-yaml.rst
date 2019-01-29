@@ -203,10 +203,15 @@ Test options to pass through directly to helm.
 
 .. note::
 
-    The preferred way to achieve test cleanup is to add a pre-upgrade delete
-    action on the test pod, which allows for debugging the test pod up until the
-    next upgrade.
+    If cleanup is ``true`` this prevents being able to debug a test in the event of failure.
 
+    Historically, the preferred way to achieve test cleanup has been to add a pre-upgrade delete
+    action on the test pod.
+
+    This still works, however it is usually no longer necessary as Armada now automatically
+    cleans up any test pods which match the ``wait.labels`` of the chart, immediately before
+    running tests. Similar suggestions have been made for how ``helm test --cleanup`` itself
+    ought to work (https://github.com/helm/helm/issues/3279).
 
 Upgrade - Pre
 ^^^^^^^^^^^^^

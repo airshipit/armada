@@ -32,7 +32,7 @@ from oslo_log import log as logging
 from armada import const
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
-from armada.handlers import test
+from armada.utils import helm
 from armada.utils.release import label_selectors, get_release_status
 
 TILLER_VERSION = b'2.12.1'
@@ -502,7 +502,7 @@ class Tiller(object):
 
             failed = 0
             for test_message in test_message_stream:
-                if test_message.status == test.TESTRUN_STATUS_FAILURE:
+                if test_message.status == helm.TESTRUN_STATUS_FAILURE:
                     failed += 1
                 LOG.info(test_message.msg)
             if failed:
