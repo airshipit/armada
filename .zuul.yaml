@@ -21,10 +21,12 @@
     check:
       jobs:
         - openstack-tox-pep8
+        - airship-armada-chart-build-gate
         - airship-armada-docker-build-gate
     gate:
       jobs:
         - openstack-tox-pep8
+        - airship-armada-chart-build-gate
         - airship-armada-docker-build-gate
     post:
       jobs:
@@ -35,6 +37,14 @@
     nodes:
       - name: primary
         label: ubuntu-xenial
+
+- job:
+    name: airship-armada-chart-build-gate
+    timeout: 900
+    run: tools/gate/playbooks/build-charts.yaml
+    nodeset: airship-armada-single-node
+    files:
+      - ^charts/.*$
 
 - job:
     name: airship-armada-docker-build-gate
