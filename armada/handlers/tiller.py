@@ -580,13 +580,21 @@ class Tiller(object):
             LOG.exception('Failed to get Tiller version.')
             raise ex.TillerVersionException()
 
-    def uninstall_release(self, release, disable_hooks=False, purge=True):
+    def uninstall_release(self,
+                          release,
+                          disable_hooks=False,
+                          purge=True,
+                          timeout=None):
         '''
         :param: release - Helm chart release name
         :param: purge - deep delete of chart
+        :param: timeout - timeout for the tiller call
 
         Deletes a Helm chart from Tiller
         '''
+
+        if timeout is None:
+            timeout = const.DEFAULT_DELETE_TIMEOUT
 
         # Helm client calls ReleaseContent in Delete dry-run scenario
         if self.dry_run:
@@ -601,16 +609,17 @@ class Tiller(object):
         try:
             stub = ReleaseServiceStub(self.channel)
             LOG.info(
-                "Uninstall %s release with disable_hooks=%s, "
-                "purge=%s flags", release, disable_hooks, purge)
+                "Delete %s release with disable_hooks=%s, "
+                "purge=%s, timeout=%s flags", release, disable_hooks, purge,
+                timeout)
             release_request = UninstallReleaseRequest(
                 name=release, disable_hooks=disable_hooks, purge=purge)
 
             return stub.UninstallRelease(
-                release_request, self.timeout, metadata=self.metadata)
+                release_request, timeout, metadata=self.metadata)
 
         except Exception:
-            LOG.exception('Error while uninstalling release %s', release)
+            LOG.exception('Error while deleting release %s', release)
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Delete')
 

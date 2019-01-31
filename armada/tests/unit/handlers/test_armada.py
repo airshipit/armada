@@ -412,7 +412,10 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                             protected = chart.get('protected', {})
                             if not protected:
                                 expected_uninstall_release_calls.append(
-                                    mock.call(release_name))
+                                    mock.call(
+                                        release_name,
+                                        purge=True,
+                                        timeout=const.DEFAULT_DELETE_TIMEOUT))
                                 expected_install_release_calls.append(
                                     mock.call(
                                         mock_chartbuilder().get_helm_chart(),
