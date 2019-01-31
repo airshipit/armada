@@ -14,3 +14,5 @@ flake8>=3.3.0
 mock
 responses>=0.8.1
 yapf
+
+grpcio-tools==1.16.0
