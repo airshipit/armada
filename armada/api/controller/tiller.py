@@ -34,19 +34,7 @@ class Status(api.BaseResource):
         '''
         try:
             with self.get_tiller(req, resp) as tiller:
-
-                LOG.debug(
-                    'Tiller (Status) at: %s:%s, namespace=%s, '
-                    'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                    tiller.tiller_namespace, tiller.timeout)
-
-                message = {
-                    'tiller': {
-                        'state': tiller.tiller_status(),
-                        'version': tiller.tiller_version()
-                    }
-                }
-
+                message = self.handle(tiller)
                 resp.status = falcon.HTTP_200
                 resp.body = json.dumps(message)
                 resp.content_type = 'application/json'
@@ -55,6 +43,19 @@ class Status(api.BaseResource):
             err_message = 'Failed to get Tiller Status: {}'.format(e)
             self.error(req.context, err_message)
             self.return_error(resp, falcon.HTTP_500, message=err_message)
+
+    def handle(self, tiller):
+        LOG.debug('Tiller (Status) at: %s:%s, namespace=%s, '
+                  'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+                  tiller.tiller_namespace, tiller.timeout)
+
+        message = {
+            'tiller': {
+                'state': tiller.tiller_status(),
+                'version': tiller.tiller_version()
+            }
+        }
+        return message
 
 
 class Release(api.BaseResource):
@@ -65,18 +66,10 @@ class Release(api.BaseResource):
         '''
         try:
             with self.get_tiller(req, resp) as tiller:
-
-                LOG.debug(
-                    'Tiller (Release) at: %s:%s, namespace=%s, '
-                    'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                    tiller.tiller_namespace, tiller.timeout)
-
-                releases = {}
-                for release in tiller.list_releases():
-                    releases.setdefault(release.namespace, [])
-                    releases[release.namespace].append(release.name)
-
-                resp.body = json.dumps({'releases': releases})
+                releases = self.handle(tiller)
+                resp.body = json.dumps({
+                    'releases': releases,
+                })
                 resp.content_type = 'application/json'
                 resp.status = falcon.HTTP_200
 
@@ -84,3 +77,14 @@ class Release(api.BaseResource):
             err_message = 'Unable to find Tiller Releases: {}'.format(e)
             self.error(req.context, err_message)
             self.return_error(resp, falcon.HTTP_500, message=err_message)
+
+    def handle(self, tiller):
+        LOG.debug('Tiller (Release) at: %s:%s, namespace=%s, '
+                  'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+                  tiller.tiller_namespace, tiller.timeout)
+
+        releases = {}
+        for release in tiller.list_releases():
+            releases.setdefault(release.namespace, [])
+            releases[release.namespace].append(release.name)
+        return releases
