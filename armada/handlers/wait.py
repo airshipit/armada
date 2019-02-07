@@ -560,7 +560,7 @@ class StatefulSetWait(ControllerWait):
                 msg.format(spec.update_strategy.type,
                            ROLLING_UPDATE_STRATEGY_TYPE))
 
-        if (status.observed_generation == 0 or
+        if (not status.observed_generation or
                 sts.metadata.generation > status.observed_generation):
             msg = "Waiting for statefulset spec update to be observed..."
             return (msg, False)
