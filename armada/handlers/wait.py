@@ -463,31 +463,33 @@ class DeploymentWait(ControllerWait):
         spec = deployment.spec
         status = deployment.status
 
-        if deployment.metadata.generation <= status.observed_generation:
+        gen = deployment.metadata.generation or 0
+        observed_gen = status.observed_generation or 0
+        if gen <= observed_gen:
             cond = self._get_resource_condition(status.conditions,
                                                 'Progressing')
-            if cond and cond.reason == 'ProgressDeadlineExceeded':
+            if cond and (cond.reason or '') == 'ProgressDeadlineExceeded':
                 msg = "deployment {} exceeded its progress deadline"
                 return ("", False, msg.format(name))
 
-            if spec.replicas and status.updated_replicas < spec.replicas:
+            replicas = spec.replicas or 0
+            updated_replicas = status.updated_replicas or 0
+            available_replicas = status.available_replicas or 0
+            if updated_replicas < replicas:
                 msg = ("Waiting for deployment {} rollout to finish: {} out "
                        "of {} new replicas have been updated...")
-                return (msg.format(name, status.updated_replicas,
-                                   spec.replicas), False)
+                return (msg.format(name, updated_replicas, replicas), False)
 
-            if status.replicas > status.updated_replicas:
+            if replicas > updated_replicas:
                 msg = ("Waiting for deployment {} rollout to finish: {} old "
                        "replicas are pending termination...")
-                pending = status.replicas - status.updated_replicas
+                pending = replicas - updated_replicas
                 return (msg.format(name, pending), False)
 
-            if not self._is_min_ready(status.available_replicas,
-                                      status.updated_replicas):
+            if not self._is_min_ready(available_replicas, updated_replicas):
                 msg = ("Waiting for deployment {} rollout to finish: {} of {} "
                        "updated replicas are available, with min_ready={}")
-                return (msg.format(name, status.available_replicas,
-                                   status.updated_replicas,
+                return (msg.format(name, available_replicas, updated_replicas,
                                    self.min_ready.source), False, None)
             msg = "deployment {} successfully rolled out\n"
             return (msg.format(name), True)
@@ -516,20 +518,24 @@ class DaemonSetWait(ControllerWait):
                 msg.format(spec.update_strategy.type,
                            ROLLING_UPDATE_STRATEGY_TYPE))
 
-        if daemon.metadata.generation <= status.observed_generation:
-            if (status.updated_number_scheduled <
-                    status.desired_number_scheduled):
+        gen = daemon.metadata.generation or 0
+        observed_gen = status.observed_generation or 0
+        updated_number_scheduled = status.updated_number_scheduled or 0
+        desired_number_scheduled = status.desired_number_scheduled or 0
+        number_available = status.number_available or 0
+        if gen <= observed_gen:
+            if (updated_number_scheduled < desired_number_scheduled):
                 msg = ("Waiting for daemon set {} rollout to finish: {} out "
                        "of {} new pods have been updated...")
-                return (msg.format(name, status.updated_number_scheduled,
-                                   status.desired_number_scheduled), False)
+                return (msg.format(name, updated_number_scheduled,
+                                   desired_number_scheduled), False)
 
-            if not self._is_min_ready(status.number_available,
-                                      status.desired_number_scheduled):
+            if not self._is_min_ready(number_available,
+                                      desired_number_scheduled):
                 msg = ("Waiting for daemon set {} rollout to finish: {} of {} "
                        "updated pods are available, with min_ready={}")
-                return (msg.format(name, status.number_available,
-                                   status.desired_number_scheduled,
+                return (msg.format(name, number_available,
+                                   desired_number_scheduled,
                                    self.min_ready.source), False)
 
             msg = "daemon set {} successfully rolled out"
@@ -552,39 +558,45 @@ class StatefulSetWait(ControllerWait):
         spec = sts.spec
         status = sts.status
 
-        if spec.update_strategy.type != ROLLING_UPDATE_STRATEGY_TYPE:
+        update_strategy_type = spec.update_strategy.type or ''
+        if update_strategy_type != ROLLING_UPDATE_STRATEGY_TYPE:
             msg = ("Assuming non-readiness for strategy type {}, can only "
                    "determine for {}")
 
             raise armada_exceptions.WaitException(
-                msg.format(spec.update_strategy.type,
-                           ROLLING_UPDATE_STRATEGY_TYPE))
+                msg.format(update_strategy_type, ROLLING_UPDATE_STRATEGY_TYPE))
 
-        if (not status.observed_generation or
-                sts.metadata.generation > status.observed_generation):
+        gen = sts.metadata.generation or 0
+        observed_gen = status.observed_generation or 0
+        if (observed_gen == 0 or gen > observed_gen):
             msg = "Waiting for statefulset spec update to be observed..."
             return (msg, False)
 
-        if spec.replicas and not self._is_min_ready(status.ready_replicas,
-                                                    spec.replicas):
+        replicas = spec.replicas or 0
+        ready_replicas = status.ready_replicas or 0
+        updated_replicas = status.updated_replicas or 0
+        current_replicas = status.current_replicas or 0
+
+        if replicas and not self._is_min_ready(ready_replicas, replicas):
             msg = ("Waiting for statefulset {} rollout to finish: {} of {} "
                    "pods are ready, with min_ready={}")
-            return (msg.format(name, status.ready_replicas, spec.replicas,
+            return (msg.format(name, ready_replicas, replicas,
                                self.min_ready.source), False)
 
-        if (spec.update_strategy.type == ROLLING_UPDATE_STRATEGY_TYPE and
+        if (update_strategy_type == ROLLING_UPDATE_STRATEGY_TYPE and
                 spec.update_strategy.rolling_update):
-            if spec.replicas and spec.update_strategy.rolling_update.partition:
+            if replicas and spec.update_strategy.rolling_update.partition:
                 msg = ("Waiting on partitioned rollout not supported, "
                        "assuming non-readiness of statefulset {}")
                 return (msg.format(name), False)
 
-        if status.update_revision != status.current_revision:
+        update_revision = status.update_revision or 0
+        current_revision = status.current_revision or 0
+
+        if update_revision != current_revision:
             msg = ("waiting for statefulset rolling update to complete {} "
                    "pods at revision {}...")
-            return (msg.format(status.updated_replicas,
-                               status.update_revision), False)
+            return (msg.format(updated_replicas, update_revision), False)
 
         msg = "statefulset rolling update complete {} pods at revision {}..."
-        return (msg.format(status.current_replicas, status.current_revision),
-                True)
+        return (msg.format(current_replicas, current_revision), True)
