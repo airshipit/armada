@@ -64,7 +64,7 @@ class ChartDeploy(object):
         chart_wait = ChartWait(
             self.tiller.k8s,
             release_name,
-            chart,
+            ch,
             namespace,
             k8s_wait_attempts=self.k8s_wait_attempts,
             k8s_wait_attempt_sleep=self.k8s_wait_attempt_sleep,

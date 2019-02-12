@@ -14,23 +14,26 @@
 
 from abc import ABC, abstractmethod
 import collections
+import copy
 import math
 import re
 import time
 
+from kubernetes import watch
 from oslo_log import log as logging
 
 from armada import const
-from armada.utils.helm import is_test_pod
-from armada.utils.release import label_selectors
 from armada.exceptions import k8s_exceptions
 from armada.exceptions import manifest_exceptions
 from armada.exceptions import armada_exceptions
-from kubernetes import watch
+from armada.handlers.schema import get_schema_info
+from armada.utils.helm import is_test_pod
+from armada.utils.release import label_selectors
 
 LOG = logging.getLogger(__name__)
 
 ROLLING_UPDATE_STRATEGY_TYPE = 'RollingUpdate'
+ASYNC_UPDATE_NOT_ALLOWED_MSG = 'Async update not allowed: '
 
 
 def get_wait_labels(chart):
@@ -46,36 +49,52 @@ class ChartWait():
         self.k8s = k8s
         self.release_name = release_name
         self.chart = chart
-        self.wait_config = chart.get('wait', {})
+        chart_data = self.chart[const.KEYWORD_DATA]
+        self.chart_data = chart_data
+        self.wait_config = self.chart_data.get('wait', {})
         self.namespace = namespace
         self.k8s_wait_attempts = max(k8s_wait_attempts, 1)
         self.k8s_wait_attempt_sleep = max(k8s_wait_attempt_sleep, 1)
 
-        resources = self.wait_config.get('resources')
-        labels = get_wait_labels(self.chart)
+        schema_info = get_schema_info(self.chart['schema'])
 
-        if resources is not None:
-            waits = []
-            for resource_config in resources:
-                # Initialize labels
-                resource_config.setdefault('labels', {})
-                # Add base labels
-                resource_config['labels'].update(labels)
-                waits.append(self.get_resource_wait(resource_config))
+        resources = self.wait_config.get('resources')
+        if isinstance(resources, list):
+            # Explicit resource config list provided.
+            resources_list = resources
         else:
-            waits = [
-                JobWait('job', self, labels, skip_if_none_found=True),
-                PodWait('pod', self, labels)
-            ]
-        self.waits = waits
+            # TODO: Remove when v1 doc support is removed.
+            if schema_info.version < 2:
+                resources_list = [{
+                    'type': 'job',
+                    'required': False
+                }, {
+                    'type': 'pod'
+                }]
+            else:
+                resources_list = self.get_resources_list(resources)
+
+        chart_labels = get_wait_labels(self.chart_data)
+        for resource_config in resources_list:
+            # Use chart labels as base labels for each config.
+            labels = dict(chart_labels)
+            resource_labels = resource_config.get('labels', {})
+            # Merge in any resource-specific labels.
+            if resource_labels:
+                labels.update(resource_labels)
+            resource_config['labels'] = labels
+
+        LOG.debug('Resolved `wait.resources` list: %s', resources_list)
+
+        self.waits = [self.get_resource_wait(conf) for conf in resources_list]
 
         # Calculate timeout
         wait_timeout = timeout
         if wait_timeout is None:
             wait_timeout = self.wait_config.get('timeout')
 
-        # TODO(MarshM): Deprecated, remove `timeout` key.
-        deprecated_timeout = self.chart.get('timeout')
+        # TODO: Remove when v1 doc support is removed.
+        deprecated_timeout = self.chart_data.get('timeout')
         if deprecated_timeout is not None:
             LOG.warn('The `timeout` key is deprecated and support '
                      'for this will be removed soon. Use '
@@ -90,12 +109,19 @@ class ChartWait():
 
         self.timeout = wait_timeout
 
+        # Determine whether to enable native wait.
+        native = self.wait_config.get('native', {})
+
+        # TODO: Remove when v1 doc support is removed.
+        default_native = schema_info.version < 2
+
+        self.native_enabled = native.get('enabled', default_native)
+
     def get_timeout(self):
         return self.timeout
 
     def is_native_enabled(self):
-        native_wait = self.wait_config.get('native', {})
-        return native_wait.get('enabled', True)
+        return self.native_enabled
 
     def wait(self, timeout):
         deadline = time.time() + timeout
@@ -103,6 +129,54 @@ class ChartWait():
         for wait in self.waits:
             wait.wait(timeout=timeout)
             timeout = int(round(deadline - time.time()))
+
+    def get_resources_list(self, resources):
+        # Use default resource configs, with any provided resource type
+        # overrides merged in.
+
+        # By default, wait on all supported resource types.
+        resource_order = [
+            # Jobs may perform initialization so add them first.
+            'job',
+            'daemonset',
+            'statefulset',
+            'deployment',
+            'pod'
+        ]
+        base_resource_config = {
+            # By default, skip if none found so we don't fail on charts
+            # which don't contain resources of a given type.
+            'required': False
+        }
+        # Create a map of resource types to default configs.
+        resource_configs = collections.OrderedDict(
+            [(type, base_resource_config) for type in resource_order])
+
+        # Handle any overrides and/or removals of resource type configs.
+        if resources:
+            for resource_type, v in resources.items():
+                if v is False:
+                    # Remove this type.
+                    resource_configs.pop(resource_type)
+                else:
+                    # Override config for this type.
+                    resource_configs[resource_type] = v
+
+        resources_list = []
+        # Convert the resource type map to a list of fully baked resource
+        # configs with type included.
+        for resource_type, config in resource_configs.items():
+            if isinstance(config, list):
+                configs = config
+            else:
+                configs = [config]
+
+            for conf in configs:
+                resource_config = copy.deepcopy(conf)
+                resource_config['type'] = resource_type
+                resources_list.append(resource_config)
+
+        return resources_list
 
     def get_resource_wait(self, resource_config):
 
@@ -138,12 +212,12 @@ class ResourceWait(ABC):
                  chart_wait,
                  labels,
                  get_resources,
-                 skip_if_none_found=False):
+                 required=True):
         self.resource_type = resource_type
         self.chart_wait = chart_wait
         self.label_selector = label_selectors(labels)
         self.get_resources = get_resources
-        self.skip_if_none_found = skip_if_none_found
+        self.required = required
 
     @abstractmethod
     def is_resource_ready(self, resource):
@@ -174,19 +248,19 @@ class ResourceWait(ABC):
 
     def handle_resource(self, resource):
         resource_name = resource.metadata.name
+        resource_desc = '{} {}'.format(self.resource_type, resource_name)
 
         try:
             message, resource_ready = self.is_resource_ready(resource)
 
             if resource_ready:
-                LOG.debug('Resource %s is ready!', resource_name)
+                LOG.debug('%s is ready!', resource_desc)
             else:
-                LOG.debug('Resource %s not ready: %s', resource_name, message)
+                LOG.debug('%s not ready: %s', resource_desc, message)
 
             return resource_ready
         except armada_exceptions.WaitException as e:
-            LOG.warn('Resource %s unlikely to become ready: %s', resource_name,
-                     e)
+            LOG.warn('%s unlikely to become ready: %s', resource_desc, e)
             return False
 
     def wait(self, timeout):
@@ -194,12 +268,13 @@ class ResourceWait(ABC):
         :param timeout: time before disconnecting ``Watch`` stream
         '''
 
+        min_ready_msg = ', min_ready={}'.format(
+            self.min_ready.source) if isinstance(self, ControllerWait) else ''
         LOG.info(
-            "Waiting for resource type=%s, namespace=%s labels=%s for %ss "
-            "(k8s wait %s times, sleep %ss)", self.resource_type,
-            self.chart_wait.namespace, self.label_selector, timeout,
-            self.chart_wait.k8s_wait_attempts,
-            self.chart_wait.k8s_wait_attempt_sleep)
+            "Waiting for resource type=%s, namespace=%s labels=%s "
+            "required=%s%s for %ss", self.resource_type,
+            self.chart_wait.namespace, self.label_selector, self.required,
+            min_ready_msg, timeout)
         if not self.label_selector:
             LOG.warn('"label_selector" not specified, waiting with no labels '
                      'may cause unintended consequences.')
@@ -207,60 +282,73 @@ class ResourceWait(ABC):
         # Track the overall deadline for timing out during waits
         deadline = time.time() + timeout
 
-        # NOTE(mark-burnett): Attempt to wait multiple times without
-        # modification, in case new resources appear after our watch exits.
-
-        successes = 0
-        while True:
-            deadline_remaining = int(round(deadline - time.time()))
-            if deadline_remaining <= 0:
-                error = (
-                    "Timed out waiting for resource type={}, namespace={}, "
-                    "labels={}".format(self.resource_type,
-                                       self.chart_wait.namespace,
-                                       self.label_selector))
-                LOG.error(error)
-                raise k8s_exceptions.KubernetesWatchTimeoutException(error)
-
-            timed_out, modified, unready, found_resources = (
-                self._watch_resource_completions(timeout=deadline_remaining))
-
-            if (not found_resources) and self.skip_if_none_found:
-                return
-
-            if timed_out:
-                if not found_resources:
-                    details = (
-                        'None found! Are `wait.labels` correct? Does '
-                        '`wait.resources` need to exclude `type: {}`?'.format(
-                            self.resource_type))
+        schema_info = get_schema_info(self.chart_wait.chart['schema'])
+        # TODO: Remove when v1 doc support is removed.
+        if schema_info.version < 2:
+            # NOTE(mark-burnett): Attempt to wait multiple times without
+            # modification, in case new resources appear after our watch exits.
+            successes = 0
+            while True:
+                modified = self._wait(deadline)
+                if modified is None:
+                    break
+                if modified:
+                    successes = 0
+                    LOG.debug('Found modified resources: %s', sorted(modified))
                 else:
-                    details = ('These {}s were not ready={}'.format(
-                        self.resource_type, sorted(unready)))
-                error = (
-                    'Timed out waiting for {}s (namespace={}, labels=({})). {}'
-                    .format(self.resource_type, self.chart_wait.namespace,
-                            self.label_selector, details))
-                LOG.error(error)
-                raise k8s_exceptions.KubernetesWatchTimeoutException(error)
+                    successes += 1
+                    LOG.debug('Found no modified resources.')
 
-            if modified:
-                successes = 0
-                LOG.debug('Found modified resources: %s', sorted(modified))
+                if successes >= self.chart_wait.k8s_wait_attempts:
+                    return
+
+                LOG.debug(
+                    'Continuing to wait: %s consecutive attempts without '
+                    'modified resources of %s required.', successes,
+                    self.chart_wait.k8s_wait_attempts)
+                time.sleep(self.chart_wait.k8s_wait_attempt_sleep)
+        else:
+            self._wait(deadline)
+
+    def _wait(self, deadline):
+        '''
+        Waits for resources to become ready.
+        Returns whether resources were modified, or `None` if that is to be
+        ignored.
+        '''
+
+        deadline_remaining = int(round(deadline - time.time()))
+        if deadline_remaining <= 0:
+            error = ("Timed out waiting for resource type={}, namespace={}, "
+                     "labels={}".format(self.resource_type,
+                                        self.chart_wait.namespace,
+                                        self.label_selector))
+            LOG.error(error)
+            raise k8s_exceptions.KubernetesWatchTimeoutException(error)
+
+        timed_out, modified, unready, found_resources = (
+            self._watch_resource_completions(timeout=deadline_remaining))
+
+        if (not found_resources) and not self.required:
+            return None
+
+        if timed_out:
+            if not found_resources:
+                details = (
+                    'None found! Are `wait.labels` correct? Does '
+                    '`wait.resources` need to exclude `type: {}`?'.format(
+                        self.resource_type))
             else:
-                successes += 1
-                LOG.debug('Found no modified resources.')
+                details = ('These {}s were not ready={}'.format(
+                    self.resource_type, sorted(unready)))
+            error = (
+                'Timed out waiting for {}s (namespace={}, labels=({})). {}'.
+                format(self.resource_type, self.chart_wait.namespace,
+                       self.label_selector, details))
+            LOG.error(error)
+            raise k8s_exceptions.KubernetesWatchTimeoutException(error)
 
-            if successes >= self.chart_wait.k8s_wait_attempts:
-                break
-
-            LOG.debug(
-                'Continuing to wait: %s consecutive attempts without '
-                'modified resources of %s required.', successes,
-                self.chart_wait.k8s_wait_attempts)
-            time.sleep(self.chart_wait.k8s_wait_attempt_sleep)
-
-        return True
+        return modified
 
     def _watch_resource_completions(self, timeout):
         '''
@@ -288,8 +376,8 @@ class ResourceWait(ABC):
             if self.include_resource(resource):
                 ready[resource.metadata.name] = self.handle_resource(resource)
         if not resource_list.items:
-            if self.skip_if_none_found:
-                msg = 'Skipping wait, no %s resources found.'
+            if not self.required:
+                msg = 'Skipping non-required wait, no %s resources found.'
                 LOG.debug(msg, self.resource_type)
                 return (False, modified, [], found_resources)
         else:
@@ -370,11 +458,19 @@ class PodWait(ResourceWait):
         if is_test_pod(pod):
             return 'helm test pod'
 
-        # Exclude job pods
-        # TODO: Once controller-based waits are enabled by default, ignore
-        # controller-owned pods as well.
-        if has_owner(pod, 'Job'):
-            return 'generated by job (wait on that instead if not already)'
+        schema_info = get_schema_info(self.chart_wait.chart['schema'])
+        # TODO: Remove when v1 doc support is removed.
+        if schema_info.version < 2:
+            # Exclude job pods
+            if has_owner(pod, 'Job'):
+                return 'owned by job'
+        else:
+            # Exclude all pods with an owner (only include raw pods)
+            # TODO: In helm 3, all resources will likely have the release CR as
+            # an owner, so this will need to be updated to not exclude pods
+            # directly owned by the release.
+            if has_owner(pod):
+                return 'owned by another resource'
 
         return None
 
@@ -409,7 +505,7 @@ class JobWait(ResourceWait):
 
         # Exclude cronjob jobs
         if has_owner(job, 'CronJob'):
-            return 'generated by cronjob (not part of release)'
+            return 'owned by cronjob (not part of release)'
 
         return None
 
@@ -493,10 +589,13 @@ class DeploymentWait(ControllerWait):
         name = deployment.metadata.name
         spec = deployment.spec
         status = deployment.status
-
         gen = deployment.metadata.generation or 0
         observed_gen = status.observed_generation or 0
+
         if gen <= observed_gen:
+            # TODO: Don't fail for lack of progress if `min_ready` is met.
+            # TODO: Consider continuing after `min_ready` is met, so long as
+            # progress is being made.
             cond = self._get_resource_condition(status.conditions,
                                                 'Progressing')
             if cond and (cond.reason or '') == 'ProgressDeadlineExceeded':
@@ -531,30 +630,42 @@ class DeploymentWait(ControllerWait):
 
 class DaemonSetWait(ControllerWait):
 
-    def __init__(self, resource_type, chart_wait, labels, **kwargs):
+    def __init__(self,
+                 resource_type,
+                 chart_wait,
+                 labels,
+                 allow_async_updates=False,
+                 **kwargs):
         super(DaemonSetWait, self).__init__(
             resource_type, chart_wait, labels,
             chart_wait.k8s.apps_v1_api.list_namespaced_daemon_set, **kwargs)
+
+        self.allow_async_updates = allow_async_updates
 
     def is_resource_ready(self, resource):
         daemon = resource
         name = daemon.metadata.name
         spec = daemon.spec
         status = daemon.status
-
-        if spec.update_strategy.type != ROLLING_UPDATE_STRATEGY_TYPE:
-            msg = ("Assuming non-readiness for strategy type {}, can only "
-                   "determine for {}")
-            raise armada_exceptions.WaitException(
-                msg.format(spec.update_strategy.type,
-                           ROLLING_UPDATE_STRATEGY_TYPE))
-
         gen = daemon.metadata.generation or 0
         observed_gen = status.observed_generation or 0
-        updated_number_scheduled = status.updated_number_scheduled or 0
-        desired_number_scheduled = status.desired_number_scheduled or 0
-        number_available = status.number_available or 0
+
+        if not self.allow_async_updates:
+            is_update = observed_gen > 1
+            if is_update:
+                strategy = spec.update_strategy.type or ''
+                is_rolling = strategy == ROLLING_UPDATE_STRATEGY_TYPE
+                if not is_rolling:
+                    msg = "{}: update strategy type = {}"
+
+                    raise armada_exceptions.WaitException(
+                        msg.format(ASYNC_UPDATE_NOT_ALLOWED_MSG, strategy))
+
         if gen <= observed_gen:
+            updated_number_scheduled = status.updated_number_scheduled or 0
+            desired_number_scheduled = status.desired_number_scheduled or 0
+            number_available = status.number_available or 0
+
             if (updated_number_scheduled < desired_number_scheduled):
                 msg = ("Waiting for daemon set {} rollout to finish: {} out "
                        "of {} new pods have been updated...")
@@ -578,48 +689,57 @@ class DaemonSetWait(ControllerWait):
 
 class StatefulSetWait(ControllerWait):
 
-    def __init__(self, resource_type, chart_wait, labels, **kwargs):
+    def __init__(self,
+                 resource_type,
+                 chart_wait,
+                 labels,
+                 allow_async_updates=False,
+                 **kwargs):
         super(StatefulSetWait, self).__init__(
             resource_type, chart_wait, labels,
             chart_wait.k8s.apps_v1_api.list_namespaced_stateful_set, **kwargs)
+
+        self.allow_async_updates = allow_async_updates
 
     def is_resource_ready(self, resource):
         sts = resource
         name = sts.metadata.name
         spec = sts.spec
         status = sts.status
-
-        update_strategy_type = spec.update_strategy.type or ''
-        if update_strategy_type != ROLLING_UPDATE_STRATEGY_TYPE:
-            msg = ("Assuming non-readiness for strategy type {}, can only "
-                   "determine for {}")
-
-            raise armada_exceptions.WaitException(
-                msg.format(update_strategy_type, ROLLING_UPDATE_STRATEGY_TYPE))
-
         gen = sts.metadata.generation or 0
         observed_gen = status.observed_generation or 0
-        if (observed_gen == 0 or gen > observed_gen):
-            msg = "Waiting for statefulset spec update to be observed..."
-            return (msg, False)
-
         replicas = spec.replicas or 0
         ready_replicas = status.ready_replicas or 0
         updated_replicas = status.updated_replicas or 0
         current_replicas = status.current_replicas or 0
+
+        if not self.allow_async_updates:
+            is_update = observed_gen > 1
+            if is_update:
+                strategy = spec.update_strategy.type or ''
+                is_rolling = strategy == ROLLING_UPDATE_STRATEGY_TYPE
+                if not is_rolling:
+                    msg = "{}: update strategy type = {}"
+
+                    raise armada_exceptions.WaitException(
+                        msg.format(ASYNC_UPDATE_NOT_ALLOWED_MSG, strategy))
+
+                if (is_rolling and replicas and
+                        spec.update_strategy.rolling_update.partition):
+                    msg = "{}: partitioned rollout"
+
+                    raise armada_exceptions.WaitException(
+                        msg.format(ASYNC_UPDATE_NOT_ALLOWED_MSG))
+
+        if (observed_gen == 0 or gen > observed_gen):
+            msg = "Waiting for statefulset spec update to be observed..."
+            return (msg, False)
 
         if replicas and not self._is_min_ready(ready_replicas, replicas):
             msg = ("Waiting for statefulset {} rollout to finish: {} of {} "
                    "pods are ready, with min_ready={}")
             return (msg.format(name, ready_replicas, replicas,
                                self.min_ready.source), False)
-
-        if (update_strategy_type == ROLLING_UPDATE_STRATEGY_TYPE and
-                spec.update_strategy.rolling_update):
-            if replicas and spec.update_strategy.rolling_update.partition:
-                msg = ("Waiting on partitioned rollout not supported, "
-                       "assuming non-readiness of statefulset {}")
-                return (msg.format(name), False)
 
         update_revision = status.update_revision or 0
         current_revision = status.current_revision or 0

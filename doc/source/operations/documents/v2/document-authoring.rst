@@ -124,6 +124,8 @@ Chart
 | dependencies    | object   | (optional) reference any chart dependencies before install                            |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 
+.. _wait_v2:
+
 Wait
 ^^^^
 
@@ -132,8 +134,26 @@ Wait
 +=============+==========+====================================================================+
 | timeout     | int      | time (in seconds) to wait for chart to deploy                      |
 +-------------+----------+--------------------------------------------------------------------+
-| resources   | array    | Array of `Wait Resource`_ to wait on, with ``labels`` added to each|
-|             |          | item. Defaults to pods and jobs (if any exist) matching ``labels``.|
+| resources   | dict \|  | `Wait Resource`_ s to wait on. Defaults to all supported resource  |
+|             | array    | types (see `Wait Resource`_ ``.type``), with                       |
+|             |          | ``required: false``.                                               |
+|             |          |                                                                    |
+|             |          | **dict** - Maps resource types to one of:                          |
+|             |          |                                                                    |
+|             |          |   - `Wait Resource`_ without ``.type`` (single config)             |
+|             |          |                                                                    |
+|             |          |   - list of `Wait Resource`_ without ``.type`` (multiple configs)  |
+|             |          |                                                                    |
+|             |          |   - ``false`` (disabled)                                           |
+|             |          |                                                                    |
+|             |          |   Any resource type not overridden retains its default config      |
+|             |          |   mentioned above.                                                 |
+|             |          |                                                                    |
+|             |          | **array** - Lists all `Wait Resource`_ s to use, completely        |
+|             |          | overriding the default. Can be set to ``[]`` to disable all        |
+|             |          | resource types.                                                    |
+|             |          |                                                                    |
+|             |          | See also `Wait Resources Examples`_.                               |
 +-------------+----------+--------------------------------------------------------------------+
 | labels      | object   | Base mapping of labels to wait on. They are added to any labels in |
 |             |          | each item in the ``resources`` array.                              |
@@ -143,18 +163,89 @@ Wait
 
 Wait Resource
 ^^^^^^^^^^^^^
-+-------------+----------+--------------------------------------------------------------------+
-| keyword     | type     | action                                                             |
-+=============+==========+====================================================================+
-| type        | string   | k8s resource type, supports: controllers ('deployment',            |
-|             |          | 'daemonset', 'statefulset'), 'pod', 'job'                          |
-+-------------+----------+--------------------------------------------------------------------+
-| labels      | object   | mapping of kubernetes resource labels                              |
-+-------------+----------+--------------------------------------------------------------------+
-| min\_ready  | int      | Only for controller ``type``s. Amount of pods in a controller      |
-|             | string   | which must be ready. Can be integer or percent string e.g. ``80%``.|
-|             |          | Default ``100%``.                                                  |
-+-------------+----------+--------------------------------------------------------------------+
+
++----------------------------+----------+--------------------------------------------------------------------+
+| keyword                    | type     | action                                                             |
++============================+==========+====================================================================+
+| type                       | string   | K8s resource type, supports: 'deployment', 'daemonset',            |
+|                            |          | 'statefulset', 'pod', 'job'.                                       |
+|                            |          |                                                                    |
+|                            |          | NOTE: Omit when Wait_ ``.resources`` is a dict, as then the dict   |
+|                            |          | key is used instead.                                               |
++----------------------------+----------+--------------------------------------------------------------------+
+| labels                     | object   | Kubernetes labels specific to this resource.                       |
+|                            |          | Wait_ ``.labels`` are included with these, so only define this if  |
+|                            |          | additional labels are needed to identify the targeted resources.   |
++----------------------------+----------+--------------------------------------------------------------------+
+| min\_ready                 | int \|   | Only for controller ``type`` s. Amount of pods in a controller     |
+|                            | string   | which must be ready. Can be integer or percent string e.g. ``80%``.|
+|                            |          | Default ``100%``.                                                  |
++----------------------------+----------+--------------------------------------------------------------------+
+| allow\_async\_updates      | boolean  | Only for ``daemonset`` and ``statefulset`` types. Whether to       |
+|                            |          | wait for async update strategies, i.e. OnDelete or partitioned     |
+|                            |          | RollingUpdate. Defaults to ``false`` in order to fail fast in      |
+|                            |          | cases where the async update is not expected to complete until     |
+|                            |          | same point later on.                                               |
++----------------------------+----------+--------------------------------------------------------------------+
+| required                   | boolean  | Whether to require the resource to be found.                       |
+|                            |          | Defaults to ``true`` for explicit items in  ```wait.resources``.   |
+|                            |          | See ``wait.resources`` for its overall defaults.                   |
++----------------------------+----------+--------------------------------------------------------------------+
+
+Wait Resources Examples
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: yaml
+
+    wait:
+      # ...
+      # Disable all waiting.
+      resources: []
+
+.. code-block:: yaml
+
+    wait:
+      # ...
+      # Disable waiting for a given type (job).
+      resources:
+        job: false
+
+.. code-block:: yaml
+
+    wait:
+      # ...
+      # Use min_ready < 100%.
+      resources:
+        daemonset:
+          min_ready: 80%
+
+.. code-block:: yaml
+
+    wait:
+      resources:
+        # Multiple configs for same type.
+        daemonset:
+          - labels:
+              component: one
+            min_ready: 80%
+          - labels:
+              component: two
+            min_ready: 50%
+
+.. code-block:: yaml
+
+    wait:
+      # ...
+      resources:
+        - type: daemonset
+          labels:
+            component: critical
+          min_ready: 100%
+        - type: daemonset
+          labels:
+            component: best_effort
+          min_ready: 80%
+        # ... (re-include any other resource types needed when using list)
 
 Wait Native
 ^^^^^^^^^^^
@@ -164,7 +255,7 @@ Config for the native ``helm (install|upgrade) --wait`` flag.
 +-------------+----------+--------------------------------------------------------------------+
 | keyword     | type     | action                                                             |
 +=============+==========+====================================================================+
-| enabled     | boolean  | defaults to true                                                   |
+| enabled     | boolean  | defaults to ``false``                                              |
 +-------------+----------+--------------------------------------------------------------------+
 
 .. _test_v2:
@@ -187,7 +278,7 @@ Run helm tests on the chart after install/upgrade.
 .. note::
 
     Armada will attempt to run helm tests by default. They may be disabled by
-    setting the ``enabled`` key to ``False``.
+    setting the ``enabled`` key to ``false``.
 
 Test Options
 ~~~~~~~~~~~~

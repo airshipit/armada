@@ -24,7 +24,14 @@ test_chart = {'wait': {'timeout': 10, 'native': {'enabled': False}}}
 
 class ChartWaitTestCase(base.ArmadaTestCase):
 
-    def get_unit(self, chart, timeout=None):
+    def get_unit(self, chart_data, timeout=None, version=2):
+        chart = {
+            'schema': 'armada/Chart/v{}'.format(str(version)),
+            'metadata': {
+                'name': 'test'
+            },
+            const.KEYWORD_DATA: chart_data
+        }
         return wait.ChartWait(
             k8s=mock.MagicMock(),
             release_name='test-test',
@@ -44,7 +51,7 @@ class ChartWaitTestCase(base.ArmadaTestCase):
 
     def test_get_timeout_override(self):
         unit = self.get_unit(
-            timeout=20, chart={
+            timeout=20, chart_data={
                 'timeout': 5,
                 'wait': {
                     'timeout': 10
@@ -57,9 +64,9 @@ class ChartWaitTestCase(base.ArmadaTestCase):
         unit = self.get_unit({'timeout': 5})
         self.assertEquals(unit.get_timeout(), 5)
 
-    def test_is_native_enabled_default_true(self):
+    def test_is_native_enabled_default_false(self):
         unit = self.get_unit({})
-        self.assertEquals(unit.is_native_enabled(), True)
+        self.assertEquals(unit.is_native_enabled(), False)
 
     def test_is_native_enabled_true(self):
         unit = self.get_unit({'wait': {'native': {'enabled': True}}})
@@ -188,9 +195,11 @@ class ChartWaitTestCase(base.ArmadaTestCase):
 
 class PodWaitTestCase(base.ArmadaTestCase):
 
-    def get_unit(self, labels):
+    def get_unit(self, labels, version=2):
         return wait.PodWait(
-            resource_type='pod', chart_wait=mock.MagicMock(), labels=labels)
+            resource_type='pod',
+            chart_wait=ChartWaitTestCase.get_unit(None, {}, version=version),
+            labels=labels)
 
     def test_include_resource(self):
 
@@ -223,7 +232,7 @@ class PodWaitTestCase(base.ArmadaTestCase):
             mock_resource(owner_references=[mock.Mock(kind='NotAJob')])
         ]
 
-        unit = self.get_unit({})
+        unit = self.get_unit({}, version=1)
 
         # Validate test pods excluded
         for pod in test_pods:

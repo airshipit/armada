@@ -56,6 +56,68 @@ Chart
 | ``source.subpath``             |                                                            |
 | now optional                   |                                                            |
 +--------------------------------+------------------------------------------------------------+
+| ``wait`` improvements          | See `Wait Improvements`_.                                  |
++--------------------------------+------------------------------------------------------------+
+
+Wait Improvements
+^^^^^^^^^^^^^^^^^
+
+The :ref:`v2 wait API <wait_v2>` includes the following changes.
+
+Breaking changes
+****************
+
+1. ``wait.resources`` now defaults to all supported resource types,
+   currently ``job``, ``daemonset``, ``statefulset``, ``deployment``, and ``pod``, with
+   ``required`` (a new option) set to ``false``. The previous default was
+   the equivalent of pods with ``required=true``, and jobs with
+   ``required=false``.
+
+2. ``type: pod`` waits now exclude pods owned by other resources, such
+   as controllers, as one should instead wait directly on the controller itself,
+   which per 1. is now the default.
+
+3. Waits are no longer retried due to resources having been modified. This was
+   mildly useful before as an indicator of whether all targeted resources were
+   accounted for, but with 1. and 2. above, we are now tracking top-level
+   resources directly included in the release, rather than generated resources,
+   such as controller-owned pods, so there is no need to wait for them to come
+   into existence.
+
+4. ``wait.native.enabled`` is now disabled by default. With the above changes,
+   this is no longer useful as a backup mechanism. Having both enabled leads to
+   ambiguity in which wait would fail in each case. More importantly, this must
+   be disabled in order to use the ``min_ready`` functionality, otherwise tiller
+   will wait for 100% anyway. So this prevents accidentally leaving it enabled
+   in that case. Also when the tiller native wait times out, this caused the
+   release to be marked FAILED by tiller, which caused it to be purged and
+   re-installed (unless protected), even though the wait criteria may have
+   eventually succeeded, which is already validated by armada on a retry.
+
+New features
+************
+
+Per-resource-type overrides
++++++++++++++++++++++++++++
+
+``wait.resources`` can now be a dict, mapping individual resource types to
+wait configurations (or lists thereof), such that one can keep the default
+configuration for the other resource types, and also disable a given resource
+type, by mapping it to ``false``.
+
+The ability to provide the entire explicit list for ``wait.resources`` remains in
+place as well.
+
+required
+++++++++
+
+A ``required`` field is also exposed for items/values in ``wait.resources``.
+
+allow_async_updates
++++++++++++++++++++
+
+An ``allow_async_updates`` field is added to daemonset and statefulset type
+items/values in ``wait.resources``.
 
 ChartGroup
 ----------

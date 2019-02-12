@@ -36,6 +36,16 @@ data:
         required:
           - type
         additionalProperties: false
+    wait_resource_type_config:
+      properties:
+        labels:
+          $ref: '#/definitions/labels'
+        min_ready:
+          anyOf:
+            - type: integer
+            - type: string
+        required:
+          type: boolean
   type: object
   properties:
     release:
@@ -76,20 +86,22 @@ data:
         timeout:
           type: integer
         resources:
-          type: array
-          items:
-            properties:
-              type:
-                type: string
-              labels:
-                $ref: '#/definitions/labels'
-              min_ready:
+          anyOf:
+            - additionalProperties:
                 anyOf:
-                  - type: integer
-                  - type: string
-            required:
-              - type
-            additionalProperties: false
+                  - $ref: '#/definitions/wait_resource_type_config'
+                  - type: array
+                    items:
+                      $ref: '#/definitions/wait_resource_type_config'
+            - type: array
+              items:
+                allOf:
+                  - $ref: '#/definitions/wait_resource_type_config'
+                  - properties:
+                      type:
+                        type: string
+                    required:
+                      - type
         labels:
           $ref: "#/definitions/labels"
         # Config for helm's native `--wait` param.

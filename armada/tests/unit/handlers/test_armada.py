@@ -140,7 +140,7 @@ data:
     wait:
       timeout: 10
       native:
-        enabled: false
+        enabled: true
     test:
       enabled: true
 """
@@ -195,7 +195,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                 'wait': {
                                     'timeout': 10,
                                     'native': {
-                                        'enabled': False
+                                        'enabled': True
                                     }
                                 },
                                 'test': {
