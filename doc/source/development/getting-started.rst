@@ -22,14 +22,19 @@ To use the docker container to develop:
 
 #. Next, run the following commands to install ``tox``, generate sample policy
    and configuration files, and build Armada charts as well as the Armada
-   container image::
+   container image. Armada Dockerfile.DISTRO files are located in images/armada.
+   Supported DISTROs are ubuntu_bionic and opensuse_leap15.
+   By default, DISTRO is ubuntu_bionic.
+
+   .. code-block:: bash
 
      $ pip install tox
 
      $ tox -e genconfig
      $ tox -e genpolicy
 
-     $ docker build . -t armada/latest
+     $ export DISTRO=distro_name
+     $ docker build -f Dockerfile.${DISTRO} -t armada/latest
 
      $ make images
 
@@ -111,7 +116,7 @@ Follow the steps below to install the Armada CLI.
 
 .. warning::
 
-  Armada is only tested against a Ubuntu 16.04 environment.
+  Armada is tested against a Ubuntu 16.04 and Opensuse(leap15.0)environment.
 
 Clone the Armada repository, ``cd`` into it::
 

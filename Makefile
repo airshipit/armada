@@ -28,7 +28,8 @@ LABEL             ?= org.airshipit.build=community
 COMMIT            ?= $(shell git rev-parse HEAD)
 PYTHON            = python3
 CHARTS            := $(patsubst charts/%/.,%,$(wildcard charts/*/.))
-IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}
+DISTRO            ?= ubuntu_bionic
+IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}
 UBUNTU_BASE_IMAGE ?=
 
 # VERSION INFO
@@ -108,7 +109,7 @@ ifeq ($(USE_PROXY), true)
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date --rfc-3339=seconds --utc)" \
 		--label "org.opencontainers.image.title=$(IMAGE_NAME)" \
-		-f ./Dockerfile \
+		-f images/armada/Dockerfile.$(DISTRO) \
 		$(_BASE_IMAGE_ARG) \
 		--build-arg http_proxy=$(PROXY) \
 		--build-arg https_proxy=$(PROXY) \
@@ -121,7 +122,7 @@ else
 		--label "org.opencontainers.image.revision=$(COMMIT)" \
 		--label "org.opencontainers.image.created=$(shell date --rfc-3339=seconds --utc)" \
 		--label "org.opencontainers.image.title=$(IMAGE_NAME)" \
-		-f ./Dockerfile \
+		-f images/armada/Dockerfile.$(DISTRO) \
 		$(_BASE_IMAGE_ARG) .
 endif
 ifeq ($(PUSH_IMAGE), true)
