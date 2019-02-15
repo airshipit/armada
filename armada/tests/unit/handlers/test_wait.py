@@ -170,15 +170,14 @@ class ChartWaitTestCase(base.ArmadaTestCase):
 
         get_resource_wait.side_effect = return_mock
 
-        unit = self.get_unit({
-            'wait': {
+        unit = self.get_unit(
+            {'wait': {
                 'resources': [{
                     'type': 'foo'
                 }, {
                     'type': 'bar'
                 }]
-            }
-        })
+            }})
 
         unit.wait(10)
 
@@ -205,20 +204,12 @@ class PodWaitTestCase(base.ArmadaTestCase):
                 'key': 'value',
                 'helm.sh/hook': 'test-success'
             }),
-            mock_resource({
-                'helm.sh/hook': 'test-failure'
-            }),
-            mock_resource({
-                'helm.sh/hook': 'test-success,pre-install'
-            })
+            mock_resource({'helm.sh/hook': 'test-failure'}),
+            mock_resource({'helm.sh/hook': 'test-success,pre-install'})
         ]
         non_test_resources = [
-            mock_resource({
-                'helm.sh/hook': 'pre-install'
-            }),
-            mock_resource({
-                'key': 'value'
-            }),
+            mock_resource({'helm.sh/hook': 'pre-install'}),
+            mock_resource({'key': 'value'}),
             mock_resource({})
         ]
 

@@ -27,10 +27,9 @@ class Versions(api.BaseResource):
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({
-            'v1.0': {
+        resp.body = json.dumps(
+            {'v1.0': {
                 'path': '/api/v1.0',
                 'status': 'stable'
-            }
-        })
+            }})
         resp.content_type = 'application/json'
