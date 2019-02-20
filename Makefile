@@ -29,7 +29,7 @@ COMMIT            ?= $(shell git rev-parse HEAD)
 PYTHON            = python3
 CHARTS            := $(patsubst charts/%/.,%,$(wildcard charts/*/.))
 IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}
-BASE_IMAGE        ?=
+UBUNTU_BASE_IMAGE ?=
 
 # VERSION INFO
 GIT_COMMIT = $(shell git rev-parse HEAD)
@@ -99,7 +99,7 @@ run_images: run_armada
 run_armada: build_armada
 	./tools/armada_image_run.sh $(IMAGE)
 
-_BASE_IMAGE_ARG := $(if $(BASE_IMAGE),--build-arg FROM="${BASE_IMAGE}" ,)
+_BASE_IMAGE_ARG := $(if $(UBUNTU_BASE_IMAGE),--build-arg FROM="${UBUNTU_BASE_IMAGE}" ,)
 
 .PHONY: build_armada
 build_armada:
