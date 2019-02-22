@@ -151,7 +151,7 @@ class Test(object):
             }
 
             pod_list = self.tiller.k8s.client.list_namespaced_pod(**list_args)
-            test_pods = (pod for pod in pod_list.items if is_test_pod(pod))
+            test_pods = [pod for pod in pod_list.items if is_test_pod(pod)]
 
             if test_pods:
                 LOG.info(
