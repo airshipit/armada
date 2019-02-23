@@ -130,7 +130,7 @@ class Armada(object):
                     tarball_dir = source.get_tarball(location, verify=False)
                 else:
                     tarball_dir = source.get_tarball(
-                        location, verify=CONF.cert)
+                        location, verify=CONF.certs)
                 self.chart_cache[source_key] = tarball_dir
             chart['source_dir'] = (self.chart_cache.get(source_key), subpath)
         elif ct_type == 'git':
