@@ -211,6 +211,14 @@ conf:
     history_max: 0
 
 pod:
+  security_context:
+    armada:
+      pod:
+        runAsUser: 65534
+      container:
+        armada_api:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
   env:
     # NOTE(@drewwalters96): These configuration values change the Armada API's
     #    uWSGI configuration.
@@ -240,9 +248,6 @@ pod:
   mounts:
     armada_api:
       init_container: null
-  user:
-    armada:
-      uid: 1000
   affinity:
     anti:
       type:
