@@ -14,6 +14,8 @@
 
 import re
 
+from armada.api import HEALTH_PATH
+
 from uuid import UUID
 
 from oslo_config import cfg
@@ -100,9 +102,18 @@ class LoggingMiddleware(object):
     # don't log any headers beginning with X-*
     hdr_exclude = re.compile('x-.*', re.IGNORECASE)
 
+    # don't log anything for health checks
+    path_exclude = re.compile('.*/{}$'.format(HEALTH_PATH))
+
+    def exclude_path(self, req):
+        return LoggingMiddleware.path_exclude.match(req.path)
+
     def process_request(self, req, resp):
         """ Set up values to be logged across the request
         """
+        if self.exclude_path(req):
+            return
+
         ctx = req.context
         extra = {
             'user': ctx.user,
@@ -115,6 +126,9 @@ class LoggingMiddleware(object):
     def process_response(self, req, resp, resource, req_succeeded):
         """ Log the response information
         """
+        if self.exclude_path(req):
+            return
+
         ctx = req.context
         extra = {
             'user': ctx.user,

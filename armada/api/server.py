@@ -18,7 +18,7 @@ from oslo_policy import policy
 from oslo_log import log as logging
 
 from armada import conf
-from armada.api import ArmadaRequest
+from armada.api import ArmadaRequest, HEALTH_PATH
 from armada.api.controller.armada import Apply
 from armada.api.middleware import AuthMiddleware
 from armada.api.middleware import ContextMiddleware
@@ -60,7 +60,7 @@ def create(enable_middleware=CONF.middleware):
 
     # Configure API routing
     url_routes_v1 = (
-        ('health', Health()),
+        (HEALTH_PATH, Health()),
         ('apply', Apply()),
         ('releases', Release()),
         ('rollback/{release}', Rollback()),
