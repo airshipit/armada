@@ -17,9 +17,7 @@ import re
 from kubernetes import client
 from kubernetes import config
 from kubernetes import watch
-from kubernetes.client import api_client
 from kubernetes.client.rest import ApiException
-from unittest.mock import Mock
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -28,12 +26,6 @@ from armada.exceptions import k8s_exceptions as exceptions
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
-
-# TODO: Remove after this bug is fixed and we have uplifted to a fixed version:
-#       https://github.com/kubernetes-client/python/issues/411
-# Avoid creating thread pools in kubernetes api_client.
-_dummy_pool = Mock()
-api_client.ThreadPool = lambda *args, **kwargs: _dummy_pool
 
 
 class K8s(object):
