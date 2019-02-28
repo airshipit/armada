@@ -27,6 +27,7 @@ Commands
       -tn, --tiller-namespace TEXT  Tiller namespace
       --releases                    list of deployed releses
       --status                      Status of Armada services
+      --bearer-token                User bearer token
       --help                        Show this message and exit.
 
 Synopsis

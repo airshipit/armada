@@ -66,19 +66,20 @@ SHORT_DESC = "Command deletes releases."
 @click.option('--tiller-host', help="Tiller host IP.")
 @click.option(
     '--tiller-port', help="Tiller host port.", type=int, default=44134)
+@click.option('--bearer-token', help="User Bearer token.", default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def delete_charts(ctx, manifest, releases, no_purge, tiller_host, tiller_port,
-                  debug):
+                  bearer_token, debug):
     CONF.debug = debug
     DeleteChartManifest(ctx, manifest, releases, no_purge, tiller_host,
-                        tiller_port).safe_invoke()
+                        tiller_port, bearer_token).safe_invoke()
 
 
 class DeleteChartManifest(CliAction):
 
     def __init__(self, ctx, manifest, releases, no_purge, tiller_host,
-                 tiller_port):
+                 tiller_port, bearer_token):
 
         super(DeleteChartManifest, self).__init__()
         self.ctx = ctx
@@ -87,11 +88,13 @@ class DeleteChartManifest(CliAction):
         self.purge = not no_purge
         self.tiller_host = tiller_host
         self.tiller_port = tiller_port
+        self.bearer_token = bearer_token
 
     def invoke(self):
         with Tiller(
                 tiller_host=self.tiller_host,
-                tiller_port=self.tiller_port) as tiller:
+                tiller_port=self.tiller_port,
+                bearer_token=self.bearer_token) as tiller:
             self.handle(tiller)
 
     def handle(self, tiller):

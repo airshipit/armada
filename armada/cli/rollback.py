@@ -80,22 +80,23 @@ SHORT_DESC = "Command performs a release rollback."
     '--recreate-pods',
     help=("Restarts pods for the resource if applicable."),
     is_flag=True)
+@click.option('--bearer-token', help=("User bearer token."), default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def rollback_charts(ctx, release, version, dry_run, tiller_host, tiller_port,
                     tiller_namespace, timeout, wait, force, recreate_pods,
-                    debug):
+                    bearer_token, debug):
     CONF.debug = debug
     Rollback(ctx, release, version, dry_run, tiller_host, tiller_port,
-             tiller_namespace, timeout, wait, force,
-             recreate_pods).safe_invoke()
+             tiller_namespace, timeout, wait, force, recreate_pods,
+             bearer_token).safe_invoke()
 
 
 class Rollback(CliAction):
 
     def __init__(self, ctx, release, version, dry_run, tiller_host,
                  tiller_port, tiller_namespace, timeout, wait, force,
-                 recreate_pods):
+                 recreate_pods, bearer_token):
         super(Rollback, self).__init__()
         self.ctx = ctx
         self.release = release
@@ -108,12 +109,14 @@ class Rollback(CliAction):
         self.wait = wait
         self.force = force
         self.recreate_pods = recreate_pods
+        self.bearer_token = bearer_token
 
     def invoke(self):
         with Tiller(
                 tiller_host=self.tiller_host,
                 tiller_port=self.tiller_port,
                 tiller_namespace=self.tiller_namespace,
+                bearer_token=self.bearer_token,
                 dry_run=self.dry_run) as tiller:
 
             response = tiller.rollback_release(

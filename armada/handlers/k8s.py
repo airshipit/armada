@@ -41,20 +41,30 @@ class K8s(object):
     Object to obtain the local kube config file
     '''
 
-    def __init__(self):
+    def __init__(self, bearer_token=None):
         '''
         Initialize connection to Kubernetes
         '''
+        self.bearer_token = bearer_token
+        api_client = None
+
         try:
             config.load_incluster_config()
         except config.config_exception.ConfigException:
             config.load_kube_config()
 
-        self.client = client.CoreV1Api()
-        self.batch_api = client.BatchV1Api()
-        self.batch_v1beta1_api = client.BatchV1beta1Api()
-        self.extension_api = client.ExtensionsV1beta1Api()
-        self.apps_v1_api = client.AppsV1Api()
+        if self.bearer_token:
+            # Configure API key authorization: Bearer Token
+            configuration = client.Configuration()
+            configuration.api_key_prefix['authorization'] = 'Bearer'
+            configuration.api_key['authorization'] = self.bearer_token
+            api_client = client.ApiClient(configuration)
+
+        self.client = client.CoreV1Api(api_client)
+        self.batch_api = client.BatchV1Api(api_client)
+        self.batch_v1beta1_api = client.BatchV1beta1Api(api_client)
+        self.extension_api = client.ExtensionsV1beta1Api(api_client)
+        self.apps_v1_api = client.AppsV1Api(api_client)
 
     def delete_job_action(self,
                           name,

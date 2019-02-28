@@ -224,3 +224,25 @@ for example:
       description: Change value deploy
       chart_group:
         - blog-1
+
+User bearer token
+-----------------
+It is possible to pass the user bearer token from the armada CLI to interact
+with a kubernetes cluster that has been configured with an external Auth-backend
+like openstack-keystone.
+
+.. code:: bash
+
+    Example:
+
+    armada apply --bearer-token [ TOKEN ] --values [ path_to_yaml ] [ FILE ]
+
+    armada tiller --bearer-token [ TOKEN ] --status
+
+.. note::
+    The bearer token option is available for the following commands
+
+    armada apply
+    armada delete
+    armada tiller
+    armada rollback

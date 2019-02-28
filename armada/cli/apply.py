@@ -129,17 +129,18 @@ SHORT_DESC = "Command installs manifest charts."
     help=("The target manifest to run. Required for specifying "
           "which manifest to run when multiple are available."),
     default=None)
+@click.option('--bearer-token', help="User Bearer token", default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def apply_create(ctx, locations, api, disable_update_post, disable_update_pre,
                  dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
                  tiller_port, tiller_namespace, timeout, values, wait,
-                 target_manifest, debug):
+                 target_manifest, bearer_token, debug):
     CONF.debug = debug
     ApplyManifest(ctx, locations, api, disable_update_post, disable_update_pre,
                   dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
                   tiller_port, tiller_namespace, timeout, values, wait,
-                  target_manifest).safe_invoke()
+                  target_manifest, bearer_token).safe_invoke()
 
 
 class ApplyManifest(CliAction):
@@ -147,7 +148,7 @@ class ApplyManifest(CliAction):
     def __init__(self, ctx, locations, api, disable_update_post,
                  disable_update_pre, dry_run, enable_chart_cleanup,
                  use_doc_ref, set, tiller_host, tiller_port, tiller_namespace,
-                 timeout, values, wait, target_manifest):
+                 timeout, values, wait, target_manifest, bearer_token):
         super(ApplyManifest, self).__init__()
         self.ctx = ctx
         # Filename can also be a URL reference
@@ -166,6 +167,7 @@ class ApplyManifest(CliAction):
         self.values = values
         self.wait = wait
         self.target_manifest = target_manifest
+        self.bearer_token = bearer_token
 
     def output(self, resp):
         for result in resp:
@@ -203,6 +205,7 @@ class ApplyManifest(CliAction):
                     tiller_host=self.tiller_host,
                     tiller_port=self.tiller_port,
                     tiller_namespace=self.tiller_namespace,
+                    bearer_token=self.bearer_token,
                     dry_run=self.dry_run) as tiller:
                 armada = Armada(
                     documents,
