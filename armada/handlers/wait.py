@@ -216,22 +216,22 @@ class ResourceWait(ABC):
 
             timed_out, modified, unready, found_resources = (
                 self._watch_resource_completions(timeout=deadline_remaining))
-            if not found_resources:
-                if self.skip_if_none_found:
-                    return
-                else:
-                    LOG.warn(
-                        'Saw no resources for '
-                        'resource type=%s, namespace=%s, labels=(%s). Are the '
-                        'labels correct?', self.resource_type,
-                        self.chart_wait.namespace, self.label_selector)
 
-            # TODO(seaneagan): Should probably fail here even when resources
-            # were not found, at least once we have an option to ignore
-            # wait timeouts.
-            if timed_out and found_resources:
-                error = "Timed out waiting for resources={}".format(
-                    sorted(unready))
+            if (not found_resources) and self.skip_if_none_found:
+                return
+
+            if timed_out:
+                if not found_resources:
+                    details = ('None found! Are `wait.labels` correct? Does '
+                               '`wait.resources` need to exclude %s?'.format(
+                                   self.resource_type))
+                else:
+                    details = ('These {}s were not ready={}'.format(
+                        self.resource_type, sorted(unready)))
+                error = (
+                    'Timed out waiting for {}s (namespace={}, labels=({})). {}'
+                    .format(self.resource_type, self.chart_wait.namespace,
+                            self.label_selector, details))
                 LOG.error(error)
                 raise k8s_exceptions.KubernetesWatchTimeoutException(error)
 
