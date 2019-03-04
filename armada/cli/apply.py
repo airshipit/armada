@@ -207,20 +207,8 @@ class ApplyManifest(CliAction):
                     tiller_namespace=self.tiller_namespace,
                     bearer_token=self.bearer_token,
                     dry_run=self.dry_run) as tiller:
-                armada = Armada(
-                    documents,
-                    disable_update_pre=self.disable_update_pre,
-                    disable_update_post=self.disable_update_post,
-                    enable_chart_cleanup=self.enable_chart_cleanup,
-                    dry_run=self.dry_run,
-                    set_ovr=self.set,
-                    force_wait=self.wait,
-                    timeout=self.timeout,
-                    tiller=tiller,
-                    values=self.values,
-                    target_manifest=self.target_manifest)
 
-                resp = armada.sync()
+                resp = self.handle(documents, tiller)
                 self.output(resp)
         else:
             if len(self.values) > 0:
@@ -248,3 +236,18 @@ class ApplyManifest(CliAction):
                 resp = client.post_apply(
                     manifest=documents, set=self.set, query=query)
             self.output(resp.get('message'))
+
+    def handle(self, documents, tiller):
+        armada = Armada(
+            documents,
+            disable_update_pre=self.disable_update_pre,
+            disable_update_post=self.disable_update_post,
+            enable_chart_cleanup=self.enable_chart_cleanup,
+            dry_run=self.dry_run,
+            set_ovr=self.set,
+            force_wait=self.wait,
+            timeout=self.timeout,
+            tiller=tiller,
+            values=self.values,
+            target_manifest=self.target_manifest)
+        return armada.sync()

@@ -119,15 +119,18 @@ class Rollback(CliAction):
                 bearer_token=self.bearer_token,
                 dry_run=self.dry_run) as tiller:
 
-            response = tiller.rollback_release(
-                self.release,
-                self.version,
-                wait=self.wait,
-                timeout=self.timeout,
-                force=self.force,
-                recreate_pods=self.recreate_pods)
+            response = self.handle(tiller)
 
             self.output(response)
+
+    def handle(self, tiller):
+        return tiller.rollback_release(
+            self.release,
+            self.version,
+            wait=self.wait,
+            timeout=self.timeout,
+            force=self.force,
+            recreate_pods=self.recreate_pods)
 
     def output(self, response):
         self.logger.info(('(dry run) ' if self.dry_run else '') +

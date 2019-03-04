@@ -37,10 +37,7 @@ class TestReleasesReleaseNameController(api.BaseResource):
     @policy.enforce('armada:test_release')
     def on_get(self, req, resp, release):
         with self.get_tiller(req, resp) as tiller:
-            cleanup = req.get_param_as_bool('cleanup')
-
-            test_handler = Test({}, release, tiller, cleanup=cleanup)
-            success = test_handler.test_release_for_success()
+            success = self.handle(req, release, tiller)
 
         if success:
             msg = {
@@ -56,6 +53,11 @@ class TestReleasesReleaseNameController(api.BaseResource):
         resp.body = json.dumps(msg)
         resp.status = falcon.HTTP_200
         resp.content_type = 'application/json'
+
+    def handle(self, req, release, tiller):
+        cleanup = req.get_param_as_bool('cleanup')
+        test_handler = Test({}, release, tiller, cleanup=cleanup)
+        return test_handler.test_release_for_success()
 
 
 class TestReleasesManifestController(api.BaseResource):
