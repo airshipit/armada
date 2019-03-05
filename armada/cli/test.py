@@ -59,16 +59,13 @@ SHORT_DESC = "Command tests releases."
 @click.option('--release', help="Helm release.", type=str)
 @click.option('--tiller-host', help="Tiller host IP.", default=None)
 @click.option(
-    '--tiller-port',
-    help="Tiller host port.",
-    type=int,
-    default=CONF.tiller_port)
+    '--tiller-port', help="Tiller host port.", type=int, default=None)
 @click.option(
     '--tiller-namespace',
     '-tn',
     help="Tiller Namespace.",
     type=str,
-    default=CONF.tiller_namespace)
+    default=None)
 @click.option(
     '--target-manifest',
     help=("The target manifest to run. Required for specifying "

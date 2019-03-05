@@ -52,16 +52,13 @@ SHORT_DESC = "Command performs a release rollback."
 @click.option('--dry-run', help="Perform a dry-run rollback.", is_flag=True)
 @click.option('--tiller-host', help="Tiller host IP.", default=None)
 @click.option(
-    '--tiller-port',
-    help="Tiller host port.",
-    type=int,
-    default=CONF.tiller_port)
+    '--tiller-port', help="Tiller host port.", type=int, default=None)
 @click.option(
     '--tiller-namespace',
     '-tn',
     help="Tiller namespace.",
     type=str,
-    default=CONF.tiller_namespace)
+    default=None)
 @click.option(
     '--timeout',
     help="Specifies time to wait for rollback to complete.",

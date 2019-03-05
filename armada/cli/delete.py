@@ -63,9 +63,9 @@ SHORT_DESC = "Command deletes releases."
     '--releases', help="Comma-separated list of release names.", type=str)
 @click.option(
     '--no-purge', help="Deletes release without purge option.", is_flag=True)
-@click.option('--tiller-host', help="Tiller host IP.")
+@click.option('--tiller-host', help="Tiller host IP.", default=None)
 @click.option(
-    '--tiller-port', help="Tiller host port.", type=int, default=44134)
+    '--tiller-port', help="Tiller host port.", type=int, default=None)
 @click.option('--bearer-token', help="User Bearer token.", default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
