@@ -194,12 +194,13 @@ class PodWaitTestCase(base.ArmadaTestCase):
 
     def test_include_resource(self):
 
-        def mock_resource(annotations):
+        def mock_resource(annotations={}, owner_references=None):
             resource = mock.Mock()
             resource.metadata.annotations = annotations
+            resource.metadata.owner_references = owner_references
             return resource
 
-        test_resources = [
+        test_pods = [
             mock_resource({
                 'key': 'value',
                 'helm.sh/hook': 'test-success'
@@ -207,18 +208,69 @@ class PodWaitTestCase(base.ArmadaTestCase):
             mock_resource({'helm.sh/hook': 'test-failure'}),
             mock_resource({'helm.sh/hook': 'test-success,pre-install'})
         ]
-        non_test_resources = [
+        job_pods = [
+            mock_resource(owner_references=[mock.Mock(kind='Job')]),
+            mock_resource(owner_references=[
+                mock.Mock(kind='NotAJob'),
+                mock.Mock(kind='Job')
+            ])
+        ]
+        included_pods = [
+            mock_resource(),
+            mock_resource(owner_references=[]),
             mock_resource({'helm.sh/hook': 'pre-install'}),
             mock_resource({'key': 'value'}),
-            mock_resource({})
+            mock_resource(owner_references=[mock.Mock(kind='NotAJob')])
         ]
 
         unit = self.get_unit({})
 
-        # Validate test resources excluded
-        for resource in test_resources:
-            self.assertFalse(unit.include_resource(resource))
+        # Validate test pods excluded
+        for pod in test_pods:
+            self.assertFalse(unit.include_resource(pod))
+
+        # Validate test pods excluded
+        for pod in job_pods:
+            self.assertFalse(unit.include_resource(pod))
 
         # Validate other resources included
-        for resource in non_test_resources:
-            self.assertTrue(unit.include_resource(resource))
+        for pod in included_pods:
+            self.assertTrue(unit.include_resource(pod))
+
+
+class JobWaitTestCase(base.ArmadaTestCase):
+
+    def get_unit(self, labels):
+        return wait.JobWait(
+            resource_type='job', chart_wait=mock.MagicMock(), labels=labels)
+
+    def test_include_resource(self):
+
+        def mock_resource(annotations={}, owner_references=None):
+            resource = mock.Mock()
+            resource.metadata.annotations = annotations
+            resource.metadata.owner_references = owner_references
+            return resource
+
+        cronjob_jobs = [
+            mock_resource(owner_references=[mock.Mock(kind='CronJob')]),
+            mock_resource(owner_references=[
+                mock.Mock(kind='NotACronJob'),
+                mock.Mock(kind='CronJob')
+            ])
+        ]
+        included_jobs = [
+            mock_resource(),
+            mock_resource(owner_references=[]),
+            mock_resource(owner_references=[mock.Mock(kind='NotAJob')])
+        ]
+
+        unit = self.get_unit({})
+
+        # Validate test pods excluded
+        for job in cronjob_jobs:
+            self.assertFalse(unit.include_resource(job))
+
+        # Validate other resources included
+        for job in included_jobs:
+            self.assertTrue(unit.include_resource(job))
