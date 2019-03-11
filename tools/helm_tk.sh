@@ -22,6 +22,9 @@ HELM=${1}
 HELM_PIDFILE=${2}
 SERVE_DIR=$(mktemp -d)
 
+# TODO: Set this back to "master" when uplifting armada to helm 2.13.1.
+HTK_STABLE_COMMIT=${HTK_COMMIT:-"d6996b8004db35acad7d51412b0b3216189e745f"}
+
 ${HELM} init --client-only
 
 if [[ -s ${HELM_PIDFILE} ]]; then
@@ -67,8 +70,9 @@ fi
 
 {
     cd "${SERVE_DIR}"
-    git clone --depth 1 https://git.openstack.org/openstack/openstack-helm-infra.git || true
+    git clone https://git.openstack.org/openstack/openstack-helm-infra.git || true
     cd openstack-helm-infra
+    git reset --hard "${HTK_STABLE_COMMIT}"
 
     make helm-toolkit
 }
