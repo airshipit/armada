@@ -28,7 +28,7 @@
             msg: "{{ tags | to_json }}"
 
     - name: Determine tags
-      shell: echo '{{ tags | to_json }}' | python {{ zuul.project.src_dir }}/tools/image_tags.py
+      shell: echo '{{ tags | to_json }}' | python3 {{ zuul.project.src_dir }}/tools/image_tags.py
       environment:
         BRANCH: "{{ zuul.branch }}"
         CHANGE: "{{ zuul.change }}"

@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python3
 # Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
