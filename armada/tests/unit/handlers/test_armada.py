@@ -356,10 +356,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             if test_failure_to_run:
 
                 def fail(tiller, release, timeout=None, cleanup=False):
-                    status = AttrDict(**{
-                        'info':
-                        AttrDict(**{'Description': 'Failed'})
-                    })
+                    status = AttrDict(
+                        **{'info': AttrDict(**{'Description': 'Failed'})})
                     raise tiller_exceptions.ReleaseException(
                         release, status, 'Test')
 

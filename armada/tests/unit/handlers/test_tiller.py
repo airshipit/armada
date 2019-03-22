@@ -535,8 +535,8 @@ class TillerTestCase(base.ArmadaTestCase):
                     AttrDict(
                         **{
                             'status':
-                            AttrDict(**
-                                     {'last_test_suite_run': test_suite_run}),
+                            AttrDict(
+                                **{'last_test_suite_run': test_suite_run}),
                             'Description':
                             'Failed'
                         })
