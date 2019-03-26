@@ -22,8 +22,7 @@ HELM=${1}
 HELM_PIDFILE=${2}
 SERVE_DIR=$(mktemp -d)
 
-# TODO: Set this back to "master" when uplifting armada to helm 2.13.1.
-HTK_STABLE_COMMIT=${HTK_COMMIT:-"d6996b8004db35acad7d51412b0b3216189e745f"}
+HTK_STABLE_COMMIT=${HTK_COMMIT:-"200b5e902b3a176fbfbe669b6a10a254c9b50f5d"}
 
 ${HELM} init --client-only
 

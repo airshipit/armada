@@ -156,7 +156,7 @@ class ReleaseServiceServicer(object):
     raise NotImplementedError('Method not implemented!')
 
   def GetHistory(self, request, context):
-    """ReleaseHistory retrieves a releasse's history.
+    """ReleaseHistory retrieves a release's history.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-HELM_BRANCH='release-2.12'
+HELM_BRANCH='v2.13.1'
 
 git clone https://github.com/helm/helm ./helm -b $HELM_BRANCH
 
