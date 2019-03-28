@@ -14,8 +14,11 @@
 
 - hosts: primary
   tasks:
-    - name: Build charts
-      shell: |
-        make charts
-      args:
+    - name: Execute the make target to package Helm charts.
+      make:
         chdir: "{{ zuul.project.src_dir }}"
+        target: charts
+        params:
+          HTK_COMMIT: "{{ HTK_COMMIT | default('') }}"
+      register: result
+      failed_when: result.failed
