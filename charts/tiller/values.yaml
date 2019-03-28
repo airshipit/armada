@@ -20,7 +20,7 @@ dependencies:
 
 images:
   tags:
-    tiller: gcr.io/kubernetes-helm/tiller:v2.12.1
+    tiller: gcr.io/kubernetes-helm/tiller:v2.13.1
   pull_policy: "IfNotPresent"
   local_registry:
     # NOTE(portdirect): this tiller chart does not support image pulling
