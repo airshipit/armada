@@ -500,7 +500,7 @@ class DeploymentWait(ControllerWait):
                                                 'Progressing')
             if cond and (cond.reason or '') == 'ProgressDeadlineExceeded':
                 msg = "deployment {} exceeded its progress deadline"
-                return ("", False, msg.format(name))
+                return (msg.format(name), False)
 
             replicas = spec.replicas or 0
             updated_replicas = status.updated_replicas or 0
