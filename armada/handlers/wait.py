@@ -520,7 +520,7 @@ class DeploymentWait(ControllerWait):
                 msg = ("Waiting for deployment {} rollout to finish: {} of {} "
                        "updated replicas are available, with min_ready={}")
                 return (msg.format(name, available_replicas, updated_replicas,
-                                   self.min_ready.source), False, None)
+                                   self.min_ready.source), False)
             msg = "deployment {} successfully rolled out\n"
             return (msg.format(name), True)
 
