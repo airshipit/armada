@@ -13,6 +13,6 @@ os-testr>=1.0.0 # Apache-2.0
 flake8>=3.3.0
 mock
 responses>=0.8.1
-yapf
+yapf==0.26.0
 
 grpcio-tools==1.16.0
