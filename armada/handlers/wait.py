@@ -230,9 +230,10 @@ class ResourceWait(ABC):
 
             if timed_out:
                 if not found_resources:
-                    details = ('None found! Are `wait.labels` correct? Does '
-                               '`wait.resources` need to exclude %s?'.format(
-                                   self.resource_type))
+                    details = (
+                        'None found! Are `wait.labels` correct? Does '
+                        '`wait.resources` need to exclude `type: {}`?'.format(
+                            self.resource_type))
                 else:
                     details = ('These {}s were not ready={}'.format(
                         self.resource_type, sorted(unready)))
