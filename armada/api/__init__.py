@@ -88,13 +88,19 @@ class BaseResource(object):
         resp.status = status_code
 
     def log_error(self, ctx, level, msg):
-        extra = {'user': 'N/A', 'req_id': 'N/A', 'external_ctx': 'N/A'}
+        extra = {
+            'user': 'N/A',
+            'req_id': 'N/A',
+            'external_ctx': 'N/A',
+            'end_user': 'N/A',
+        }
 
         if ctx is not None:
             extra = {
                 'user': ctx.user,
                 'req_id': ctx.request_id,
                 'external_ctx': ctx.external_marker,
+                'end_user': ctx.end_user,
             }
 
         self.logger.log(level, msg, extra=extra)
@@ -129,6 +135,7 @@ class ArmadaRequestContext(object):
         self.authenticated = False
         self.request_id = str(uuid.uuid4())
         self.external_marker = ''
+        self.end_user = None  # Initial User
 
     def set_log_level(self, level):
         if level in ['error', 'info', 'debug']:
@@ -151,6 +158,9 @@ class ArmadaRequestContext(object):
 
     def set_external_marker(self, marker):
         self.external_marker = marker
+
+    def set_end_user(self, end_user):
+        self.end_user = end_user
 
     def to_policy_view(self):
         policy_dict = {}

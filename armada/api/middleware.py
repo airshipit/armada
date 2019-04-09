@@ -81,9 +81,17 @@ class ContextMiddleware(object):
         ctx = req.context
 
         ext_marker = req.get_header('X-Context-Marker')
+        end_user = req.get_header('X-End-User')
 
         if ext_marker is not None and self.is_valid_uuid(ext_marker):
             ctx.set_external_marker(ext_marker)
+
+        # Set end user from req header in context obj if available
+        # else set the user as end user.
+        if end_user is not None:
+            ctx.set_end_user(end_user)
+        else:
+            ctx.set_end_user(ctx.user)
 
     def is_valid_uuid(self, id, version=4):
         try:
@@ -115,12 +123,19 @@ class LoggingMiddleware(object):
             return
 
         ctx = req.context
-        extra = {
-            'user': ctx.user,
-            'req_id': ctx.request_id,
-            'external_ctx': ctx.external_marker,
-        }
-        self.logger.info("Request %s %s" % (req.method, req.url), extra=extra)
+
+        # Get audit logging attributes from context
+        user = getattr(ctx, 'user', None)
+        req_id = getattr(ctx, 'request_id', None)
+        external_ctx = getattr(ctx, 'external_marker', None)
+        end_user = getattr(ctx, 'end_user', None)
+
+        # Log request with audit params
+        self.logger.info(
+            "user=%s request_id=%s ext_ctx=%s end_user=%s Request: %s %s %s",
+            user or '-', req_id or '-', external_ctx or '-', end_user or '-',
+            req.method, req.uri, req.query_string)
+
         self._log_headers(req.headers)
 
     def process_response(self, req, resp, resource, req_succeeded):
@@ -130,14 +145,21 @@ class LoggingMiddleware(object):
             return
 
         ctx = req.context
-        extra = {
-            'user': ctx.user,
-            'req_id': ctx.request_id,
-            'external_ctx': ctx.external_marker,
-        }
+
+        # Get audit logging attributes from context
+        user = getattr(ctx, 'user', None)
+        req_id = getattr(ctx, 'request_id', None)
+        external_ctx = getattr(ctx, 'external_marker', None)
+        end_user = getattr(ctx, 'end_user', None)
+
         resp.append_header('X-Armada-Req', ctx.request_id)
+
+        # Log response with audit params
         self.logger.info(
-            "%s %s - %s" % (req.method, req.uri, resp.status), extra=extra)
+            "user=%s request_id=%s ext_ctx=%s end_user=%s Response: %s %s %s",
+            user or '-', req_id or '-', external_ctx or '-', end_user or '-',
+            req.method, req.uri, resp.status)
+
         self.logger.debug("Response body:%s", resp.body)
 
     def _log_headers(self, headers):

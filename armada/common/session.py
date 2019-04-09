@@ -41,12 +41,14 @@ class ArmadaSession(object):
                  scheme='http',
                  token=None,
                  marker=None,
+                 end_user=None,
                  timeout=None):
 
         self._session = requests.Session()
         self._session.headers.update({
             'X-Auth-Token': token,
-            'X-Context-Marker': marker
+            'X-Context-Marker': marker,
+            'X-End-User': end_user,
         })
         self.host = host
         self.scheme = scheme
@@ -62,6 +64,7 @@ class ArmadaSession(object):
                                                                  timeout)
         self.token = token
         self.marker = marker
+        self.end_user = end_user
         self.logger = LOG
 
     # TODO Add keystone authentication to produce a token for this session
