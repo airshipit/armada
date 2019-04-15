@@ -10,11 +10,10 @@ Operations Guide
    :maxdepth: 2
    :caption: Contents:
 
-   guide-build-armada-yaml
+   documents/index
    guide-configure
    guide-troubleshooting
    guide-use-armada
-   documents
    exceptions/index
    guide-helm-plugin
    sampleconf

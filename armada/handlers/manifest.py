@@ -17,6 +17,7 @@ from oslo_log import log as logging
 
 from armada import const
 from armada import exceptions
+from armada.handlers import schema
 
 LOG = logging.getLogger(__name__)
 
@@ -62,10 +63,10 @@ class Manifest(object):
             self.manifest = manifests[0] if manifests else None
 
         if not all([self.charts, self.groups, self.manifest]):
-            expected_schemas = [const.DOCUMENT_CHART, const.DOCUMENT_GROUP]
-            error = ('Documents must be a list of documents with at least one '
-                     'of each of the following schemas: %s and only one '
-                     'manifest' % expected_schemas)
+            expected_schemas = [schema.TYPE_CHART, schema.TYPE_CHARTGROUP]
+            error = ('Documents must include at least one of each of {} '
+                     'and only one {}').format(expected_schemas,
+                                               schema.TYPE_MANIFEST)
             LOG.error(error)
             raise exceptions.ManifestException(details=error)
 
@@ -87,11 +88,14 @@ class Manifest(object):
         groups = []
         manifests = []
         for document in self.documents:
-            if document.get('schema') == const.DOCUMENT_CHART:
+            schema_info = schema.get_schema_info(document.get('schema'))
+            if not schema_info:
+                continue
+            if schema_info.type == schema.TYPE_CHART:
                 charts.append(document)
-            if document.get('schema') == const.DOCUMENT_GROUP:
+            if schema_info.type == schema.TYPE_CHARTGROUP:
                 groups.append(document)
-            if document.get('schema') == const.DOCUMENT_MANIFEST:
+            if schema_info.type == schema.TYPE_MANIFEST:
                 manifest_name = document.get('metadata', {}).get('name')
                 if target_manifest:
                     if manifest_name == target_manifest:
@@ -113,8 +117,8 @@ class Manifest(object):
             if chart.get('metadata', {}).get('name') == name:
                 return chart
         raise exceptions.BuildChartException(
-            details='Could not build {} named "{}"'.format(
-                const.DOCUMENT_CHART, name))
+            details='Could not find {} named "{}"'.format(
+                schema.TYPE_CHART, name))
 
     def find_chart_group_document(self, name):
         """Returns a chart group document with the specified name
@@ -129,8 +133,8 @@ class Manifest(object):
             if group.get('metadata', {}).get('name') == name:
                 return group
         raise exceptions.BuildChartGroupException(
-            details='Could not build {} named "{}"'.format(
-                const.DOCUMENT_GROUP, name))
+            details='Could not find {} named "{}"'.format(
+                schema.TYPE_CHARTGROUP, name))
 
     def build_chart_deps(self, chart):
         """Recursively build chart dependencies for ``chart``.
@@ -143,20 +147,19 @@ class Manifest(object):
             under ``chart['data']['dependencies']`` could not be found.
         """
         try:
-            chart_dependencies = chart.get('data', {}).get('dependencies', [])
+            chart_dependencies = chart.get(const.KEYWORD_DATA, {}).get(
+                'dependencies', [])
             for iter, dep in enumerate(chart_dependencies):
                 if isinstance(dep, dict):
                     continue
                 chart_dep = self.find_chart_document(dep)
                 self.build_chart_deps(chart_dep)
-                chart['data']['dependencies'][iter] = {
-                    'chart': chart_dep.get('data', {})
-                }
+                chart[const.KEYWORD_DATA]['dependencies'][iter] = chart_dep
         except Exception:
             raise exceptions.ChartDependencyException(
-                details="Could not build dependencies for chart {} in {}".
-                format(
-                    chart.get('metadata').get('name'), const.DOCUMENT_CHART))
+                details='Could not build dependencies for {} named "{}"'.
+                format(schema.TYPE_CHART,
+                       chart.get('metadata').get('name')))
         else:
             return chart
 
@@ -173,19 +176,19 @@ class Manifest(object):
         try:
             chart = None
             for iter, chart in enumerate(
-                    chart_group.get('data', {}).get('chart_group', [])):
+                    chart_group.get(const.KEYWORD_DATA).get(
+                        const.KEYWORD_CHARTS, [])):
                 if isinstance(chart, dict):
                     continue
-                chart_dep = self.find_chart_document(chart)
-                self.build_chart_deps(chart_dep)
-                chart_group['data']['chart_group'][iter] = {
-                    'chart': chart_dep.get('data', {})
-                }
+                chart_object = self.find_chart_document(chart)
+                self.build_chart_deps(chart_object)
+                chart_group[const.KEYWORD_DATA][const.KEYWORD_CHARTS][iter] = \
+                    chart_object
         except exceptions.ManifestException:
             cg_name = chart_group.get('metadata', {}).get('name')
             raise exceptions.BuildChartGroupException(
-                details="Could not build chart group {} in {}".format(
-                    cg_name, const.DOCUMENT_GROUP))
+                details='Could not build {} named "{}"'.format(
+                    schema.TYPE_CHARTGROUP, cg_name))
 
         return chart_group
 
@@ -196,20 +199,18 @@ class Manifest(object):
         :returns: The Armada manifest with the data of the chart groups.
         :rtype: dict
         :raises ManifestException: If a chart group's data listed
-            under ``chart_group['data']`` could not be found.
+            under ``chart_group[const.KEYWORD_DATA]`` could not be found.
         """
         for iter, group in enumerate(
-                self.manifest.get('data', {}).get('chart_groups', [])):
+                self.manifest.get(const.KEYWORD_DATA, {}).get(
+                    const.KEYWORD_GROUPS, [])):
             if isinstance(group, dict):
                 continue
             chart_grp = self.find_chart_group_document(group)
             self.build_chart_group(chart_grp)
 
-            # Add name to chart group
-            ch_grp_data = chart_grp.get('data', {})
-            ch_grp_data['name'] = chart_grp.get('metadata', {}).get('name')
-
-            self.manifest['data']['chart_groups'][iter] = ch_grp_data
+            self.manifest[const.KEYWORD_DATA][const.KEYWORD_GROUPS][iter] = \
+                chart_grp
 
         return self.manifest
 
@@ -221,4 +222,4 @@ class Manifest(object):
         """
         self.build_armada_manifest()
 
-        return {'armada': self.manifest.get('data', {})}
+        return self.manifest

@@ -10,7 +10,9 @@ Kubernetes Cluster
 
 `Tiller Service <https://github.com/kubernetes/helm>`_
 
-`Armada.yaml <https://airship-armada.readthedocs.io/en/latest/operations/guide-build-armada-yaml.html>`_
+.. todo:: point this to v2 docs once they're stable
+
+:ref:`Armada documents <document_authoring_v1>`
 
 .. note::
 

@@ -104,13 +104,14 @@ class Armada(object):
             raise tiller_exceptions.TillerServicesUnavailableException()
 
         # Clone the chart sources
-        manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
+        manifest_data = self.manifest.get(const.KEYWORD_DATA, {})
         for group in manifest_data.get(const.KEYWORD_GROUPS, []):
-            for ch in group.get(const.KEYWORD_CHARTS, []):
+            for ch in group.get(const.KEYWORD_DATA).get(
+                    const.KEYWORD_CHARTS, []):
                 self.get_chart(ch)
 
     def get_chart(self, ch):
-        chart = ch.get('chart', {})
+        chart = ch.get(const.KEYWORD_DATA)
         chart_source = chart.get('source', {})
         location = chart_source.get('location')
         ct_type = chart_source.get('type')
@@ -158,10 +159,10 @@ class Armada(object):
                 self.chart_cache[source_key] = repo_dir
             chart['source_dir'] = (self.chart_cache.get(source_key), subpath)
         else:
-            chart_name = chart.get('chart_name')
-            raise source_exceptions.ChartSourceException(ct_type, chart_name)
+            name = chart['metadata']['name']
+            raise source_exceptions.ChartSourceException(ct_type, name)
 
-        for dep in ch.get('chart', {}).get('dependencies', []):
+        for dep in ch.get(const.KEYWORD_DATA, {}).get('dependencies', []):
             self.get_chart(dep)
 
     def sync(self):
@@ -185,11 +186,12 @@ class Armada(object):
 
         known_releases = self.tiller.list_releases()
 
-        manifest_data = self.manifest.get(const.KEYWORD_ARMADA, {})
+        manifest_data = self.manifest.get(const.KEYWORD_DATA, {})
         prefix = manifest_data.get(const.KEYWORD_PREFIX)
 
-        for chartgroup in manifest_data.get(const.KEYWORD_GROUPS, []):
-            cg_name = chartgroup.get('name', '<missing name>')
+        for cg in manifest_data.get(const.KEYWORD_GROUPS, []):
+            chartgroup = cg.get(const.KEYWORD_DATA)
+            cg_name = cg.get('metadata').get('name')
             cg_desc = chartgroup.get('description', '<missing description>')
             cg_sequenced = chartgroup.get('sequenced',
                                           False) or self.force_wait
@@ -198,11 +200,10 @@ class Armada(object):
                      cg_desc, cg_sequenced,
                      ' (forced)' if self.force_wait else '')
 
-            # TODO(MarshM): Deprecate the `test_charts` key
+            # TODO: Remove when v1 doc support is removed.
             cg_test_all_charts = chartgroup.get('test_charts')
 
             cg_charts = chartgroup.get(const.KEYWORD_CHARTS, [])
-            charts = map(lambda x: x.get('chart', {}), cg_charts)
 
             def deploy_chart(chart):
                 set_current_chart(chart)
@@ -217,7 +218,7 @@ class Armada(object):
 
             # Returns whether or not there was a failure
             def handle_result(chart, get_result):
-                name = chart['chart_name']
+                name = chart['metadata']['name']
                 try:
                     result = get_result()
                 except Exception:
@@ -229,7 +230,7 @@ class Armada(object):
                     return False
 
             if cg_sequenced:
-                for chart in charts:
+                for chart in cg_charts:
                     if (handle_result(chart, lambda: deploy_chart(chart))):
                         break
             else:
@@ -237,7 +238,7 @@ class Armada(object):
                         max_workers=len(cg_charts)) as executor:
                     future_to_chart = {
                         executor.submit(deploy_chart, chart): chart
-                        for chart in charts
+                        for chart in cg_charts
                     }
 
                     for future in as_completed(future_to_chart):
@@ -260,7 +261,7 @@ class Armada(object):
         if self.enable_chart_cleanup:
             self._chart_cleanup(
                 prefix,
-                self.manifest[const.KEYWORD_ARMADA][const.KEYWORD_GROUPS], msg)
+                self.manifest[const.KEYWORD_DATA][const.KEYWORD_GROUPS], msg)
 
         LOG.info('Done applying manifest.')
         return msg

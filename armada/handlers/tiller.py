@@ -30,8 +30,10 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from armada import const
+from armada.conf import get_current_chart
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
+from armada.handlers import schema
 from armada.utils import helm
 from armada.utils.release import label_selectors, get_release_status
 
@@ -303,6 +305,7 @@ class Tiller(object):
         :param namespace: name of pod for actions
         '''
 
+        # TODO: Remove when v1 doc support is removed.
         try:
             for action in actions.get('update', []):
                 name = action.get('name')
@@ -667,15 +670,20 @@ class Tiller(object):
                 self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
             handled = True
 
-        if resource_type == 'cronjob' or resource_type == 'job':
+        # TODO: Remove when v1 doc support is removed.
+        chart = get_current_chart()
+        schema_info = schema.get_schema_info(chart['schema'])
+        job_implies_cronjob = schema_info.version < 2
+        implied_cronjob = resource_type == 'job' and job_implies_cronjob
+
+        if resource_type == 'cronjob' or implied_cronjob:
             get_jobs = self.k8s.get_namespace_cron_job(
                 namespace, label_selector=label_selector)
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
 
-                if resource_type == 'job':
-                    # TODO: Eventually disallow this, allowing initially since
-                    #       some existing clients were expecting this behavior.
+                # TODO: Remove when v1 doc support is removed.
+                if implied_cronjob:
                     LOG.warn("Deleting cronjobs via `type: job` is "
                              "deprecated, use `type: cronjob` instead")
 
@@ -726,7 +734,7 @@ class Tiller(object):
                                        values,
                                        timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
-        update statefullsets (daemon, stateful)
+        update statefulsets (daemon, stateful)
         '''
 
         if action_type == 'daemonset':

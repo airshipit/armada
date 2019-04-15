@@ -60,9 +60,7 @@ class Test(object):
 
         self.timeout = const.DEFAULT_TEST_TIMEOUT
 
-        # NOTE(drewwalters96): Support the chart_group `test_charts` key until
-        # its deprecation period ends. The `test.enabled`, `enable_all` flag,
-        # and deprecated, boolean `test` key override this value if provided.
+        # TODO: Remove when v1 doc support is removed.
         if cg_test_charts is not None:
             LOG.warn('Chart group key `test_charts` is deprecated and will be '
                      'removed. Use `test.enabled` instead.')
@@ -70,7 +68,7 @@ class Test(object):
         else:
             self.test_enabled = True
 
-        # NOTE: Support old, boolean `test` key until deprecation period ends.
+        # TODO: Remove when v1 doc support is removed.
         if (type(test_values) == bool):
             LOG.warn('Boolean value for chart `test` key is deprecated and '
                      'will be removed. Use `test.enabled` instead.')

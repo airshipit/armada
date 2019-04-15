@@ -169,8 +169,7 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         self.assertIn({
             'message':
             ('An error occurred while building chart group: '
-             'Could not build chart group keystone-infra-services in '
-             'armada/ChartGroup/v1.'),
+             'Could not build ChartGroup named "keystone-infra-services".'),
             'error':
             True,
             'kind':

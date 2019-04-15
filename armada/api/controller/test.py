@@ -133,12 +133,12 @@ class TestReleasesManifestController(api.BaseResource):
         armada_obj = Manifest(
             documents, target_manifest=target_manifest).get_manifest()
 
-        prefix = armada_obj.get(const.KEYWORD_ARMADA).get(const.KEYWORD_PREFIX)
+        prefix = armada_obj[const.KEYWORD_DATA][const.KEYWORD_PREFIX]
         known_releases = [release[0] for release in tiller.list_charts()]
 
         message = {'tests': {'passed': [], 'skipped': [], 'failed': []}}
 
-        for group in armada_obj.get(const.KEYWORD_ARMADA).get(
+        for group in armada_obj.get(const.KEYWORD_DATA).get(
                 const.KEYWORD_GROUPS):
             for ch in group.get(const.KEYWORD_CHARTS):
                 chart = ch['chart']

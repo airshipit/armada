@@ -12,23 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# JSON schema for validating Armada manifests.
+# NOTE: Do not modify this schema, it is deprecated.
 ---
 schema: deckhand/DataSchema/v1
 metadata:
-  name: armada/Manifest/v1
+  name: armada/ChartGroup/v1
   schema: metadata/Control/v1
 data:
   $schema: http://json-schema.org/schema#
   properties:
-    release_prefix:
+    name:
       type: string
-    chart_groups:
+    description:
+      type: string
+    sequenced:
+      type: boolean
+    # TODO(MarshM): Deprecate `test_charts`, it is no longer useful
+    test_charts:
+      type: boolean
+    chart_group:
       type: array
       items:
         type: string
   required:
-    - chart_groups
-    - release_prefix
+    - chart_group
   additionalProperties: false
 ...

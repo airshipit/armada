@@ -41,7 +41,8 @@ class ChartDeploy(object):
         self.timeout = timeout
         self.tiller = tiller
 
-    def execute(self, chart, cg_test_all_charts, prefix, known_releases):
+    def execute(self, ch, cg_test_all_charts, prefix, known_releases):
+        chart = ch[const.KEYWORD_DATA]
         namespace = chart.get('namespace')
         release = chart.get('release')
         release_name = r.release_prefixer(prefix, release)
@@ -73,7 +74,7 @@ class ChartDeploy(object):
         # Begin Chart timeout deadline
         deadline = time.time() + chart_wait.get_timeout()
 
-        chartbuilder = ChartBuilder(chart)
+        chartbuilder = ChartBuilder(ch)
         new_chart = chartbuilder.get_helm_chart()
 
         # TODO(mark-burnett): It may be more robust to directly call

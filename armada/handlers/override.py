@@ -16,9 +16,9 @@ import collections
 import json
 import yaml
 
-from armada import const
 from armada.exceptions import override_exceptions
 from armada.exceptions import validate_exceptions
+from armada.handlers import schema
 from armada.utils import validate
 
 
@@ -65,17 +65,18 @@ class Override(object):
 
     def find_document_type(self, alias):
         if alias == 'chart_group':
-            return const.DOCUMENT_GROUP
+            return schema.TYPE_CHARTGROUP
         if alias == 'chart':
-            return const.DOCUMENT_CHART
+            return schema.TYPE_CHART
         if alias == 'manifest':
-            return const.DOCUMENT_MANIFEST
+            return schema.TYPE_MANIFEST
         else:
             raise ValueError("Could not find {} document".format(alias))
 
     def find_manifest_document(self, doc_path):
         for doc in self.documents:
-            if doc.get('schema') == self.find_document_type(
+            schema_info = schema.get_schema_info(doc.get('schema'))
+            if schema_info.type == self.find_document_type(
                     doc_path[0]) and doc.get('metadata',
                                              {}).get('name') == doc_path[1]:
                 return doc
@@ -121,45 +122,29 @@ class Override(object):
         new_data = self.array_to_dict(data_path, new_value)
         self.update(document.get('data', {}), new_data)
 
-    def update_document(self, merging_values):
+    def update_documents(self, merging_values):
         for doc in merging_values:
-            if doc.get('schema') == const.DOCUMENT_CHART:
-                self.update_chart_document(doc)
-            if doc.get('schema') == const.DOCUMENT_GROUP:
-                self.update_chart_group_document(doc)
-            if doc.get('schema') == const.DOCUMENT_MANIFEST:
-                self.update_armada_manifest(doc)
+            self.update_document(doc)
 
-    def update_chart_document(self, ovr):
-        for doc in self.documents:
-            if doc.get('schema') == const.DOCUMENT_CHART and doc.get(
-                    'metadata', {}).get('name') == ovr.get('metadata',
-                                                           {}).get('name'):
-                self.update(doc.get('data', {}), ovr.get('data', {}))
-                return
-
-    def update_chart_group_document(self, ovr):
-        for doc in self.documents:
-            if doc.get('schema') == const.DOCUMENT_GROUP and doc.get(
-                    'metadata', {}).get('name') == ovr.get('metadata',
-                                                           {}).get('name'):
-                self.update(doc.get('data', {}), ovr.get('data', {}))
-                return
-
-    def update_armada_manifest(self, ovr):
-        for doc in self.documents:
-            if doc.get('schema') == const.DOCUMENT_MANIFEST and doc.get(
-                    'metadata', {}).get('name') == ovr.get('metadata',
-                                                           {}).get('name'):
-                self.update(doc.get('data', {}), ovr.get('data', {}))
-                return
+    def update_document(self, ovr):
+        ovr_schema_info = schema.get_schema_info(ovr.get('schema'))
+        if ovr_schema_info:
+            for doc in self.documents:
+                schema_info = schema.get_schema_info(doc.get('schema'))
+                if schema_info:
+                    if schema_info == ovr_schema_info:
+                        if doc['metadata']['name'] == ovr['metadata']['name']:
+                            data = doc.get('data', {})
+                            ovr_data = ovr.get('data', {})
+                            self.update(data, ovr_data)
+                            return
 
     def update_manifests(self):
 
         if self.values:
             for value in self.values:
                 merging_values = self._load_yaml_file(value)
-                self.update_document(merging_values)
+                self.update_documents(merging_values)
             # Validate document with updated values
             self._document_checker(self.documents, self.values)
 

@@ -111,13 +111,6 @@ class ValidateOwnExamplesTestCase(BaseValidateTest):
 
 class ValidateTestCase(BaseValidateTest):
 
-    def test_validate_load_schemas(self):
-        expected_schemas = [
-            'armada/Chart/v1', 'armada/ChartGroup/v1', 'armada/Manifest/v1'
-        ]
-        for expected_schema in expected_schemas:
-            self.assertIn(expected_schema, validate.SCHEMAS)
-
     def test_validate_armada_yaml_passes(self):
         template = '{}/resources/valid_armada_document.yaml'.format(
             self.basepath)
@@ -222,16 +215,6 @@ data:
 
 
 class ValidateNegativeTestCase(BaseValidateTest):
-
-    def test_validate_load_duplicate_schemas_expect_runtime_error(self):
-        """Validate that calling ``validate._load_schemas`` results in a
-        ``RuntimeError`` being thrown, because the call is made during module
-        import, and importing the schemas again in manually results in
-        duplicates.
-        """
-        with self.assertRaisesRegexp(RuntimeError,
-                                     'Duplicate schema specified for: .*'):
-            validate._load_schemas()
 
     def test_validate_no_dictionary_expect_type_error(self):
         expected_error = 'The provided input "invalid" must be a dictionary.'

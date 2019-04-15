@@ -13,44 +13,18 @@
 # limitations under the License.
 
 import jsonschema
-import os
-import pkg_resources
 import requests
 import traceback
-import yaml
 
 from oslo_log import log as logging
 
-from armada.const import KEYWORD_GROUPS, KEYWORD_CHARTS, KEYWORD_RELEASE
+from armada import const
+from armada.handlers import schema as sch
 from armada.handlers.manifest import Manifest
 from armada.exceptions.manifest_exceptions import ManifestException
 from armada.utils.validation_message import ValidationMessage
 
 LOG = logging.getLogger(__name__)
-# Creates a mapping between ``metadata.name``: ``data`` where the
-# ``metadata.name`` is the ``schema`` of a manifest and the ``data`` is the
-# JSON schema to be used to validate the manifest in question.
-SCHEMAS = {}
-
-
-def _get_schema_dir():
-    return pkg_resources.resource_filename('armada', 'schemas')
-
-
-def _load_schemas():
-    """Populates ``SCHEMAS`` with the schemas defined in package
-    ``armada.schemas``.
-
-    """
-    schema_dir = _get_schema_dir()
-    for schema_file in os.listdir(schema_dir):
-        with open(os.path.join(schema_dir, schema_file)) as f:
-            for schema in yaml.safe_load_all(f):
-                name = schema['metadata']['name']
-                if name in SCHEMAS:
-                    raise RuntimeError(
-                        'Duplicate schema specified for: %s.' % name)
-                SCHEMAS[name] = schema['data']
 
 
 def _validate_armada_manifest(manifest):
@@ -71,7 +45,7 @@ def _validate_armada_manifest(manifest):
     details = []
 
     try:
-        armada_object = manifest.get_manifest().get('armada')
+        manifest.get_manifest().get(const.KEYWORD_DATA)
     except ManifestException as me:
         vmsg = ValidationMessage(
             message=str(me), error=True, name='ARM001', level='Error')
@@ -79,27 +53,6 @@ def _validate_armada_manifest(manifest):
         LOG.error('ValidationMessage: %s', vmsg.get_output_json())
         details.append(vmsg.get_output())
         return False, details
-
-    groups = armada_object.get(KEYWORD_GROUPS)
-
-    if not isinstance(groups, list):
-        message = '{} entry is of wrong type: {} (expected: {})'.format(
-            KEYWORD_GROUPS, type(groups), 'list')
-        vmsg = ValidationMessage(
-            message=message, error=True, name='ARM101', level='Error')
-        LOG.info('ValidationMessage: %s', vmsg.get_output_json())
-        details.append(vmsg.get_output())
-
-    for group in groups:
-        for chart in group.get(KEYWORD_CHARTS):
-            chart_obj = chart.get('chart')
-            if KEYWORD_RELEASE not in chart_obj:
-                message = 'Could not find {} keyword in {}'.format(
-                    KEYWORD_RELEASE, chart_obj.get('release'))
-                vmsg = ValidationMessage(
-                    message=message, error=True, name='ARM102', level='Error')
-                LOG.info('ValidationMessage: %s', vmsg.get_output_json())
-                details.append(vmsg.get_output())
 
     if len([x for x in details if x.get('error', False)]) > 0:
         return False, details
@@ -117,13 +70,16 @@ def validate_armada_manifests(documents):
     all_valid = True
 
     for document in documents:
-        if document.get('schema', '') == 'armada/Manifest/v1':
-            target = document.get('metadata').get('name')
-            # TODO(MarshM) explore: why does this pass 'documents'?
-            manifest = Manifest(documents, target_manifest=target)
-            is_valid, details = _validate_armada_manifest(manifest)
-            all_valid = all_valid and is_valid
-            messages.extend(details)
+        doc_schema = document.get('schema')
+        if doc_schema:
+            schema_info = sch.get_schema_info(doc_schema)
+            if schema_info and schema_info.type == sch.TYPE_MANIFEST:
+                target = document.get('metadata').get('name')
+                # TODO(MarshM) explore: why does this pass 'documents'?
+                manifest = Manifest(documents, target_manifest=target)
+                is_valid, details = _validate_armada_manifest(manifest)
+                all_valid = all_valid and is_valid
+                messages.extend(details)
 
     return all_valid, messages
 
@@ -151,9 +107,10 @@ def validate_armada_document(document):
     details = []
     LOG.debug('Validating document [%s] %s', schema, document_name)
 
-    if schema in SCHEMAS:
+    schema_info = sch.get_schema_info(schema)
+    if schema_info:
         try:
-            validator = jsonschema.Draft4Validator(SCHEMAS[schema])
+            validator = jsonschema.Draft4Validator(schema_info.data)
             for error in validator.iter_errors(document.get('data')):
                 error_message = "Invalid document [%s] %s: %s." % \
                     (schema, document_name, error.message)
@@ -222,7 +179,3 @@ def validate_manifest_url(value):
         return (requests.get(value).status_code == 200)
     except requests.exceptions.RequestException:
         return False
-
-
-# Fill the cache.
-_load_schemas()

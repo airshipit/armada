@@ -158,125 +158,153 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         armada_obj.pre_flight_ops()
 
         expected_config = {
-            'armada': {
-                'release_prefix':
-                'armada',
+            'schema': 'armada/Manifest/v1',
+            'metadata': {
+                'schema': 'metadata/Document/v1',
+                'name': 'example-manifest'
+            },
+            'data': {
+                'release_prefix': 'armada',
                 'chart_groups': [{
-                    'chart_group': [{
-                        'chart': {
-                            'dependencies': [],
-                            'chart_name': 'test_chart_1',
-                            'namespace': 'test',
-                            'release': 'test_chart_1',
-                            'source': {
-                                'location': ('git://github.com/dummy/armada'),
-                                'reference': 'master',
-                                'subpath': 'chart_1',
-                                'type': 'git'
+                    'schema': 'armada/ChartGroup/v1',
+                    'metadata': {
+                        'schema': 'metadata/Document/v1',
+                        'name': 'example-group'
+                    },
+                    'data': {
+                        'chart_group': [{
+                            'schema': 'armada/Chart/v1',
+                            'metadata': {
+                                'schema': 'metadata/Document/v1',
+                                'name': 'example-chart-1'
                             },
-                            'source_dir': CHART_SOURCES[0],
-                            'values': {},
-                            'wait': {
-                                'timeout': 10,
-                                'native': {
-                                    'enabled': False
-                                }
-                            },
-                            'test': {
-                                'enabled': True
-                            }
-                        }
-                    }, {
-                        'chart': {
-                            'dependencies': [],
-                            'chart_name': 'test_chart_2',
-                            'namespace': 'test',
-                            'protected': {
-                                'continue_processing': True
-                            },
-                            'release': 'test_chart_2',
-                            'source': {
-                                'location': '/tmp/dummy/armada',
-                                'subpath': 'chart_2',
-                                'type': 'local'
-                            },
-                            'source_dir': CHART_SOURCES[1],
-                            'values': {},
-                            'wait': {
-                                'timeout': 10
-                            },
-                            'upgrade': {
-                                'no_hooks': False,
-                                'options': {
-                                    'force': True,
-                                    'recreate_pods': True
-                                }
-                            },
-                            'test': {
-                                'enabled': True,
-                                'options': {
-                                    'cleanup': True
+                            'data': {
+                                'dependencies': [],
+                                'chart_name': 'test_chart_1',
+                                'namespace': 'test',
+                                'release': 'test_chart_1',
+                                'source': {
+                                    'location':
+                                        'git://github.com/dummy/armada',
+                                    'reference': 'master',
+                                    'subpath': 'chart_1',
+                                    'type': 'git'
+                                },
+                                'source_dir': CHART_SOURCES[0],
+                                'values': {},
+                                'wait': {
+                                    'timeout': 10,
+                                    'native': {
+                                        'enabled': False
+                                    }
+                                },
+                                'test': {
+                                    'enabled': True
                                 }
                             }
-                        }
-                    }, {
-                        'chart': {
-                            'dependencies': [],
-                            'chart_name': 'test_chart_3',
-                            'namespace': 'test',
-                            'protected': {
-                                'continue_processing': False
+                        }, {
+                            'schema': 'armada/Chart/v1',
+                            'metadata': {
+                                'schema': 'metadata/Document/v1',
+                                'name': 'example-chart-2'
                             },
-                            'release': 'test_chart_3',
-                            'source': {
-                                'location': '/tmp/dummy/armada',
-                                'subpath': 'chart_3',
-                                'type': 'local'
-                            },
-                            'source_dir': CHART_SOURCES[2],
-                            'values': {},
-                            'wait': {
-                                'timeout': 10
-                            },
-                            'upgrade': {
-                                'no_hooks': False
+                            'data': {
+                                'dependencies': [],
+                                'chart_name': 'test_chart_2',
+                                'namespace': 'test',
+                                'protected': {
+                                    'continue_processing': True
+                                },
+                                'release': 'test_chart_2',
+                                'source': {
+                                    'location': '/tmp/dummy/armada',
+                                    'subpath': 'chart_2',
+                                    'type': 'local'
+                                },
+                                'source_dir': CHART_SOURCES[1],
+                                'values': {},
+                                'wait': {
+                                    'timeout': 10
+                                },
+                                'upgrade': {
+                                    'no_hooks': False,
+                                    'options': {
+                                        'force': True,
+                                        'recreate_pods': True
+                                    }
+                                },
+                                'test': {
+                                    'enabled': True,
+                                    'options': {
+                                        'cleanup': True
+                                    }
+                                }
                             }
-                        }
-                    }, {
-                        'chart': {
-                            'dependencies': [],
-                            'chart_name': 'test_chart_4',
-                            'namespace': 'test',
-                            'release': 'test_chart_4',
-                            'source': {
-                                'location': '/tmp/dummy/armada',
-                                'subpath': 'chart_4',
-                                'type': 'local'
+                        }, {
+                            'schema': 'armada/Chart/v1',
+                            'metadata': {
+                                'schema': 'metadata/Document/v1',
+                                'name': 'example-chart-3'
                             },
-                            'source_dir': CHART_SOURCES[3],
-                            'values': {},
-                            'wait': {
-                                'timeout': 10
+                            'data': {
+                                'dependencies': [],
+                                'chart_name': 'test_chart_3',
+                                'namespace': 'test',
+                                'protected': {
+                                    'continue_processing': False
+                                },
+                                'release': 'test_chart_3',
+                                'source': {
+                                    'location': '/tmp/dummy/armada',
+                                    'subpath': 'chart_3',
+                                    'type': 'local'
+                                },
+                                'source_dir': CHART_SOURCES[2],
+                                'values': {},
+                                'wait': {
+                                    'timeout': 10
+                                },
+                                'upgrade': {
+                                    'no_hooks': False
+                                }
+                            }
+                        }, {
+                            'schema': 'armada/Chart/v1',
+                            'metadata': {
+                                'schema': 'metadata/Document/v1',
+                                'name': 'example-chart-4'
                             },
-                            'upgrade': {
-                                'no_hooks': False
-                            },
-                            'test': True
-                        }
-                    }],
-                    'description':
-                    'this is a test',
-                    'name':
-                    'example-group',
-                    'sequenced':
-                    True
+                            'data': {
+                                'dependencies': [],
+                                'chart_name': 'test_chart_4',
+                                'namespace': 'test',
+                                'release': 'test_chart_4',
+                                'source': {
+                                    'location': '/tmp/dummy/armada',
+                                    'subpath': 'chart_4',
+                                    'type': 'local'
+                                },
+                                'source_dir': CHART_SOURCES[3],
+                                'values': {},
+                                'wait': {
+                                    'timeout': 10
+                                },
+                                'upgrade': {
+                                    'no_hooks': False
+                                },
+                                'test': True
+                            }
+                        }],
+                        'description': 'this is a test',
+                        'sequenced': True
+                    }
                 }]
             }
         }  # yapf: disable
 
         self.assertTrue(hasattr(armada_obj, 'manifest'))
         self.assertIsInstance(armada_obj.manifest, dict)
-        self.assertIn('armada', armada_obj.manifest)
+        self.assertIn('data', armada_obj.manifest)
         self.assertEqual(expected_config, armada_obj.manifest)
 
     @mock.patch.object(armada, 'source')
@@ -314,9 +342,11 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         armada_obj.post_flight_ops()
 
-        for group in armada_obj.manifest['armada']['chart_groups']:
-            for counter, chart in enumerate(group.get('chart_group')):
-                if chart.get('chart').get('source').get('type') == 'git':
+        for group in armada_obj.manifest['data']['chart_groups']:
+            for counter, chart in enumerate(
+                    group.get(const.KEYWORD_DATA).get(const.KEYWORD_CHARTS)):
+                if chart.get(
+                        const.KEYWORD_DATA).get('source').get('type') == 'git':
                     mock_source.source_cleanup.assert_called_with(
                         CHART_SOURCES[counter][0])
 
@@ -348,7 +378,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             armada_obj = armada.Armada(yaml_documents, m_tiller)
             armada_obj.chart_deploy.get_diff = mock.Mock()
 
-            chart_group = armada_obj.manifest['armada']['chart_groups'][0]
+            cg = armada_obj.manifest['data']['chart_groups'][0]
+            chart_group = cg['data']
             charts = chart_group['chart_group']
             cg_test_all_charts = chart_group.get('test_charts')
 
@@ -380,9 +411,9 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             expected_test_constructor_calls = []
 
             for c in charts:
-                chart = c['chart']
+                chart = c['data']
                 release = chart['release']
-                prefix = armada_obj.manifest['armada']['release_prefix']
+                prefix = armada_obj.manifest['data']['release_prefix']
                 release_name = release_prefixer(prefix, release)
                 # Simplified check because the actual code uses logical-or's
                 # multiple conditions, so this is enough.
@@ -394,8 +425,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                         mock.call(
                             mock_chartbuilder().get_helm_chart(),
                             "{}-{}".format(
-                                armada_obj.manifest['armada']
-                                ['release_prefix'], chart['release']),
+                                armada_obj.manifest['data']['release_prefix'],
+                                chart['release']),
                             chart['namespace'],
                             values=yaml.safe_dump(chart['values']),
                             wait=native_wait_enabled,
@@ -420,7 +451,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     mock.call(
                                         mock_chartbuilder().get_helm_chart(),
                                         "{}-{}".format(
-                                            armada_obj.manifest['armada']
+                                            armada_obj.manifest['data']
                                             ['release_prefix'],
                                             chart['release']),
                                         chart['namespace'],
@@ -449,7 +480,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                     mock.call(
                                         mock_chartbuilder().get_helm_chart(),
                                         "{}-{}".format(
-                                            armada_obj.manifest['armada']
+                                            armada_obj.manifest['data']
                                             ['release_prefix'],
                                             chart['release']),
                                         chart['namespace'],
@@ -647,8 +678,8 @@ class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
     def test_armada_get_manifest_exception(self, mock_source):
         """Test armada handling with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        error_re = ('Documents must be a list of documents with at least one '
-                    'of each of the following schemas: .*')
+        error_re = ('.*Documents must include at least one of each of .* and '
+                    'only one .*')
         self.assertRaisesRegexp(ManifestException, error_re, armada.Armada,
                                 yaml_documents[:1], mock.MagicMock())
 

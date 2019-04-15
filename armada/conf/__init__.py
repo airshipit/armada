@@ -88,7 +88,7 @@ class ChartDeployAwareLogger(logging.Logger):
     def _log(self, level, msg, *args, **kwargs):
         chart = get_current_chart()
         if chart:
-            name = chart['chart_name']
+            name = chart['metadata']['name']
             prefix = '[chart={}]: '.format(name)
         else:
             prefix = ''
