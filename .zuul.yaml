@@ -83,10 +83,10 @@
     run: tools/gate/playbooks/airskiff-deploy.yaml
     post-run: tools/gate/playbooks/debug-report.yaml
     required-projects:
-      - openstack/airship-deckhand
-      - openstack/airship-pegleg
-      - openstack/airship-shipyard
-      - openstack/airship-treasuremap
+      - airship/deckhand
+      - airship/pegleg
+      - airship/shipyard
+      - airship/treasuremap
       - openstack/openstack-helm-infra
     irrelevant-files:
       - ^.*\.rst$

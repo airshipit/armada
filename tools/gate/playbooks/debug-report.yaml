@@ -18,14 +18,14 @@
       shell: |
         ./tools/gate/debug-report.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
     - name: Extract debug report
       shell: |
         mkdir -p /tmp/debug
         tar -xf debug-* -C /tmp/debug
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
     - name: Pull logs to executor
       synchronize:

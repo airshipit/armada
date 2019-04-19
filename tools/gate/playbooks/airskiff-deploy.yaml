@@ -18,7 +18,7 @@
       shell: |
         ./tools/deployment/airskiff/developer/000-install-packages.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
     - name: Build Armada with submitted changes
@@ -32,13 +32,13 @@
       shell: |
         ./tools/deployment/airskiff/developer/010-deploy-k8s.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
     - name: Setup OpenStack Client
       shell: |
         ./tools/deployment/airskiff/developer/020-setup-client.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
     - name: Deploy Airship components using Armada
@@ -47,19 +47,19 @@
         cp -rp /home/zuul/.kube/config ~/.kube/config
         ./tools/deployment/airskiff/developer/030-armada-bootstrap.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
     - name: Deploy OpenStack using Airship
       shell: |
         ./tools/deployment/airskiff/developer/100-deploy-osh.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
     - name: Wait for deployment completion
       shell: |
         ./tools/gate/wait-for-shipyard.sh
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes

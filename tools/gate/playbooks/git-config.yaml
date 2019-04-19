@@ -19,7 +19,7 @@
         set -xe;
         tee .git/config << EOF
         [remote "origin"]
-        url = https://git.openstack.org/openstack/airship-treasuremap.git
+        url = https://opendev.org/airship/treasuremap.git
         EOF
       args:
-        chdir: "{{ zuul.projects['git.openstack.org/openstack/airship-treasuremap'].src_dir }}"
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
