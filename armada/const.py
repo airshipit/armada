@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Documents
-DOCUMENT_CHART = 'armada/Chart/v1'
-DOCUMENT_GROUP = 'armada/ChartGroup/v1'
-DOCUMENT_MANIFEST = 'armada/Manifest/v1'
-KEYWORD_ARMADA = 'armada'
+# Keywords
+KEYWORD_DATA = 'data'
 KEYWORD_PREFIX = 'release_prefix'
 KEYWORD_GROUPS = 'chart_groups'
 KEYWORD_CHARTS = 'chart_group'

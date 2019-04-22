@@ -16,7 +16,7 @@
 ---
 schema: deckhand/DataSchema/v1
 metadata:
-  name: armada/Chart/v1
+  name: armada/Chart/v2
   schema: metadata/Control/v1
 data:
   $schema: http://json-schema.org/schema#
@@ -29,8 +29,6 @@ data:
       type: array
       items:
         properties:
-          name:
-            type: string
           type:
             type: string
           labels:
@@ -42,12 +40,12 @@ data:
   properties:
     release:
       type: string
-    chart_name:
-      type: string
     namespace:
       type: string
     values:
       type: object
+    # TODO: Remove this, and just read dependencies out of `chart` dir as helm
+    # CLI does.
     dependencies:
       type: array
       items:
@@ -59,25 +57,19 @@ data:
           type: boolean
       additionalProperties: false
     test:
-      anyOf:
-        # TODO: Remove boolean support after deprecation period.
-        - type: boolean
-        - type: object
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        timeout:
+          type: integer
+        options:
+          type: object
           properties:
-            enabled:
+            cleanup:
               type: boolean
-            timeout:
-              type: integer
-            options:
-              type: object
-              properties:
-                cleanup:
-                  type: boolean
-              additionalProperties: false
           additionalProperties: false
-    # TODO(MarshM): Deprecate this `timeout` in favor of `wait.timeout`
-    timeout:
-      type: integer
+      additionalProperties: false
     wait:
       type: object
       properties:
@@ -104,7 +96,6 @@ data:
         native:
           type: object
           properties:
-            # TODO: Add separate timeout for native wait?
             enabled:
               type: boolean
           additionalProperties: false
@@ -126,18 +117,12 @@ data:
           type: string
       required:
         - location
-        - subpath
         - type
     delete:
       type: object
       properties:
         timeout:
           type: integer
-    install:
-      # NOTE(sh8121att) Not clear that this key is actually used
-      # in the code. Will leave it here for backward compatabilities
-      # until an additional audit is done.
-      type: object
     upgrade:
       type: object
       properties:
@@ -149,18 +134,6 @@ data:
           properties:
             delete:
               $ref: '#/definitions/hook_action'
-            update:
-              $ref: '#/definitions/hook_action'
-            create:
-              $ref: '#/definitions/hook_action'
-        # TODO(drewwalters96): Armada ignores post-update actions. Remove them
-        # in future schemas.
-        post:
-          type: object
-          additionalProperties: false
-          properties:
-            create:
-              $ref: '#/definitions/hook_action'
         options:
           type: object
           properties:
@@ -169,13 +142,9 @@ data:
             recreate_pods:
               type: boolean
           additionalProperties: false
-      required:
-        - no_hooks
       additionalProperties: false
   required:
-    - dependencies
     - namespace
-    - chart_name
     - release
     - source
   additionalProperties: false

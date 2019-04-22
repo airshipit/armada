@@ -20,8 +20,8 @@ import yaml
 import testtools
 
 from armada.handlers.override import Override
+from armada.handlers import schema
 from armada.exceptions import override_exceptions
-from armada import const
 
 
 class OverrideTestCase(testtools.TestCase):
@@ -117,13 +117,13 @@ class OverrideTestCase(testtools.TestCase):
             documents = list(yaml.safe_load_all(f.read()))
             ovr = Override(documents)
             test_group = ovr.find_document_type('chart_group')
-            self.assertEqual(test_group, const.DOCUMENT_GROUP)
+            self.assertEqual(test_group, schema.TYPE_CHARTGROUP)
 
             test_chart = ovr.find_document_type('chart')
-            self.assertEqual(test_chart, const.DOCUMENT_CHART)
+            self.assertEqual(test_chart, schema.TYPE_CHART)
 
             test_manifest = ovr.find_document_type('manifest')
-            self.assertEqual(test_manifest, const.DOCUMENT_MANIFEST)
+            self.assertEqual(test_manifest, schema.TYPE_MANIFEST)
 
     def test_update_chart_document_valid(self):
         with open(self.base_manifest) as f:
@@ -138,7 +138,7 @@ class OverrideTestCase(testtools.TestCase):
 
         ovr = Override(documents)
         # update with document values with the modified ones
-        ovr.update_chart_document(documents_modified[0])
+        ovr.update_document(documents_modified[0])
 
         # after the update, both documents are equal
         self.assertEqual(ovr.documents[0]['data']['chart_name'],
@@ -148,7 +148,7 @@ class OverrideTestCase(testtools.TestCase):
         # Case 2: Checking if dictionaries get updated
         documents_modified[0]['data']['values'] = {'foo': 'bar'}
 
-        ovr.update_chart_document(documents_modified[0])
+        ovr.update_document(documents_modified[0])
 
         # after the update, both documents are equal
         self.assertEqual(ovr.documents[0]['data']['values'],
@@ -158,7 +158,7 @@ class OverrideTestCase(testtools.TestCase):
         # Case 3: Checking if lists get updated
         documents_modified[0]['data']['dependencies'] = ['foo', 'bar']
 
-        ovr.update_chart_document(documents_modified[0])
+        ovr.update_document(documents_modified[0])
 
         # after the update, both documents are equal
         self.assertEqual(['foo', 'bar'],
@@ -179,7 +179,7 @@ class OverrideTestCase(testtools.TestCase):
 
         ovr = Override(documents)
         # update with document values with the modified ones
-        ovr.update_chart_document(documents_modified[0])
+        ovr.update_document(documents_modified[0])
 
         self.assertIn('chart_name', ovr.documents[0]['data'])
         self.assertNotEqual(ovr.documents[0], documents_modified[0])
@@ -195,7 +195,7 @@ class OverrideTestCase(testtools.TestCase):
 
         ovr = Override(documents)
         # update with document values with the modified ones
-        ovr.update_chart_group_document(documents_modified[1])
+        ovr.update_document(documents_modified[1])
 
         # after the update, both documents are equal
         self.assertEqual(ovr.documents[1]['data']['sequenced'],
@@ -214,7 +214,7 @@ class OverrideTestCase(testtools.TestCase):
 
         ovr = Override(documents)
         # update with document values with the modified ones
-        ovr.update_chart_group_document(documents_modified[1])
+        ovr.update_document(documents_modified[1])
 
         self.assertIn('sequenced', ovr.documents[1]['data'])
         self.assertNotEqual(ovr.documents[1], documents_modified[1])
@@ -230,7 +230,7 @@ class OverrideTestCase(testtools.TestCase):
 
         ovr = Override(documents)
         # update with document values with the modified ones
-        ovr.update_armada_manifest(documents_modified[2])
+        ovr.update_document(documents_modified[2])
 
         # after the update, both documents are equal
         self.assertEqual(ovr.documents[2]['data']['release_prefix'],
@@ -249,7 +249,7 @@ class OverrideTestCase(testtools.TestCase):
 
         ovr = Override(documents)
         # update with document values from base_manifest
-        ovr.update_armada_manifest(documents_modified[2])
+        ovr.update_document(documents_modified[2])
 
         self.assertIn('release_prefix', ovr.documents[2]['data'])
         self.assertNotEqual(ovr.documents[2], documents_modified[2])
@@ -265,7 +265,7 @@ class OverrideTestCase(testtools.TestCase):
             documents = list(yaml.safe_load_all(f.read()))
             doc_path = ['chart', 'blog-1']
             ovr = Override(documents)
-            ovr.update_document(merging_values)
+            ovr.update_documents(merging_values)
             ovr_doc = ovr.find_manifest_document(doc_path)
             expect_doc = list(yaml.load_all(e.read()))[0]
 

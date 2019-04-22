@@ -126,13 +126,14 @@ class DeleteChartManifest(CliAction):
                 documents = list(yaml.safe_load_all(f.read()))
             try:
                 armada_obj = Manifest(documents).get_manifest()
-                prefix = armada_obj.get(const.KEYWORD_ARMADA).get(
+                prefix = armada_obj.get(const.KEYWORD_DATA).get(
                     const.KEYWORD_PREFIX)
 
-                for group in armada_obj.get(const.KEYWORD_ARMADA).get(
+                for group in armada_obj.get(const.KEYWORD_DATA).get(
                         const.KEYWORD_GROUPS):
-                    for ch in group.get(const.KEYWORD_CHARTS):
-                        chart = ch.get('chart')
+                    for ch in group.get(const.KEYWORD_DATA).get(
+                            const.KEYWORD_CHARTS):
+                        chart = ch.get(const.KEYWORD_DATA)
                         release_name = release_prefixer(
                             prefix, chart.get('release'))
                         if release_name in known_release_names:

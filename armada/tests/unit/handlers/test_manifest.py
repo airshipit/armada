@@ -18,9 +18,9 @@ import yaml
 
 import testtools
 
-from armada import const
 from armada import exceptions
 from armada.handlers import manifest
+from armada.handlers import schema
 from armada.utils import validate
 
 
@@ -111,7 +111,7 @@ class ManifestTestCase(testtools.TestCase):
             self.documents, target_manifest='armada-manifest')
         obtained_manifest = armada_manifest.get_manifest()
         self.assertIsInstance(obtained_manifest, dict)
-        self.assertEqual(obtained_manifest['armada'],
+        self.assertEqual(obtained_manifest['data'],
                          armada_manifest.manifest['data'])
 
     def test_find_documents(self):
@@ -194,19 +194,15 @@ class ManifestTestCase(testtools.TestCase):
         # the first chart group in the Armada manifest
         keystone_infra_services_chart_group = armada_manifest. \
             find_chart_group_document('keystone-infra-services')
-        keystone_infra_services_chart_group_data = \
-            keystone_infra_services_chart_group.get('data')
 
-        self.assertEqual(keystone_infra_services_chart_group_data,
+        self.assertEqual(keystone_infra_services_chart_group,
                          built_armada_manifest['data']['chart_groups'][0])
 
         # the first chart group in the Armada manifest
         openstack_keystone_chart_group = armada_manifest. \
             find_chart_group_document('openstack-keystone')
-        openstack_keystone_chart_group_data = \
-            openstack_keystone_chart_group.get('data')
 
-        self.assertEqual(openstack_keystone_chart_group_data,
+        self.assertEqual(openstack_keystone_chart_group,
                          built_armada_manifest['data']['chart_groups'][1])
 
     def test_verify_build_chart_group_deps(self):
@@ -218,7 +214,7 @@ class ManifestTestCase(testtools.TestCase):
             build_chart_group(chart_group)
         openstack_keystone_chart_group_deps_dep_added = \
             openstack_keystone_chart_group_deps[
-                'data']['chart_group'][0]['chart']['dependencies']
+                'data']['chart_group'][0]['data']['dependencies']
 
         # keystone chart dependencies
         keystone_chart = armada_manifest.find_chart_document('keystone')
@@ -237,7 +233,7 @@ class ManifestTestCase(testtools.TestCase):
             build_chart_group(chart_group)
         keystone_infra_services_dep_added = \
             openstack_keystone_chart_group_deps[
-                'data']['chart_group'][0]['chart']['dependencies']
+                'data']['chart_group'][0]['data']['dependencies']
 
         # building mariadb chart dependencies
         mariadb_chart = armada_manifest.find_chart_document('mariadb')
@@ -274,9 +270,7 @@ class ManifestTestCase(testtools.TestCase):
 
         # helm-toolkit dependency, the basis for comparison of d
         # ependencies in other charts
-        expected_helm_toolkit_dependency = {
-            'chart': helm_toolkit_chart.get('data')
-        }
+        expected_helm_toolkit_dependency = helm_toolkit_chart
 
         # keystone chart dependencies
         keystone_chart = armada_manifest.find_chart_document('keystone')
@@ -366,42 +360,39 @@ class ManifestNegativeTestCase(testtools.TestCase):
             documents,
             target_manifest='armada-manifest')
 
+    def _assert_missing_documents_raises(self, documents):
+        error_re = ('.*Documents must include at least one of each of .* and '
+                    'only one .*')
+        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
+                                manifest.Manifest, documents)
+
     def test_get_documents_missing_manifest(self):
         # Validates exceptions.ManifestException is thrown if no manifest is
         # found. Manifest is last document in sample YAML.
-        error_re = ('Documents must be a list of documents with at least one '
-                    'of each of the following schemas: .*')
-        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
-                                manifest.Manifest, self.documents[:-1])
+        self._assert_missing_documents_raises(self.documents[:-1])
 
     def test_get_documents_missing_charts(self):
         # Validates exceptions.ManifestException is thrown if no chart is
         # found. Charts are first 5 documents in sample YAML.
-        error_re = ('Documents must be a list of documents with at least one '
-                    'of each of the following schemas: .*')
-        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
-                                manifest.Manifest, self.documents[5:])
+        self._assert_missing_documents_raises(self.documents[5:])
 
     def test_get_documents_missing_chart_groups(self):
         # Validates exceptions.ManifestException is thrown if no chart is
         # found. ChartGroups are 5-6 documents in sample YAML.
         documents = self.documents[:4] + [self.documents[-1]]
-        error_re = ('Documents must be a list of documents with at least one '
-                    'of each of the following schemas: .*')
-        self.assertRaisesRegexp(exceptions.ManifestException, error_re,
-                                manifest.Manifest, documents)
+        self._assert_missing_documents_raises(documents)
 
     def test_find_chart_document_negative(self):
         armada_manifest = manifest.Manifest(self.documents)
-        error_re = r'Could not build %s named "%s"' % (const.DOCUMENT_CHART,
-                                                       'invalid')
+        error_re = r'.*Could not find %s named "%s"' % (schema.TYPE_CHART,
+                                                        'invalid')
         self.assertRaisesRegexp(exceptions.BuildChartException, error_re,
                                 armada_manifest.find_chart_document, 'invalid')
 
     def test_find_group_document_negative(self):
         armada_manifest = manifest.Manifest(self.documents)
-        error_re = r'Could not build %s named "%s"' % (const.DOCUMENT_GROUP,
-                                                       'invalid')
+        error_re = r'.*Could not find %s named "%s"' % (schema.TYPE_CHARTGROUP,
+                                                        'invalid')
         self.assertRaisesRegexp(exceptions.BuildChartGroupException, error_re,
                                 armada_manifest.find_chart_group_document,
                                 'invalid')

@@ -25,6 +25,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from armada.exceptions import chartbuilder_exceptions
+from armada import const
 
 LOG = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class ChartBuilder(object):
 
         # store chart schema
         self.chart = chart
+        self.chart_data = chart[const.KEYWORD_DATA]
 
         # extract, pull, whatever the chart from its source
         self.source_directory = self.get_source_path()
@@ -62,7 +64,7 @@ class ChartBuilder(object):
         Returns "<source directory>/<subpath>" taken from the "source_dir"
         property from the chart, or else "" if the property isn't a 2-tuple.
         '''
-        source_dir = self.chart.get('source_dir')
+        source_dir = self.chart_data.get('source_dir')
         return (os.path.join(*source_dir) if
                 (source_dir and isinstance(source_dir, (list, tuple)) and
                  len(source_dir) == 2) else "")
@@ -206,7 +208,7 @@ class ChartBuilder(object):
         Process all files in templates/ as a template to attach to the chart,
         building a :class:`hapi.chart.template_pb2.Template` object.
         '''
-        chart_name = self.chart.get('chart_name')
+        chart_name = self.chart['metadata']['name']
         templates = []
         if not os.path.exists(
                 os.path.join(self.source_directory, 'templates')):
@@ -240,12 +242,11 @@ class ChartBuilder(object):
             return self._helm_chart
 
         dependencies = []
-        chart_dependencies = self.chart.get('dependencies', [])
-        chart_name = self.chart.get('chart_name', None)
-        chart_release = self.chart.get('release', None)
-        for dep in chart_dependencies:
-            dep_chart = dep.get('chart', {})
-            dep_chart_name = dep_chart.get('chart_name', None)
+        chart_dependencies = self.chart_data.get('dependencies', [])
+        chart_name = self.chart['metadata']['name']
+        chart_release = self.chart_data.get('release', None)
+        for dep_chart in chart_dependencies:
+            dep_chart_name = dep_chart['metadata']['name']
             LOG.info("Building dependency chart %s for release %s.",
                      dep_chart_name, chart_release)
             try:

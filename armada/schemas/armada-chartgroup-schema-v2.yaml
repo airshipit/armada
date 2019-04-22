@@ -16,7 +16,7 @@
 ---
 schema: deckhand/DataSchema/v1
 metadata:
-  name: armada/ChartGroup/v1
+  name: armada/ChartGroup/v2
   schema: metadata/Control/v1
 data:
   $schema: http://json-schema.org/schema#
@@ -27,14 +27,12 @@ data:
       type: string
     sequenced:
       type: boolean
-    # TODO(MarshM): Deprecate `test_charts`, it is no longer useful
-    test_charts:
-      type: boolean
     chart_group:
       type: array
       items:
         type: string
   required:
+    # TODO: Rename to `charts`?
     - chart_group
   additionalProperties: false
 ...

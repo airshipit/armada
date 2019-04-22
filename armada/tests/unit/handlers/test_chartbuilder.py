@@ -23,6 +23,7 @@ from hapi.chart.metadata_pb2 import Metadata
 import mock
 import testtools
 
+from armada import const
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.exceptions import chartbuilder_exceptions
 
@@ -59,7 +60,9 @@ class BaseChartBuilderTestCase(testtools.TestCase):
     """
 
     chart_stream = """
-        chart:
+        metadata:
+            name: test
+        data:
             chart_name: mariadb
             release: mariadb
             namespace: openstack
@@ -87,7 +90,9 @@ class BaseChartBuilderTestCase(testtools.TestCase):
     """
 
     dependency_chart_stream = """
-        chart:
+        metadata:
+            name: dep
+        data:
             chart_name: keystone
             release: keystone
             namespace: undercloud
@@ -120,6 +125,16 @@ class BaseChartBuilderTestCase(testtools.TestCase):
             self.addCleanup(shutil.rmtree, subdir)
         return subdir
 
+    def _get_test_chart(self, chart_dir):
+        return {
+            'metadata': {
+                'name': 'test'
+            },
+            const.KEYWORD_DATA: {
+                'source_dir': (chart_dir.path, '')
+            }
+        }
+
 
 class ChartBuilderTestCase(BaseChartBuilderTestCase):
 
@@ -131,8 +146,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
                                             self.chart_yaml)
 
-        test_chart = {'source_dir': (chart_dir.path, '')}
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
         # Validate response type is :class:`hapi.chart.metadata_pb2.Metadata`
         resp = chartbuilder.get_metadata()
@@ -142,8 +156,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
 
-        test_chart = {'source_dir': (chart_dir.path, '')}
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
         self.assertRaises(chartbuilder_exceptions.MetadataLoadException,
                           chartbuilder.get_metadata)
@@ -168,8 +181,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         for filename in ['template%d' % x for x in range(3)]:
             self._write_temporary_file_contents(templates_subdir, filename, "")
 
-        test_chart = {'source_dir': (chart_dir.path, '')}
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
         expected_files = (
             '[type_url: "%s"\n, type_url: "%s"\n]' % ('./bar', './foo'))
@@ -185,8 +197,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(
                 chart_dir.path, filename, "DIRC^@^@^@^B^@^@^@×Z®<86>F.1")
 
-        test_chart = {'source_dir': (chart_dir.path, '')}
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
         chartbuilder.get_files()
 
     def test_get_basic_helm_chart(self):
@@ -197,8 +208,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self.addCleanup(shutil.rmtree, chart_dir.path)
         self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
                                             self.chart_yaml)
-        ch = yaml.safe_load(self.chart_stream)['chart']
-        ch['source_dir'] = (chart_dir.path, '')
+        ch = yaml.safe_load(self.chart_stream)
+        ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
         chartbuilder = ChartBuilder(test_chart)
@@ -228,8 +239,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self._write_temporary_file_contents(chart_dir.path, 'values.yaml',
                                             self.chart_value)
 
-        ch = yaml.safe_load(self.chart_stream)['chart']
-        ch['source_dir'] = (chart_dir.path, '')
+        ch = yaml.safe_load(self.chart_stream)
+        ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
         chartbuilder = ChartBuilder(test_chart)
@@ -257,8 +268,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
                                                        'nested')
         self._write_temporary_file_contents(nested_dir, 'nested0', "random")
 
-        ch = yaml.safe_load(self.chart_stream)['chart']
-        ch['source_dir'] = (chart_dir.path, '')
+        ch = yaml.safe_load(self.chart_stream)
+        ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
         chartbuilder = ChartBuilder(test_chart)
@@ -313,8 +324,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         # Files to **include** within charts/ subdirectory.
         self._write_temporary_file_contents(charts_subdir, '.prov', "xyzzy")
 
-        ch = yaml.safe_load(self.chart_stream)['chart']
-        ch['source_dir'] = (chart_dir.path, '')
+        ch = yaml.safe_load(self.chart_stream)
+        ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
         chartbuilder = ChartBuilder(test_chart)
@@ -340,8 +351,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self.addCleanup(shutil.rmtree, chart_dir.path)
         self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
                                             self.chart_yaml)
-        ch = yaml.safe_load(self.chart_stream)['chart']
-        ch['source_dir'] = (chart_dir.path, '')
+        ch = yaml.safe_load(self.chart_stream)
+        ch['data']['source_dir'] = (chart_dir.path, '')
 
         # Dependency chart directory and files.
         dep_chart_dir = self.useFixture(fixtures.TempDir())
@@ -349,11 +360,11 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self._write_temporary_file_contents(dep_chart_dir.path, 'Chart.yaml',
                                             self.dependency_chart_yaml)
         dep_ch = yaml.safe_load(self.dependency_chart_stream)
-        dep_ch['chart']['source_dir'] = (dep_chart_dir.path, '')
+        dep_ch['data']['source_dir'] = (dep_chart_dir.path, '')
 
         main_chart = ch
         dependency_chart = dep_ch
-        main_chart['dependencies'] = [dependency_chart]
+        main_chart['data']['dependencies'] = [dependency_chart]
 
         chartbuilder = ChartBuilder(main_chart)
         helm_chart = chartbuilder.get_helm_chart()
@@ -409,8 +420,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self.addCleanup(shutil.rmtree, chart_dir.path)
         self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
                                             self.chart_yaml)
-        ch = yaml.safe_load(self.chart_stream)['chart']
-        ch['source_dir'] = (chart_dir.path, '')
+        ch = yaml.safe_load(self.chart_stream)
+        ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
         chartbuilder = ChartBuilder(test_chart)
@@ -424,10 +435,10 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self._write_temporary_file_contents(dep_chart_dir.path, 'Chart.yaml',
                                             self.dependency_chart_yaml)
         dep_ch = yaml.safe_load(self.dependency_chart_stream)
-        dep_ch['chart']['source_dir'] = (dep_chart_dir.path, '')
+        dep_ch['data']['source_dir'] = (dep_chart_dir.path, '')
 
         dependency_chart = dep_ch
-        test_chart['dependencies'] = [dependency_chart]
+        test_chart['data']['dependencies'] = [dependency_chart]
         chartbuilder = ChartBuilder(test_chart)
 
         re = inspect.cleandoc("""
@@ -457,8 +468,7 @@ class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(
                 chart_dir.path, filename, "DIRC^@^@^@^B^@^@^@×Z®<86>F.1")
 
-        test_chart = {'source_dir': (chart_dir.path, '')}
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
         # Confirm it failed for both encodings.
         error_re = (r'.*A str exception occurred while trying to read file:'
@@ -477,8 +487,7 @@ class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(
                 chart_dir.path, filename, "DIRC^@^@^@^B^@^@^@×Z®<86>F.1")
 
-        test_chart = {'source_dir': (chart_dir.path, '')}
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
         side_effects = [self.exc_to_raise, "", ""]
         with mock.patch("builtins.open", mock.mock_open(read_data="")) \

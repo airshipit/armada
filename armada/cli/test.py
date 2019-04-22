@@ -147,10 +147,10 @@ class TestChartManifest(CliAction):
                 armada_obj = Manifest(
                     documents,
                     target_manifest=self.target_manifest).get_manifest()
-                prefix = armada_obj.get(const.KEYWORD_ARMADA).get(
+                prefix = armada_obj.get(const.KEYWORD_DATA).get(
                     const.KEYWORD_PREFIX)
 
-                for group in armada_obj.get(const.KEYWORD_ARMADA).get(
+                for group in armada_obj.get(const.KEYWORD_DATA).get(
                         const.KEYWORD_GROUPS):
                     for ch in group.get(const.KEYWORD_CHARTS):
                         chart = ch['chart']

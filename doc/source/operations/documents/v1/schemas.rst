@@ -14,15 +14,11 @@
   License for the specific language governing permissions and limitations
   under the License.
 
-.. _armada-documents:
+v1 Schemas
+==========
 
-Armada Documents
-================
-
-Below are the schemas Armada uses to validate :ref:`Charts`,
-:ref:`Chart Groups`, and :ref:`Manifests`.
-
-.. _Charts:
+Below are the schemas Armada uses to validate Charts, Chart Groups, and
+Manifests.
 
 Charts
 ------
@@ -32,15 +28,11 @@ comparable to a Helm chart. Charts consist of all the labels, dependencies,
 install and upgrade information, hooks and additional information needed to
 convey to Tiller.
 
-.. _Chart Groups:
-
 Chart Groups
 ------------
 
 A ``Chart Group`` consists of a list of charts. ``Chart Group`` documents are
 useful for managing a group of ``Chart`` documents together.
-
-.. _Manifests:
 
 Manifests
 ---------
@@ -76,7 +68,7 @@ Schemas
   ``metadata.name`` are validated.
 
   .. literalinclude::
-    ../../../armada/schemas/armada-chart-schema.yaml
+    ../../../../../armada/schemas/armada-chart-schema-v1.yaml
     :language: yaml
     :lines: 15-
     :caption: Schema for ``armada/Chart/v1`` documents.
@@ -90,7 +82,7 @@ Schemas
   ``metadata.name`` are validated.
 
   .. literalinclude::
-    ../../../armada/schemas/armada-chartgroup-schema.yaml
+    ../../../../../armada/schemas/armada-chartgroup-schema-v1.yaml
     :language: yaml
     :lines: 15-
     :caption: Schema for ``armada/ChartGroup/v1`` documents.
@@ -104,15 +96,13 @@ Schemas
   ``metadata.name`` are validated.
 
   .. literalinclude::
-    ../../../armada/schemas/armada-manifest-schema.yaml
+    ../../../../../armada/schemas/armada-manifest-schema-v1.yaml
     :language: yaml
     :lines: 15-
     :caption: Schema for ``armada/Manifest/v1`` documents.
 
   This schema is used to sanity-check all ``Manifest`` documents that are passed
   to Armada.
-
-.. _authoring-guidelines:
 
 Authoring Guidelines
 --------------------
