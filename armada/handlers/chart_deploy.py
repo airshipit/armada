@@ -23,10 +23,11 @@ from armada.handlers import metrics
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.release_diff import ReleaseDiff
 from armada.handlers.chart_delete import ChartDelete
+from armada.handlers.pre_update_actions import PreUpdateActions
 from armada.handlers.schema import get_schema_info
 from armada.handlers.test import Test
 from armada.handlers.wait import ChartWait
-from armada.exceptions import tiller_exceptions
+from armada.exceptions import tiller_exceptions as tiller_ex
 import armada.utils.release as r
 
 LOG = logging.getLogger(__name__)
@@ -87,7 +88,6 @@ class ChartDeploy(object):
         # Resolve action
         values = chart.get('values', {})
         pre_actions = {}
-        post_actions = {}
 
         status = None
         if old_release:
@@ -133,9 +133,8 @@ class ChartDeploy(object):
 
                 if not self.disable_update_post and upgrade_post:
                     LOG.warning(
-                        'Post upgrade actions are ignored by Armada '
+                        'Post upgrade actions are ignored by Armada'
                         'and will not affect deployment.')
-                    post_actions = upgrade_post
 
             try:
                 old_values = yaml.safe_load(old_values_string)
@@ -159,6 +158,9 @@ class ChartDeploy(object):
                 def upgrade():
                     # do actual update
                     timer = int(round(deadline - time.time()))
+                    PreUpdateActions(self.tiller.k8s).execute(
+                        pre_actions, release, namespace, chart, disable_hooks,
+                        values, timer)
                     LOG.info(
                         "Upgrading release %s in namespace %s, wait=%s, "
                         "timeout=%ss", release_name, namespace,
@@ -167,8 +169,6 @@ class ChartDeploy(object):
                         new_chart,
                         release_name,
                         namespace,
-                        pre_actions=pre_actions,
-                        post_actions=post_actions,
                         disable_hooks=disable_hooks,
                         values=yaml.safe_dump(values),
                         wait=native_wait_enabled,
@@ -315,7 +315,7 @@ class ChartDeploy(object):
     def _test_chart(self, release_name, test_handler):
         success = test_handler.test_release_for_success()
         if not success:
-            raise tiller_exceptions.TestFailedException(release_name)
+            raise tiller_ex.TestFailedException(release_name)
 
     def get_diff(self, old_chart, old_values, new_chart, values):
         return ReleaseDiff(old_chart, old_values, new_chart, values).get_diff()

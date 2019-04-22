@@ -29,16 +29,6 @@ Tiller Exceptions
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: PostUpdateJobCreateException
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-.. autoexception:: PreUpdateJobDeleteException
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 .. autoexception:: ReleaseException
    :members:
    :show-inheritance:

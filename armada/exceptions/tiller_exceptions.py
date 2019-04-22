@@ -47,46 +47,6 @@ class ListChartsException(TillerException):
     message = 'There was an error listing the Helm chart releases.'
 
 
-class PostUpdateJobDeleteException(TillerException):
-    '''Exception that occurs when a job deletion'''
-
-    def __init__(self, name, namespace):
-
-        message = 'Failed to delete k8s job {} in {}'.format(name, namespace)
-
-        super(PostUpdateJobDeleteException, self).__init__(message)
-
-
-class PostUpdateJobCreateException(TillerException):
-    '''
-    Exception that occurs when a job creation fails.
-
-    **Troubleshoot:**
-    *Coming Soon*
-    '''
-
-    def __init__(self, name, namespace):
-
-        message = 'Failed to create k8s job {} in {}'.format(name, namespace)
-
-        super(PostUpdateJobCreateException, self).__init__(message)
-
-
-class PreUpdateJobDeleteException(TillerException):
-    '''
-    Exception that occurs when a job deletion.
-
-    **Troubleshoot:**
-    *Coming Soon*
-    '''
-
-    def __init__(self, name, namespace):
-
-        message = 'Failed to delete k8s job {} in {}'.format(name, namespace)
-
-        super(PreUpdateJobDeleteException, self).__init__(message)
-
-
 class ReleaseException(TillerException):
     '''
     Exception that occurs when a release fails to install, upgrade, delete,

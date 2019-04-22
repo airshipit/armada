@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import mock
-from mock import MagicMock
 
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers import tiller
@@ -464,12 +463,6 @@ class TillerTestCase(base.ArmadaTestCase):
 
         tiller_obj = tiller.Tiller('host', '8080', None)
 
-        # TODO: Test these methods as well, either by unmocking, or adding
-        #       separate tests for them.
-        tiller_obj._pre_update_actions = MagicMock()
-
-        pre_actions = {}
-        post_actions = {}
         disable_hooks = False
         wait = True
         timeout = 123
@@ -480,18 +473,12 @@ class TillerTestCase(base.ArmadaTestCase):
             chart,
             release,
             namespace,
-            pre_actions=pre_actions,
-            post_actions=post_actions,
             disable_hooks=disable_hooks,
             values=values,
             wait=wait,
             timeout=timeout,
             force=force,
             recreate_pods=recreate_pods)
-
-        tiller_obj._pre_update_actions.assert_called_once_with(
-            pre_actions, release, namespace, chart, disable_hooks, values,
-            timeout)
 
         mock_update_release_request.assert_called_once_with(
             chart=chart,

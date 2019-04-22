@@ -102,3 +102,18 @@ class DeploymentLikelyPendingException(ArmadaException):
             '(last deployment age={}s) < (chart wait timeout={}s)'.format(
                 release, status, last_deployment_age, timeout))
         super(DeploymentLikelyPendingException, self).__init__(self._message)
+
+
+class PreUpdateJobDeleteException(ArmadaException):
+    '''
+    Exception that occurs when a job deletion.
+
+    **Troubleshoot:**
+    *Coming Soon*
+    '''
+
+    def __init__(self, name, namespace):
+
+        message = 'Failed to delete k8s job {} in {}'.format(name, namespace)
+
+        super(PreUpdateJobDeleteException, self).__init__(message)

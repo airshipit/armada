@@ -53,3 +53,8 @@ Armada Exceptions
    :members:
    :show-inheritance:
    :undoc-members:
+
+.. autoexception:: PreUpdateJobDeleteException
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -480,8 +480,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                             ['release_prefix'],
                                             chart['release']),
                                         chart['namespace'],
-                                        pre_actions={},
-                                        post_actions={},
                                         disable_hooks=disable_hooks,
                                         force=force,
                                         recreate_pods=recreate_pods,
