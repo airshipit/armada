@@ -4,7 +4,7 @@ grpcio==1.16.0
 jsonschema>=2.6.0
 keystoneauth1==2.21.0
 keystonemiddleware==4.9.1
-kubernetes>=6.0.0
+kubernetes>=9.0.0
 Paste>=2.0.3
 PasteDeploy>=1.5.2
 protobuf>=3.4.0
