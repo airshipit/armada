@@ -21,49 +21,49 @@
     check:
       jobs:
         - openstack-tox-pep8
-        - airship-armada-chart-build-gate
-        - airship-armada-chart-build-latest-htk
-        - airship-armada-docker-build-gate
-        - airship-treasuremap-airskiff-deploy
+        - armada-chart-build-gate
+        - armada-chart-build-latest-htk
+        - armada-docker-build-gate
+        - armada-airskiff-deploy
     gate:
       jobs:
         - openstack-tox-pep8
-        - airship-armada-chart-build-gate
-        - airship-armada-docker-build-gate
+        - armada-chart-build-gate
+        - armada-docker-build-gate
     post:
       jobs:
-        - airship-armada-docker-publish
+        - armada-docker-publish
 
 - nodeset:
-    name: airship-armada-single-node
+    name: armada-single-node
     nodes:
       - name: primary
         label: ubuntu-xenial
 
 - job:
-    name: airship-armada-chart-build-gate
+    name: armada-chart-build-gate
     description: |
       Builds Armada and Tiller charts using pinned Helm toolkit.
     timeout: 900
     run: tools/gate/playbooks/build-charts.yaml
-    nodeset: airship-armada-single-node
+    nodeset: armada-single-node
 
 - job:
-    name: airship-armada-chart-build-latest-htk
+    name: armada-chart-build-latest-htk
     description: |
       Builds Armada and Tiller charts using latest Helm toolkit.
     timeout: 900
     voting: false
     run: tools/gate/playbooks/build-charts.yaml
-    nodeset: airship-armada-single-node
+    nodeset: armada-single-node
     vars:
       HTK_COMMIT: master
 
 - job:
-    name: airship-armada-docker-build-gate
+    name: armada-docker-build-gate
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: airship-armada-single-node
+    nodeset: armada-single-node
     vars:
       publish: false
       tags:
@@ -71,8 +71,8 @@
           patch_set: true
 
 - job:
-    name: airship-treasuremap-airskiff-deploy
-    nodeset: airship-armada-single-node
+    name: armada-airskiff-deploy
+    nodeset: armada-single-node
     description: |
       Deploy Memcached using Airskiff and submitted Armada changes.
     timeout: 9600
@@ -88,6 +88,8 @@
       - airship/shipyard
       - airship/treasuremap
       - openstack/openstack-helm-infra
+    vars:
+      OSH_INFRA_PATH: "../../openstack/openstack-helm-infra"
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$
@@ -96,12 +98,12 @@
       - ^swagger/.*$
 
 - job:
-    name: airship-armada-docker-publish
+    name: armada-docker-publish
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: airship-armada-single-node
+    nodeset: armada-single-node
     secrets:
-      - airship_armada_quay_creds
+      - armada_quay_creds
     vars:
       publish: true
       tags:
@@ -112,7 +114,7 @@
           - latest
 
 - secret:
-    name: airship_armada_quay_creds
+    name: armada_quay_creds
     data:
       username: !encrypted/pkcs1-oaep
         - mQ5xMKaU6+ug5Zp+LK5hfwbFamnW9hK2QVQOA7ylcoTMh8yz66YcgDjGJjbT2c66NF8eg
