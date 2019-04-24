@@ -21,6 +21,7 @@ from armada.exceptions import armada_exceptions
 from armada.handlers.chartbuilder import ChartBuilder
 from armada.handlers.release_diff import ReleaseDiff
 from armada.handlers.chart_delete import ChartDelete
+from armada.handlers.schema import get_schema_info
 from armada.handlers.test import Test
 from armada.handlers.wait import ChartWait
 from armada.exceptions import tiller_exceptions
@@ -92,8 +93,16 @@ class ChartDeploy(object):
             old_values_string = old_release.config.raw
 
             upgrade = chart.get('upgrade', {})
-            disable_hooks = upgrade.get('no_hooks', False)
             options = upgrade.get('options', {})
+
+            # TODO: Remove when v1 doc support is removed.
+            schema_info = get_schema_info(ch['schema'])
+            if schema_info.version < 2:
+                no_hooks_location = upgrade
+            else:
+                no_hooks_location = options
+
+            disable_hooks = no_hooks_location.get('no_hooks', False)
             force = options.get('force', False)
             recreate_pods = options.get('recreate_pods', False)
 

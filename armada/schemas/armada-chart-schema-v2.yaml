@@ -126,8 +126,6 @@ data:
     upgrade:
       type: object
       properties:
-        no_hooks:
-          type: boolean
         pre:
           type: object
           additionalProperties: false
@@ -140,6 +138,8 @@ data:
             force:
               type: boolean
             recreate_pods:
+              type: boolean
+            no_hooks:
               type: boolean
           additionalProperties: false
       additionalProperties: false

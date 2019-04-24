@@ -48,8 +48,11 @@ Chart
 | with ``type: job`` no longer   | ``type: job`` and you also want to delete cronjobs, add    |
 | deletes cronjobs               | another item with ``type: cronjob`` and same labels.       |
 +--------------------------------+------------------------------------------------------------+
+| ``upgrade.no_hooks`` moved to  | Remove as desired, otherwise move to the new location.     |
+| ``upgrade.options.no_hooks``,  |                                                            |
+| and now optional               |                                                            |
++--------------------------------+------------------------------------------------------------+
 | ``dependencies``,              | Remove as desired.                                         |
-| ``upgrade.no_hooks``,          |                                                            |
 | ``source.subpath``             |                                                            |
 | now optional                   |                                                            |
 +--------------------------------+------------------------------------------------------------+
