@@ -119,7 +119,7 @@
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     secrets:
-      - armada_quay_creds
+      - airship_armada_quay_creds
     vars:
       publish: true
       distro: ubuntu_bionic
@@ -136,7 +136,7 @@
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     secrets:
-      - armada_quay_creds
+      - airship_armada_quay_creds
     vars:
       publish: true
       distro: opensuse_15
@@ -148,7 +148,7 @@
           - latest
 
 - secret:
-    name: armada_quay_creds
+    name: airship_armada_quay_creds
     data:
       username: !encrypted/pkcs1-oaep
         - mQ5xMKaU6+ug5Zp+LK5hfwbFamnW9hK2QVQOA7ylcoTMh8yz66YcgDjGJjbT2c66NF8eg
