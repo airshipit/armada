@@ -21,6 +21,8 @@
         - debug:
             var: publish
         - debug:
+            var: distro
+        - debug:
             var: tags
         - debug:
             var: zuul
@@ -91,6 +93,7 @@
             chdir: "{{ zuul.project.src_dir }}"
             target: images
             params:
+              DISTRO: "{{ distro }}"
               IMAGE_TAG: "{{ item }}"
           with_items: "{{ image_tags.stdout_lines }}"
 
@@ -115,6 +118,7 @@
             params:
               DOCKER_REGISTRY: "quay.io"
               IMAGE_PREFIX: "airshipit"
+              DISTRO: "{{ distro }}"
               IMAGE_TAG: "{{ item }}"
               COMMIT: "{{ zuul.newrev | default('') }}"
               PUSH_IMAGE: "true"

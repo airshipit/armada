@@ -23,16 +23,19 @@
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
-        - armada-docker-build-gate
+        - armada-docker-build-gate-ubuntu
+        - armada-docker-build-gate-opensuse
         - armada-airskiff-deploy
     gate:
       jobs:
         - openstack-tox-pep8
         - armada-chart-build-gate
-        - armada-docker-build-gate
+        - armada-docker-build-gate-ubuntu
+        - armada-docker-build-gate-opensuse
     post:
       jobs:
-        - armada-docker-publish
+        - armada-docker-publish-ubuntu
+        - armada-docker-publish-opensuse
 
 - nodeset:
     name: armada-single-node
@@ -60,12 +63,25 @@
       HTK_COMMIT: master
 
 - job:
-    name: armada-docker-build-gate
+    name: armada-docker-build-gate-ubuntu
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     vars:
       publish: false
+      distro: ubuntu_bionic
+      tags:
+        dynamic:
+          patch_set: true
+
+- job:
+    name: armada-docker-build-gate-opensuse
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: armada-single-node
+    vars:
+      publish: false
+      distro: opensuse_15
       tags:
         dynamic:
           patch_set: true
@@ -98,7 +114,7 @@
       - ^swagger/.*$
 
 - job:
-    name: armada-docker-publish
+    name: armada-docker-publish-ubuntu
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
@@ -106,6 +122,24 @@
       - armada_quay_creds
     vars:
       publish: true
+      distro: ubuntu_bionic
+      tags:
+        dynamic:
+          branch: true
+          commit: true
+        static:
+          - latest
+
+- job:
+    name: armada-docker-publish-opensuse
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: armada-single-node
+    secrets:
+      - armada_quay_creds
+    vars:
+      publish: true
+      distro: opensuse_15
       tags:
         dynamic:
           branch: true
