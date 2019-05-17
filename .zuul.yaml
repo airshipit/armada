@@ -18,6 +18,7 @@
       - openstack-python36-jobs
     vars:
       rtd_webhook_id: '47578'
+      rtd_project_name: 'airship-armada'
     check:
       jobs:
         - openstack-tox-pep8
