@@ -37,7 +37,7 @@ from armada.handlers import schema
 from armada.utils import helm
 from armada.utils.release import label_selectors, get_release_status
 
-TILLER_VERSION = b'2.13.1'
+TILLER_VERSION = b'2.14.0'
 GRPC_EPSILON = 60
 LIST_RELEASES_PAGE_SIZE = 32
 LIST_RELEASES_ATTEMPTS = 3
