@@ -24,18 +24,21 @@
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
-        - armada-docker-build-gate-ubuntu
+        - armada-docker-build-gate-ubuntu_bionic
+        - armada-docker-build-gate-ubuntu_xenial
         - armada-docker-build-gate-opensuse
         - armada-airskiff-deploy
     gate:
       jobs:
         - openstack-tox-pep8
         - armada-chart-build-gate
-        - armada-docker-build-gate-ubuntu
+        - armada-docker-build-gate-ubuntu_bionic
+        - armada-docker-build-gate-ubuntu_xenial
         - armada-docker-build-gate-opensuse
     post:
       jobs:
-        - armada-docker-publish-ubuntu
+        - armada-docker-publish-ubuntu_bionic
+        - armada-docker-publish-ubuntu_xenial
         - armada-docker-publish-opensuse
         - armada-upload-git-mirror
 
@@ -65,13 +68,25 @@
       HTK_COMMIT: master
 
 - job:
-    name: armada-docker-build-gate-ubuntu
+    name: armada-docker-build-gate-ubuntu_bionic
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     vars:
       publish: false
       distro: ubuntu_bionic
+      tags:
+        dynamic:
+          patch_set: true
+
+- job:
+    name: armada-docker-build-gate-ubuntu_xenial
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: armada-single-node
+    vars:
+      publish: false
+      distro: ubuntu_xenial
       tags:
         dynamic:
           patch_set: true
@@ -116,7 +131,7 @@
       - ^swagger/.*$
 
 - job:
-    name: armada-docker-publish-ubuntu
+    name: armada-docker-publish-ubuntu_bionic
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
@@ -125,6 +140,23 @@
     vars:
       publish: true
       distro: ubuntu_bionic
+      tags:
+        dynamic:
+          branch: true
+          commit: true
+        static:
+          - latest
+
+- job:
+    name: armada-docker-publish-ubuntu_xenial
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: armada-single-node
+    secrets:
+      - airship_armada_quay_creds
+    vars:
+      publish: true
+      distro: ubuntu_xenial
       tags:
         dynamic:
           branch: true
