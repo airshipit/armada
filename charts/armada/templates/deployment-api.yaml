@@ -82,6 +82,7 @@ spec:
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
         configmap-etc-hash: {{ tuple "configmap-etc.yaml" . | include "helm-toolkit.utils.hash" }}
     spec:
+{{ dict "envAll" $envAll "application" "armada" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
       serviceAccountName: {{ $serviceAccountName }}
       affinity:
 {{ tuple $envAll "armada" "api" | include "helm-toolkit.snippets.kubernetes_pod_anti_affinity" | indent 8 }}
@@ -94,6 +95,7 @@ spec:
         - name: armada-api
 {{ tuple $envAll "api" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ tuple $envAll $envAll.Values.pod.resources.api | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
+{{ dict "envAll" $envAll "application" "armada" "container" "armada_api" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
           {{- if .Values.pod.env.armada_api }}
           env:
             {{- range .Values.pod.env.armada_api }}
@@ -101,8 +103,6 @@ spec:
               value: {{ .value | quote }}
             {{- end }}
           {{- end }}
-          securityContext:
-            runAsUser: {{ .Values.pod.user.armada.uid }}
           ports:
             - name: armada-api
               containerPort: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
@@ -120,6 +120,8 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 10
           volumeMounts:
+            - name: pod-tmp
+              mountPath: /tmp
             - name: pod-etc-armada
               mountPath: /etc/armada
             - name: armada-etc
@@ -178,6 +180,8 @@ spec:
 {{- end }}
 {{ if $mounts_armada_api.volumeMounts }}{{ toYaml $mounts_armada_api.volumeMounts | indent 12 }}{{ end }}
       volumes:
+        - name: pod-tmp
+          emptyDir: {}
         - name: pod-etc-armada
           emptyDir: {}
         - name: armada-bin
