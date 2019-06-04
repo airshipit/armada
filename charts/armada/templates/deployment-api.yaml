@@ -151,6 +151,16 @@ spec:
 {{- if .Values.conf.tiller.trace }}
             - -trace
 {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  # Delay tiller termination so that it has a chance to finish
+                  # deploying releases including marking them with
+                  # DEPLOYED/FAILED status, otherwise they can get stuck in
+                  # PENDING_*** status.
+                  - sleep
+                  - "{{ .Values.conf.tiller.prestop_sleep }}"
           ports:
             - name: tiller
               containerPort: {{ .Values.conf.tiller.port }}
