@@ -116,13 +116,9 @@
     run: tools/gate/playbooks/airskiff-deploy.yaml
     post-run: tools/gate/playbooks/debug-report.yaml
     required-projects:
-      - airship/deckhand
-      - airship/pegleg
-      - airship/shipyard
       - airship/treasuremap
-      - openstack/openstack-helm-infra
     vars:
-      OSH_INFRA_PATH: "../../openstack/openstack-helm-infra"
+      CLONE_ARMADA: false
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$
