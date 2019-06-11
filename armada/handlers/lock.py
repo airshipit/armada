@@ -21,6 +21,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from armada.handlers.k8s import K8s
+from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
 
@@ -51,7 +52,22 @@ def lock_and_thread(lock_name="lock"):
 
         @functools.wraps(func)
         def func_wrapper(*args, **kwargs):
-            with Lock(lock_name) as lock:
+            bearer_token = None
+            found_tiller = False
+            for arg in args:
+                if type(arg) == Tiller:
+                    bearer_token = arg.bearer_token
+                    found_tiller = True
+
+            # we did not find a Tiller object to extract a bearer token from
+            # log this to assist with potential debugging in the future
+            if not found_tiller:
+                LOG.info("no Tiller object found in parameters of function "
+                         "decorated by lock_and_thread, this might create "
+                         "authentication issues in Kubernetes clusters with "
+                         "external auth backend")
+
+            with Lock(lock_name, bearer_token=bearer_token) as lock:
                 pool = ThreadPoolExecutor(1)
                 future = pool.submit(func, *args, **kwargs)
                 start = time.time()
@@ -69,7 +85,7 @@ def lock_and_thread(lock_name="lock"):
 
 class Lock:
 
-    def __init__(self, lock_name, additional_data=None):
+    def __init__(self, lock_name, bearer_token=None, additional_data=None):
         """Creates a lock with the specified name and data. When a lock with
         that name already exists then this will continuously attempt to acquire
         it until:
@@ -87,7 +103,9 @@ class Lock:
         self.timeout = CONF.lock_acquire_timeout
         self.acquire_delay = CONF.lock_acquire_delay
         self.lock_config = LockConfig(
-            name=lock_name, additional_data=additional_data)
+            name=lock_name,
+            bearer_token=bearer_token,
+            additional_data=additional_data)
 
     def _test_lock_ownership(self):
         # If the uid of the current lock is the same as the one given when we
@@ -166,7 +184,7 @@ class Lock:
 
 class LockConfig:
 
-    def __init__(self, name, additional_data=None):
+    def __init__(self, name, bearer_token=None, additional_data=None):
         self.name = name
         data = additional_data or dict()
         self.full_name = "{}.{}.{}".format(LOCK_PLURAL, LOCK_GROUP, self.name)
@@ -179,7 +197,7 @@ class LockConfig:
         }
         self.delete_options = {}
 
-        self.k8s = K8s()
+        self.k8s = K8s(bearer_token=bearer_token)
 
     def create_lock(self):
         """ Creates the Lock custom resource object
