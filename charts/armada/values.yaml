@@ -209,6 +209,9 @@ conf:
     namespace: kube-system
     # Limit the maximum number of revisions saved per release. 0 for no limit.
     history_max: 0
+    # Note: Defaulting to the (default) kubernetes grace period, as anything
+    # greater than that will have no effect.
+    prestop_sleep: 30
 
 pod:
   security_context:
