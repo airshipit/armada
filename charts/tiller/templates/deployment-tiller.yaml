@@ -60,6 +60,8 @@ spec:
 {{ tuple $envAll "tiller" "deploy" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
+      nodeSelector:
+        {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value }}
       containers:
         - name: tiller
 {{ tuple $envAll "tiller" | include "helm-toolkit.snippets.image" | indent 10 }}

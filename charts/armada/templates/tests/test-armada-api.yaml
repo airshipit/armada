@@ -30,6 +30,8 @@ metadata:
 {{ tuple $envAll "armada" "api-test" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:
   restartPolicy: Never
+  nodeSelector:
+    {{ .Values.labels.test.node_selector_key }}: {{ .Values.labels.test.node_selector_value }}
   containers:
     - name: "{{ .Release.Name }}-armada-api-test"
       env:

@@ -14,6 +14,10 @@
 
 # namespace: "kube-system"
 
+labels:
+  node_selector_key: ucp-control-plane
+  node_selector_value: enabled
+
 dependencies:
   static:
     tiller_deploy:
