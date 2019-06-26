@@ -18,6 +18,7 @@ limitations under the License.
 {{- $envAll := . }}
 {{- $mounts_armada_api := .Values.pod.mounts.armada_api.armada_api }}
 {{- $mounts_armada_api_init := .Values.pod.mounts.armada_api.init_container }}
+{{- $prometheus_annotations := $envAll.Values.monitoring.prometheus.armada }}
 {{- $serviceAccountName := "armada-api" }}
 {{ tuple $envAll "api" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
@@ -79,9 +80,9 @@ spec:
       labels:
 {{ tuple $envAll "armada" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
       annotations:
-{{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
         configmap-etc-hash: {{ tuple "configmap-etc.yaml" . | include "helm-toolkit.utils.hash" }}
+{{ tuple $prometheus_annotations | include "helm-toolkit.snippets.prometheus_pod_annotations" | indent 8 }}
     spec:
 {{ dict "envAll" $envAll "application" "armada" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
       serviceAccountName: {{ $serviceAccountName }}
@@ -123,6 +124,8 @@ spec:
           volumeMounts:
             - name: pod-tmp
               mountPath: /tmp
+            - name: pod-tmp-metrics
+              mountPath: /tmp/armada/metrics
             - name: pod-etc-armada
               mountPath: /etc/armada
             - name: armada-etc
@@ -193,6 +196,9 @@ spec:
       volumes:
         - name: pod-tmp
           emptyDir: {}
+        - name: pod-tmp-metrics
+          emptyDir:
+            medium: Memory
         - name: pod-etc-armada
           emptyDir: {}
         - name: armada-bin

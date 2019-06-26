@@ -27,6 +27,7 @@ from armada.api.controller.rollback import Rollback
 from armada.api.controller.test import TestReleasesReleaseNameController
 from armada.api.controller.test import TestReleasesManifestController
 from armada.api.controller.health import Health
+from armada.api.controller.metrics import Metrics
 from armada.api.controller.tiller import Release
 from armada.api.controller.tiller import Status
 from armada.api.controller.validation import Validate
@@ -59,7 +60,7 @@ def create(enable_middleware=CONF.middleware):
     logging.setup(CONF, 'armada')
 
     # Configure API routing
-    url_routes_v1 = (
+    url_routes_v1 = [
         (HEALTH_PATH, Health()),
         ('apply', Apply()),
         ('releases', Release()),
@@ -68,7 +69,8 @@ def create(enable_middleware=CONF.middleware):
         ('tests', TestReleasesManifestController()),
         ('test/{release}', TestReleasesReleaseNameController()),
         ('validatedesign', Validate()),
-    )
+        ('metrics', Metrics()),
+    ]
 
     for route, service in url_routes_v1:
         api.add_route("/api/v1.0/{}".format(route), service)

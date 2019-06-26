@@ -26,6 +26,8 @@ ARMADA_UWSGI_TIMEOUT=${ARMADA_UWSGI_TIMEOUT:-3600}
 ARMADA_UWSGI_WORKERS=${ARMADA_UWSGI_WORKERS:-4}
 # Threads per worker
 ARMADA_UWSGI_THREADS=${ARMADA_UWSGI_THREADS:-1}
+# Prometheus multiprocess dir
+ARMADA_PROMETHEUS_MULTIPROC_DIR=${ARMADA_PROMETHEUS_MULTIPROC_DIR:-$(mktemp -d -p /tmp/armada/metrics XXXXXX)}
 
 # Start Armada application
 # TODO(fmontei): Should be specifying callable too. But Armada spins up the
@@ -37,6 +39,7 @@ if [ "$1" = 'server' ]; then
         --http :"${ARMADA_UWSGI_PORT}" \
         --http-timeout "$ARMADA_UWSGI_TIMEOUT" \
         --enable-threads \
+        --env prometheus_multiproc_dir="$ARMADA_PROMETHEUS_MULTIPROC_DIR" \
         -L \
         --lazy-apps \
         --master \

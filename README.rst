@@ -90,13 +90,16 @@ Which should output something like this::
 For more information on how to install and use Armada, please reference:
 `Armada Quickstart`_.
 
+
 Integration Points
 ------------------
 
 Armada CLI component has the following integration points:
 
   * `Tiller`_ manages Armada chart installations.
-  * `Deckhand`_ supplies storage and management of site designs and secrets.
+  * `Deckhand`_ is one of the supported control document sources for Armada.
+  * `Prometheus`_ exporter is provided for metric data related to application
+    of charts and collections of charts. See `metrics`_.
 
 In addition, Armada's API component has the following integration points:
 
@@ -110,10 +113,12 @@ Further Reading
 
 .. _Manual Install Guide: https://airship-armada.readthedocs.io/en/latest/development/getting-started.html#developer-install-guide
 .. _Armada Quickstart: https://airship-armada.readthedocs.io/en/latest/operations/guide-use-armada.html
+.. _metrics: https://airship-armada.readthedocs.io/en/latest/operations/metrics.html#metrics
 .. _kubectl: https://kubernetes.io/docs/user-guide/kubectl/kubectl_config/
 .. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
-.. _Deckhand: https://opendev.org/airship/deckhand
-.. _Keystone: https://opendev.org/openstack/keystone
+.. _Deckhand: https://github.com/openstack/airship-deckhand
+.. _Prometheus: https://prometheus.io
+.. _Keystone: https://github.com/openstack/keystone
 
 .. |Docker Repository on Quay| image:: https://quay.io/repository/airshipit/armada/status
    :target: https://quay.io/repository/airshipit/armada

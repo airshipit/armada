@@ -24,6 +24,7 @@ from armada.exceptions import override_exceptions
 from armada.exceptions import source_exceptions
 from armada.exceptions import tiller_exceptions
 from armada.exceptions import validate_exceptions
+from armada.handlers import metrics
 from armada.handlers.chart_deploy import ChartDeploy
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
@@ -92,8 +93,9 @@ class Armada(object):
             self.documents, target_manifest=target_manifest).get_manifest()
         self.chart_cache = {}
         self.chart_deploy = ChartDeploy(
-            disable_update_pre, disable_update_post, self.dry_run,
-            k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, self.tiller)
+            self.manifest, disable_update_pre, disable_update_post,
+            self.dry_run, k8s_wait_attempts, k8s_wait_attempt_sleep, timeout,
+            self.tiller)
 
     def pre_flight_ops(self):
         """Perform a series of checks and operations to ensure proper
@@ -113,6 +115,12 @@ class Armada(object):
                 self.get_chart(ch)
 
     def get_chart(self, ch):
+        manifest_name = self.manifest['metadata']['name']
+        chart_name = ch['metadata']['name']
+        with metrics.CHART_DOWNLOAD.get_context(manifest_name, chart_name):
+            return self._get_chart(ch)
+
+    def _get_chart(self, ch):
         chart = ch.get(const.KEYWORD_DATA)
         chart_source = chart.get('source', {})
         location = chart_source.get('location')
@@ -171,6 +179,11 @@ class Armada(object):
         '''
         Synchronize Helm with the Armada Config(s)
         '''
+        manifest_name = self.manifest['metadata']['name']
+        with metrics.APPLY.get_context(manifest_name):
+            return self._sync()
+
+    def _sync(self):
         if self.dry_run:
             LOG.info('Armada is in DRY RUN mode, no changes being made.')
 
@@ -207,11 +220,12 @@ class Armada(object):
 
             cg_charts = chartgroup.get(const.KEYWORD_CHARTS, [])
 
-            def deploy_chart(chart):
+            def deploy_chart(chart, concurrency):
                 set_current_chart(chart)
                 try:
                     return self.chart_deploy.execute(
-                        chart, cg_test_all_charts, prefix, known_releases)
+                        chart, cg_test_all_charts, prefix, known_releases,
+                        concurrency)
                 finally:
                     set_current_chart(None)
 
@@ -233,13 +247,14 @@ class Armada(object):
 
             if cg_sequenced:
                 for chart in cg_charts:
-                    if (handle_result(chart, lambda: deploy_chart(chart))):
+                    if (handle_result(chart, lambda: deploy_chart(chart, 1))):
                         break
             else:
                 with ThreadPoolExecutor(
                         max_workers=len(cg_charts)) as executor:
                     future_to_chart = {
-                        executor.submit(deploy_chart, chart): chart
+                        executor.submit(deploy_chart, chart, len(cg_charts)):
+                        chart
                         for chart in cg_charts
                     }
 

@@ -216,6 +216,13 @@ conf:
     # greater than that will have no effect.
     prestop_sleep: 30
 
+monitoring:
+  prometheus:
+    armada:
+      scrape: true
+      path: /api/v1.0/metrics
+      port: 8000
+
 pod:
   security_context:
     armada:

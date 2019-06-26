@@ -14,6 +14,7 @@ Operations Guide
    guide-configure
    guide-troubleshooting
    guide-use-armada
+   metrics
    exceptions/index
    guide-helm-plugin
    sampleconf

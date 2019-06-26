@@ -397,6 +397,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 mock_test_release.side_effect = fail
             else:
                 mock_test_release.return_value = test_success
+            mock_test.return_value.timeout = const.DEFAULT_TEST_TIMEOUT
 
             # Stub out irrelevant methods called by `armada.sync()`.
             mock_chartbuilder.get_source_path.return_value = None

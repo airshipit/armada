@@ -14,10 +14,12 @@
 
 import click
 from oslo_config import cfg
+import prometheus_client
 import yaml
 
 from armada.cli import CliAction
 from armada.exceptions.source_exceptions import InvalidPathException
+from armada.handlers import metrics
 from armada.handlers.armada import Armada
 from armada.handlers.document import ReferenceResolver
 from armada.handlers.lock import lock_and_thread
@@ -82,6 +84,12 @@ SHORT_DESC = "Command installs manifest charts."
 @click.option(
     '--enable-chart-cleanup', help="Clean up unmanaged charts.", is_flag=True)
 @click.option(
+    '--metrics-output',
+    help=(
+        "Output path for prometheus metric data, should end in .prom. By "
+        "default, no metric data is output."),
+    default=None)
+@click.option(
     '--use-doc-ref', help="Use armada manifest file reference.", is_flag=True)
 @click.option(
     '--set',
@@ -121,7 +129,7 @@ SHORT_DESC = "Command installs manifest charts."
     '--wait',
     help=(
         "Force Tiller to wait until all charts are deployed, "
-        "rather than using each chart's specified wait policy. "
+        "rather than using each charts specified wait policy. "
         "This is equivalent to sequenced chartgroups."),
     is_flag=True)
 @click.option(
@@ -135,22 +143,22 @@ SHORT_DESC = "Command installs manifest charts."
 @click.pass_context
 def apply_create(
         ctx, locations, api, disable_update_post, disable_update_pre, dry_run,
-        enable_chart_cleanup, use_doc_ref, set, tiller_host, tiller_port,
-        tiller_namespace, timeout, values, wait, target_manifest, bearer_token,
-        debug):
+        enable_chart_cleanup, metrics_output, use_doc_ref, set, tiller_host,
+        tiller_port, tiller_namespace, timeout, values, wait, target_manifest,
+        bearer_token, debug):
     CONF.debug = debug
     ApplyManifest(
         ctx, locations, api, disable_update_post, disable_update_pre, dry_run,
-        enable_chart_cleanup, use_doc_ref, set, tiller_host, tiller_port,
-        tiller_namespace, timeout, values, wait, target_manifest,
+        enable_chart_cleanup, metrics_output, use_doc_ref, set, tiller_host,
+        tiller_port, tiller_namespace, timeout, values, wait, target_manifest,
         bearer_token).safe_invoke()
 
 
 class ApplyManifest(CliAction):
     def __init__(
             self, ctx, locations, api, disable_update_post, disable_update_pre,
-            dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
-            tiller_port, tiller_namespace, timeout, values, wait,
+            dry_run, enable_chart_cleanup, metrics_output, use_doc_ref, set,
+            tiller_host, tiller_port, tiller_namespace, timeout, values, wait,
             target_manifest, bearer_token):
         super(ApplyManifest, self).__init__()
         self.ctx = ctx
@@ -161,6 +169,7 @@ class ApplyManifest(CliAction):
         self.disable_update_pre = disable_update_pre
         self.dry_run = dry_run
         self.enable_chart_cleanup = enable_chart_cleanup
+        self.metrics_output = metrics_output
         self.use_doc_ref = use_doc_ref
         self.set = set
         self.tiller_host = tiller_host
@@ -210,8 +219,16 @@ class ApplyManifest(CliAction):
                         bearer_token=self.bearer_token,
                         dry_run=self.dry_run) as tiller:
 
-                resp = self.handle(documents, tiller)
-                self.output(resp)
+                try:
+                    resp = self.handle(documents, tiller)
+                    self.output(resp)
+                finally:
+                    if self.metrics_output:
+                        path = self.metrics_output
+                        self.logger.info(
+                            'Storing metrics output in path: {}'.format(path))
+                        prometheus_client.write_to_textfile(
+                            path, metrics.REGISTRY)
         else:
             if len(self.values) > 0:
                 self.logger.error(
