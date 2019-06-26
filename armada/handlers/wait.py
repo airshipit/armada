@@ -725,6 +725,7 @@ class StatefulSetWait(ControllerWait):
                         msg.format(ASYNC_UPDATE_NOT_ALLOWED_MSG, strategy))
 
                 if (is_rolling and replicas and
+                        spec.update_strategy.rolling_update and
                         spec.update_strategy.rolling_update.partition):
                     msg = "{}: partitioned rollout"
 
