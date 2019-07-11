@@ -116,7 +116,7 @@ Follow the steps below to install the Armada CLI.
 
 .. warning::
 
-  Armada is tested against a Ubuntu 16.04 and Opensuse(leap15.0)environment.
+  Armada is tested against a Ubuntu 16.04 and Opensuse(leap15.1)environment.
 
 Clone the Armada repository, ``cd`` into it::
 
