@@ -70,7 +70,7 @@ def main(ctx, debug, api, url, token):
     if api:
         if not url or not token:
             raise click.ClickException(
-                'When api option is enable user needs to pass url')
+                'When api option is enabled user needs to pass url and token')
         else:
             ctx.obj['api'] = api
             parsed_url = urlparse(url)
