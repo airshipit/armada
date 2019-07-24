@@ -19,13 +19,13 @@
 from __future__ import absolute_import
 
 import os
-import yaml
 
 import fixtures
 import mock
 from oslo_config import cfg
 from oslo_policy import opts as policy_opts
 from oslo_policy import policy as oslo_policy
+import yaml
 
 from armada.common import policies
 import armada.common.policy

@@ -29,8 +29,9 @@ class InvalidManifestException(ValidateException):
     *Coming Soon*
     '''
 
-    message = ('Armada manifest(s) failed validation. Details: '
-               '%(error_messages)s.')
+    message = (
+        'Armada manifest(s) failed validation. Details: '
+        '%(error_messages)s.')
 
 
 class InvalidChartNameException(ValidateException):
@@ -59,5 +60,6 @@ class InvalidArmadaObjectException(ValidateException):
     *Coming Soon*
     '''
 
-    message = ('An Armada object failed internal validation. Details: '
-               '%(details)s.')
+    message = (
+        'An Armada object failed internal validation. Details: '
+        '%(details)s.')

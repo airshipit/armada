@@ -54,15 +54,16 @@ def get_version_from_request(req):
 
 
 # Standard error handler
-def format_error_resp(req,
-                      resp,
-                      status_code,
-                      message="",
-                      reason="",
-                      error_type=None,
-                      retry=False,
-                      error_list=None,
-                      info_list=None):
+def format_error_resp(
+        req,
+        resp,
+        status_code,
+        message="",
+        reason="",
+        error_type=None,
+        retry=False,
+        error_list=None,
+        info_list=None):
     """
     Write a error message body and throw a Falcon exception to trigger
     an HTTP status
@@ -97,10 +98,12 @@ def format_error_resp(req,
     # message list as well.  In both cases, if the error flag is not
     # set, set it appropriately.
     if error_list is None:
-        error_list = [{
-            'message': 'An error occurred, but was not specified',
-            'error': True
-        }]
+        error_list = [
+            {
+                'message': 'An error occurred, but was not specified',
+                'error': True
+            }
+        ]
     else:
         for error_item in error_list:
             if 'error' not in error_item:
@@ -216,8 +219,9 @@ class ArmadaAPIException(falcon.HTTPError):
         self.error_list = massage_error_list(error_list, description)
         self.info_list = info_list
         self.retry = retry
-        super().__init__(self.status, self.title,
-                         self._gen_ex_message(self.title, self.description))
+        super().__init__(
+            self.status, self.title,
+            self._gen_ex_message(self.title, self.description))
 
     @staticmethod
     def _gen_ex_message(title, description):

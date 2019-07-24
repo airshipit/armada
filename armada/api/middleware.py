@@ -13,19 +13,17 @@
 # limitations under the License.
 
 import re
-
-from armada.api import HEALTH_PATH
-
 from uuid import UUID
 
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from armada.api import HEALTH_PATH
+
 CONF = cfg.CONF
 
 
 class AuthMiddleware(object):
-
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -76,7 +74,6 @@ class AuthMiddleware(object):
 
 
 class ContextMiddleware(object):
-
     def process_request(self, req, resp):
         ctx = req.context
 
@@ -103,7 +100,6 @@ class ContextMiddleware(object):
 
 
 class LoggingMiddleware(object):
-
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 

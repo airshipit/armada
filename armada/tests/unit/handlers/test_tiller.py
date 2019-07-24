@@ -23,15 +23,15 @@ from armada.tests.test_utils import AttrDict
 
 
 class TillerTestCase(base.ArmadaTestCase):
-
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip')
     @mock.patch('armada.handlers.tiller.K8s')
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch('armada.handlers.tiller.Config')
     @mock.patch('armada.handlers.tiller.InstallReleaseRequest')
     @mock.patch('armada.handlers.tiller.ReleaseServiceStub')
-    def test_install_release(self, mock_stub, mock_install_request,
-                             mock_config, mock_grpc, mock_k8s, mock_ip):
+    def test_install_release(
+            self, mock_stub, mock_install_request, mock_config, mock_grpc,
+            mock_k8s, mock_ip):
         # instantiate Tiller object
         mock_grpc.insecure_channel.return_value = mock.Mock()
         mock_ip.return_value = '0.0.0.0'
@@ -63,8 +63,9 @@ class TillerTestCase(base.ArmadaTestCase):
             namespace=namespace,
             wait=wait,
             timeout=timeout)
-        (mock_stub(tiller_obj.channel).InstallRelease.assert_called_with(
-            release_request, timeout + 60, metadata=tiller_obj.metadata))
+        (
+            mock_stub(tiller_obj.channel).InstallRelease.assert_called_with(
+                release_request, timeout + 60, metadata=tiller_obj.metadata))
 
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
@@ -85,10 +86,10 @@ class TillerTestCase(base.ArmadaTestCase):
 
         mock_grpc.insecure_channel.assert_called_once_with(
             '%s:%s' % (str(mock.sentinel.ip), str(mock.sentinel.port)),
-            options=[('grpc.max_send_message_length',
-                      tiller.MAX_MESSAGE_LENGTH),
-                     ('grpc.max_receive_message_length',
-                      tiller.MAX_MESSAGE_LENGTH)])
+            options=[
+                ('grpc.max_send_message_length', tiller.MAX_MESSAGE_LENGTH),
+                ('grpc.max_receive_message_length', tiller.MAX_MESSAGE_LENGTH)
+            ])
 
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch('armada.handlers.tiller.grpc', autospec=True)
@@ -100,8 +101,8 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller.Tiller, '_get_tiller_pod', autospec=True)
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch('armada.handlers.tiller.grpc', autospec=True)
-    def test_get_tiller_ip_with_mocked_pod(self, mock_grpc, mock_k8s,
-                                           mock_pod):
+    def test_get_tiller_ip_with_mocked_pod(
+            self, mock_grpc, mock_k8s, mock_pod):
         status = mock.Mock(pod_ip='1.1.1.1')
         mock_pod.return_value.status = status
         tiller_obj = tiller.Tiller()
@@ -110,14 +111,14 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
     @mock.patch('armada.handlers.tiller.grpc', autospec=True)
-    def test_get_tiller_pod_throws_exception(self, mock_grpc, mock_k8s,
-                                             mock_ip):
+    def test_get_tiller_pod_throws_exception(
+            self, mock_grpc, mock_k8s, mock_ip):
 
         mock_k8s.get_namespace_pod.return_value.items = []
         tiller_obj = tiller.Tiller()
         mock_grpc.insecure_channel.side_effect = ex.ChannelException()
-        self.assertRaises(ex.TillerPodNotRunningException,
-                          tiller_obj._get_tiller_pod)
+        self.assertRaises(
+            ex.TillerPodNotRunningException, tiller_obj._get_tiller_pod)
 
     @mock.patch.object(tiller.Tiller, '_get_tiller_ip', autospec=True)
     @mock.patch('armada.handlers.tiller.K8s', autospec=True)
@@ -241,22 +242,25 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch.object(tiller, 'ListReleasesRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_list_releases_paged(self, mock_stub, mock_list_releases_request,
-                                 mock_grpc, _):
+    def test_list_releases_paged(
+            self, mock_stub, mock_list_releases_request, mock_grpc, _):
         page_count = 3
         release_count = tiller.LIST_RELEASES_PAGE_SIZE * page_count
         releases = [mock.Mock() for i in range(release_count)]
         for i, release in enumerate(releases):
             release.name = mock.PropertyMock(return_value=str(i))
-        pages = [[
-            mock.Mock(
-                count=release_count,
-                total=release_count + 5,
-                next='' if i == page_count - 1 else str(
-                    (tiller.LIST_RELEASES_PAGE_SIZE * (i + 1))),
-                releases=releases[tiller.LIST_RELEASES_PAGE_SIZE *
-                                  i:tiller.LIST_RELEASES_PAGE_SIZE * (i + 1)])
-        ] for i in range(page_count)]
+        pages = [
+            [
+                mock.Mock(
+                    count=release_count,
+                    total=release_count + 5,
+                    next='' if i == page_count - 1 else str(
+                        (tiller.LIST_RELEASES_PAGE_SIZE * (i + 1))),
+                    releases=releases[tiller.LIST_RELEASES_PAGE_SIZE
+                                      * i:tiller.LIST_RELEASES_PAGE_SIZE
+                                      * (i + 1)])
+            ] for i in range(page_count)
+        ]
         mock_stub.return_value.ListReleases.side_effect = pages
 
         mock_list_releases_side_effect = [
@@ -280,8 +284,8 @@ class TillerTestCase(base.ArmadaTestCase):
 
         list_release_request_calls = [
             mock.call(
-                offset=''
-                if i == 0 else str(tiller.LIST_RELEASES_PAGE_SIZE * i),
+                offset='' if i == 0 else str(
+                    tiller.LIST_RELEASES_PAGE_SIZE * i),
                 limit=tiller.LIST_RELEASES_PAGE_SIZE,
                 status_codes=tiller.const.STATUS_ALL)
             for i in range(page_count)
@@ -292,8 +296,9 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch.object(tiller, 'GetReleaseContentRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_get_release_content(self, mock_release_service_stub,
-                                 mock_release_content_request, mock_grpc, _):
+    def test_get_release_content(
+            self, mock_release_service_stub, mock_release_content_request,
+            mock_grpc, _):
         mock_release_service_stub.return_value.GetReleaseContent\
             .return_value = {}
 
@@ -311,8 +316,9 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch.object(tiller, 'GetVersionRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_tiller_version(self, mock_release_service_stub,
-                            mock_version_request, mock_grpc, _):
+    def test_tiller_version(
+            self, mock_release_service_stub, mock_version_request, mock_grpc,
+            _):
 
         mock_version = mock.Mock()
         mock_version.Version.sem_ver = mock.sentinel.sem_ver
@@ -336,9 +342,9 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch.object(tiller, 'GetVersionRequest')
     @mock.patch.object(tiller, 'GetReleaseStatusRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_get_release_status(self, mock_release_service_stub,
-                                mock_rel_status_request, mock_version_request,
-                                mock_grpc, _):
+    def test_get_release_status(
+            self, mock_release_service_stub, mock_rel_status_request,
+            mock_version_request, mock_grpc, _):
         mock_release_service_stub.return_value.GetReleaseStatus. \
             return_value = {}
 
@@ -357,8 +363,9 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch.object(tiller, 'UninstallReleaseRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_uninstall_release(self, mock_release_service_stub,
-                               mock_uninstall_release_request, mock_grpc, _):
+    def test_uninstall_release(
+            self, mock_release_service_stub, mock_uninstall_release_request,
+            mock_grpc, _):
         mock_release_service_stub.return_value.UninstallRelease\
             .return_value = {}
 
@@ -379,8 +386,9 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch.object(tiller, 'RollbackReleaseRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_rollback_release(self, mock_release_service_stub,
-                              mock_rollback_release_request, _, __):
+    def test_rollback_release(
+            self, mock_release_service_stub, mock_rollback_release_request, _,
+            __):
         mock_release_service_stub.return_value.RollbackRelease\
             .return_value = {}
 
@@ -427,8 +435,9 @@ class TillerTestCase(base.ArmadaTestCase):
     @mock.patch('armada.handlers.tiller.Config')
     @mock.patch.object(tiller, 'UpdateReleaseRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_update_release(self, mock_release_service_stub,
-                            mock_update_release_request, mock_config, _, __):
+    def test_update_release(
+            self, mock_release_service_stub, mock_update_release_request,
+            mock_config, _, __):
         release = 'release'
         chart = {}
         namespace = 'namespace'
@@ -507,20 +516,20 @@ class TillerTestCase(base.ArmadaTestCase):
             timeout + tiller.GRPC_EPSILON,
             metadata=tiller_obj.metadata)
 
-        expected_result = tiller.TillerResult(release, namespace, status,
-                                              description, version)
+        expected_result = tiller.TillerResult(
+            release, namespace, status, description, version)
 
         self.assertEqual(expected_result, result)
 
     def _test_test_release(self, grpc_response_mock):
-
         @mock.patch('armada.handlers.tiller.K8s')
         @mock.patch('armada.handlers.tiller.grpc')
         @mock.patch('armada.handlers.tiller.Config')
         @mock.patch.object(tiller, 'TestReleaseRequest')
         @mock.patch.object(tiller, 'ReleaseServiceStub')
-        def do_test(self, mock_release_service_stub, mock_test_release_request,
-                    mock_config, _, __):
+        def do_test(
+                self, mock_release_service_stub, mock_test_release_request,
+                mock_config, _, __):
             tiller_obj = tiller.Tiller('host', '8080', None)
             release = 'release'
             test_suite_run = {}
@@ -531,14 +540,11 @@ class TillerTestCase(base.ArmadaTestCase):
             tiller_obj.get_release_status = mock.Mock()
             tiller_obj.get_release_status.return_value = AttrDict(
                 **{
-                    'info':
-                    AttrDict(
+                    'info': AttrDict(
                         **{
-                            'status':
-                            AttrDict(
+                            'status': AttrDict(
                                 **{'last_test_suite_run': test_suite_run}),
-                            'Description':
-                            'Failed'
+                            'Description': 'Failed'
                         })
                 })
 
@@ -549,41 +555,47 @@ class TillerTestCase(base.ArmadaTestCase):
         do_test(self)
 
     def test_test_release_no_tests(self):
-        self._test_test_release([
-            AttrDict(**{
-                'msg': 'No Tests Found',
-                'status': helm.TESTRUN_STATUS_UNKNOWN
-            })
-        ])
+        self._test_test_release(
+            [
+                AttrDict(
+                    **{
+                        'msg': 'No Tests Found',
+                        'status': helm.TESTRUN_STATUS_UNKNOWN
+                    })
+            ])
 
     def test_test_release_success(self):
-        self._test_test_release([
-            AttrDict(**{
-                'msg': 'RUNNING: ...',
-                'status': helm.TESTRUN_STATUS_RUNNING
-            }),
-            AttrDict(**{
-                'msg': 'SUCCESS: ...',
-                'status': helm.TESTRUN_STATUS_SUCCESS
-            })
-        ])
+        self._test_test_release(
+            [
+                AttrDict(
+                    **{
+                        'msg': 'RUNNING: ...',
+                        'status': helm.TESTRUN_STATUS_RUNNING
+                    }),
+                AttrDict(
+                    **{
+                        'msg': 'SUCCESS: ...',
+                        'status': helm.TESTRUN_STATUS_SUCCESS
+                    })
+            ])
 
     def test_test_release_failure(self):
-        self._test_test_release([
-            AttrDict(**{
-                'msg': 'RUNNING: ...',
-                'status': helm.TESTRUN_STATUS_RUNNING
-            }),
-            AttrDict(**{
-                'msg': 'FAILURE: ...',
-                'status': helm.TESTRUN_STATUS_FAILURE
-            })
-        ])
+        self._test_test_release(
+            [
+                AttrDict(
+                    **{
+                        'msg': 'RUNNING: ...',
+                        'status': helm.TESTRUN_STATUS_RUNNING
+                    }),
+                AttrDict(
+                    **{
+                        'msg': 'FAILURE: ...',
+                        'status': helm.TESTRUN_STATUS_FAILURE
+                    })
+            ])
 
     def test_test_release_failure_to_run(self):
-
         class Iterator:
-
             def __iter__(self):
                 return self
 

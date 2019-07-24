@@ -52,7 +52,6 @@ def validate_manifest(ctx, locations, debug):
 
 
 class ValidateManifest(CliAction):
-
     def __init__(self, ctx, locations):
         super(ValidateManifest, self).__init__()
         self.ctx = ctx
@@ -71,20 +70,22 @@ class ValidateManifest(CliAction):
                 if not documents:
                     self.logger.warn('No documents to validate.')
                 elif valid:
-                    self.logger.info('Successfully validated: %s',
-                                     self.locations)
+                    self.logger.info(
+                        'Successfully validated: %s', self.locations)
                 else:
                     self.logger.info('Validation failed: %s', self.locations)
 
                 for m in details:
                     self.logger.info('Validation details: %s', str(m))
             except Exception:
-                raise Exception('Exception raised during '
-                                'validation: %s', self.locations)
+                raise Exception(
+                    'Exception raised during '
+                    'validation: %s', self.locations)
         else:
             if len(self.locations) > 1:
-                self.logger.error("Cannot specify multiple locations "
-                                  "when using validate API.")
+                self.logger.error(
+                    "Cannot specify multiple locations "
+                    "when using validate API.")
                 return
 
             client = self.ctx.obj.get('CLIENT')

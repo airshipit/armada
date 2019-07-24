@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from armada.utils.helm import get_test_suite_run_success
-
 import time
+
+from armada.utils.helm import get_test_suite_run_success
 
 
 def release_prefixer(prefix, release):

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -39,20 +40,21 @@ class Armada(object):
     workflows
     '''
 
-    def __init__(self,
-                 documents,
-                 tiller,
-                 disable_update_pre=False,
-                 disable_update_post=False,
-                 enable_chart_cleanup=False,
-                 dry_run=False,
-                 set_ovr=None,
-                 force_wait=False,
-                 timeout=None,
-                 values=None,
-                 target_manifest=None,
-                 k8s_wait_attempts=1,
-                 k8s_wait_attempt_sleep=1):
+    def __init__(
+            self,
+            documents,
+            tiller,
+            disable_update_pre=False,
+            disable_update_post=False,
+            enable_chart_cleanup=False,
+            dry_run=False,
+            set_ovr=None,
+            force_wait=False,
+            timeout=None,
+            values=None,
+            target_manifest=None,
+            k8s_wait_attempts=1,
+            k8s_wait_attempt_sleep=1):
         '''
         Initialize the Armada engine and establish a connection to Tiller.
 
@@ -106,8 +108,8 @@ class Armada(object):
         # Clone the chart sources
         manifest_data = self.manifest.get(const.KEYWORD_DATA, {})
         for group in manifest_data.get(const.KEYWORD_GROUPS, []):
-            for ch in group.get(const.KEYWORD_DATA).get(
-                    const.KEYWORD_CHARTS, []):
+            for ch in group.get(const.KEYWORD_DATA).get(const.KEYWORD_CHARTS,
+                                                        []):
                 self.get_chart(ch)
 
     def get_chart(self, ch):
@@ -193,12 +195,12 @@ class Armada(object):
             chartgroup = cg.get(const.KEYWORD_DATA)
             cg_name = cg.get('metadata').get('name')
             cg_desc = chartgroup.get('description', '<missing description>')
-            cg_sequenced = chartgroup.get('sequenced',
-                                          False) or self.force_wait
+            cg_sequenced = chartgroup.get(
+                'sequenced', False) or self.force_wait
 
-            LOG.info('Processing ChartGroup: %s (%s), sequenced=%s%s', cg_name,
-                     cg_desc, cg_sequenced,
-                     ' (forced)' if self.force_wait else '')
+            LOG.info(
+                'Processing ChartGroup: %s (%s), sequenced=%s%s', cg_name,
+                cg_desc, cg_sequenced, ' (forced)' if self.force_wait else '')
 
             # TODO: Remove when v1 doc support is removed.
             cg_test_all_charts = chartgroup.get('test_charts')
@@ -208,8 +210,8 @@ class Armada(object):
             def deploy_chart(chart):
                 set_current_chart(chart)
                 try:
-                    return self.chart_deploy.execute(chart, cg_test_all_charts,
-                                                     prefix, known_releases)
+                    return self.chart_deploy.execute(
+                        chart, cg_test_all_charts, prefix, known_releases)
                 finally:
                     set_current_chart(None)
 
@@ -284,15 +286,16 @@ class Armada(object):
         for gchart in charts:
             for chart in gchart.get(const.KEYWORD_CHARTS, []):
                 valid_releases.append(
-                    release_prefixer(prefix,
-                                     chart.get('chart', {}).get('release')))
+                    release_prefixer(
+                        prefix,
+                        chart.get('chart', {}).get('release')))
 
         actual_releases = [x.name for x in self.tiller.list_releases()]
         release_diff = list(set(actual_releases) - set(valid_releases))
 
         for release in release_diff:
             if release.startswith(prefix):
-                LOG.info('Purging release %s as part of chart cleanup.',
-                         release)
+                LOG.info(
+                    'Purging release %s as part of chart cleanup.', release)
                 self.tiller.uninstall_release(release)
                 msg['purge'].append(release)

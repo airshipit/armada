@@ -15,13 +15,13 @@
 import inspect
 import os
 import shutil
-import yaml
 
 import fixtures
 from hapi.chart.chart_pb2 import Chart
 from hapi.chart.metadata_pb2 import Metadata
 import mock
 import testtools
+import yaml
 
 from armada import const
 from armada.handlers.chartbuilder import ChartBuilder
@@ -137,14 +137,13 @@ class BaseChartBuilderTestCase(testtools.TestCase):
 
 
 class ChartBuilderTestCase(BaseChartBuilderTestCase):
-
     def test_source_clone(self):
         # Create a temporary directory with Chart.yaml that contains data
         # from ``self.chart_yaml``.
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
 
         chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
@@ -158,8 +157,9 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
 
         chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
-        self.assertRaises(chartbuilder_exceptions.MetadataLoadException,
-                          chartbuilder.get_metadata)
+        self.assertRaises(
+            chartbuilder_exceptions.MetadataLoadException,
+            chartbuilder.get_metadata)
 
     def test_get_files(self):
         """Validates that ``get_files()`` ignores 'Chart.yaml', 'values.yaml'
@@ -206,8 +206,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         # that that logic has already been performed.
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
         ch = yaml.safe_load(self.chart_stream)
         ch['data']['source_dir'] = (chart_dir.path, '')
 
@@ -215,7 +215,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
-        expected = inspect.cleandoc("""
+        expected = inspect.cleandoc(
+            """
             metadata {
               name: "hello-world-chart"
               version: "0.1.0"
@@ -234,10 +235,10 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
 
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
-        self._write_temporary_file_contents(chart_dir.path, 'values.yaml',
-                                            self.chart_value)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'values.yaml', self.chart_value)
 
         ch = yaml.safe_load(self.chart_stream)
         ch['data']['source_dir'] = (chart_dir.path, '')
@@ -257,15 +258,15 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
         # Chart.yaml is mandatory for `ChartBuilder.get_metadata`.
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
         self._write_temporary_file_contents(chart_dir.path, 'foo', "foobar")
         self._write_temporary_file_contents(chart_dir.path, 'bar', "bazqux")
 
         # Also create a nested directory and verify that files from it are also
         # added.
-        nested_dir = self._make_temporary_subdirectory(chart_dir.path,
-                                                       'nested')
+        nested_dir = self._make_temporary_subdirectory(
+            chart_dir.path, 'nested')
         self._write_temporary_file_contents(nested_dir, 'nested0', "random")
 
         ch = yaml.safe_load(self.chart_stream)
@@ -275,10 +276,11 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
-        expected_files = ('[type_url: "%s"\nvalue: "bazqux"\n, '
-                          'type_url: "%s"\nvalue: "foobar"\n, '
-                          'type_url: "%s"\nvalue: "random"\n]' %
-                          ('./bar', './foo', 'nested/nested0'))
+        expected_files = (
+            '[type_url: "%s"\nvalue: "bazqux"\n, '
+            'type_url: "%s"\nvalue: "foobar"\n, '
+            'type_url: "%s"\nvalue: "random"\n]' %
+            ('./bar', './foo', 'nested/nested0'))
 
         self.assertIsInstance(helm_chart, Chart)
         self.assertTrue(hasattr(helm_chart, 'metadata'))
@@ -300,8 +302,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         charts_nested_subdir = self._make_temporary_subdirectory(
             charts_subdir, 'extra')
 
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
         self._write_temporary_file_contents(chart_dir.path, 'foo', "foobar")
         self._write_temporary_file_contents(chart_dir.path, 'bar', "bazqux")
 
@@ -311,16 +313,16 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(chart_dir.path, file, "")
         file_to_ignore = 'file_to_ignore'
         # Files to ignore within templates/ subdirectory.
-        self._write_temporary_file_contents(templates_subdir, file_to_ignore,
-                                            "")
+        self._write_temporary_file_contents(
+            templates_subdir, file_to_ignore, "")
         # Files to ignore within charts/ subdirectory.
         self._write_temporary_file_contents(charts_subdir, file_to_ignore, "")
         # Files to ignore within templates/bin subdirectory.
-        self._write_temporary_file_contents(templates_nested_subdir,
-                                            file_to_ignore, "")
+        self._write_temporary_file_contents(
+            templates_nested_subdir, file_to_ignore, "")
         # Files to ignore within charts/extra subdirectory.
-        self._write_temporary_file_contents(charts_nested_subdir,
-                                            file_to_ignore, "")
+        self._write_temporary_file_contents(
+            charts_nested_subdir, file_to_ignore, "")
         # Files to **include** within charts/ subdirectory.
         self._write_temporary_file_contents(charts_subdir, '.prov', "xyzzy")
 
@@ -331,10 +333,11 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
-        expected_files = ('[type_url: "%s"\nvalue: "bazqux"\n, '
-                          'type_url: "%s"\nvalue: "foobar"\n, '
-                          'type_url: "%s"\nvalue: "xyzzy"\n]' %
-                          ('./bar', './foo', 'charts/.prov'))
+        expected_files = (
+            '[type_url: "%s"\nvalue: "bazqux"\n, '
+            'type_url: "%s"\nvalue: "foobar"\n, '
+            'type_url: "%s"\nvalue: "xyzzy"\n]' %
+            ('./bar', './foo', 'charts/.prov'))
 
         # Validate that only relevant files are included, that the ignored
         # files are present.
@@ -349,16 +352,16 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         # Main chart directory and files.
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
         ch = yaml.safe_load(self.chart_stream)
         ch['data']['source_dir'] = (chart_dir.path, '')
 
         # Dependency chart directory and files.
         dep_chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, dep_chart_dir.path)
-        self._write_temporary_file_contents(dep_chart_dir.path, 'Chart.yaml',
-                                            self.dependency_chart_yaml)
+        self._write_temporary_file_contents(
+            dep_chart_dir.path, 'Chart.yaml', self.dependency_chart_yaml)
         dep_ch = yaml.safe_load(self.dependency_chart_stream)
         dep_ch['data']['source_dir'] = (dep_chart_dir.path, '')
 
@@ -369,7 +372,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(main_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
-        expected_dependency = inspect.cleandoc("""
+        expected_dependency = inspect.cleandoc(
+            """
             metadata {
               name: "dependency-chart"
               version: "0.1.0"
@@ -379,7 +383,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
             }
         """).strip()
 
-        expected = inspect.cleandoc("""
+        expected = inspect.cleandoc(
+            """
             metadata {
               name: "hello-world-chart"
               version: "0.1.0"
@@ -418,8 +423,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         # Validate base case.
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
-        self._write_temporary_file_contents(chart_dir.path, 'Chart.yaml',
-                                            self.chart_yaml)
+        self._write_temporary_file_contents(
+            chart_dir.path, 'Chart.yaml', self.chart_yaml)
         ch = yaml.safe_load(self.chart_stream)
         ch['data']['source_dir'] = (chart_dir.path, '')
 
@@ -432,8 +437,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         # Validate recursive case (with dependencies).
         dep_chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, dep_chart_dir.path)
-        self._write_temporary_file_contents(dep_chart_dir.path, 'Chart.yaml',
-                                            self.dependency_chart_yaml)
+        self._write_temporary_file_contents(
+            dep_chart_dir.path, 'Chart.yaml', self.dependency_chart_yaml)
         dep_ch = yaml.safe_load(self.dependency_chart_stream)
         dep_ch['data']['source_dir'] = (dep_chart_dir.path, '')
 
@@ -441,7 +446,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         test_chart['data']['dependencies'] = [dependency_chart]
         chartbuilder = ChartBuilder(test_chart)
 
-        re = inspect.cleandoc("""
+        re = inspect.cleandoc(
+            """
             hello-world-chart.*A sample Helm chart for Kubernetes.*
             dependency-chart.*Another sample Helm chart for Kubernetes.*
         """).replace('\n', '').strip()
@@ -449,7 +455,6 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
 
 
 class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
-
     def setUp(self):
         super(ChartBuilderNegativeTestCase, self).setUp()
         # Create an exception for testing since instantiating one manually
@@ -471,13 +476,15 @@ class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
         chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
 
         # Confirm it failed for both encodings.
-        error_re = (r'.*A str exception occurred while trying to read file:'
-                    r'.*Details:\n.*\(encoding=utf-8\).*\n\(encoding=latin1\)')
+        error_re = (
+            r'.*A str exception occurred while trying to read file:'
+            r'.*Details:\n.*\(encoding=utf-8\).*\n\(encoding=latin1\)')
         with mock.patch("builtins.open", mock.mock_open(read_data="")) \
                 as mock_file:
             mock_file.return_value.read.side_effect = self.exc_to_raise
-            self.assertRaisesRegexp(chartbuilder_exceptions.FilesLoadException,
-                                    error_re, chartbuilder.get_files)
+            self.assertRaisesRegexp(
+                chartbuilder_exceptions.FilesLoadException, error_re,
+                chartbuilder.get_files)
 
     def test_get_files_fails_once_to_read_binary_file_passes(self):
         chart_dir = self.useFixture(fixtures.TempDir())

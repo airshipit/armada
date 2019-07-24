@@ -16,8 +16,8 @@
 
 import urllib.parse
 import re
-import requests
 
+import requests
 from oslo_log import log as logging
 
 from armada.exceptions.source_exceptions import InvalidPathException
@@ -58,8 +58,8 @@ class ReferenceResolver(object):
 
                 if handler is None:
                     raise InvalidPathException(
-                        "Invalid reference scheme %s: no handler." %
-                        design_uri.scheme)
+                        "Invalid reference scheme %s: no handler."
+                        % design_uri.scheme)
                 else:
                     # Have to do a little magic to call the classmethod
                     # as a pointer
@@ -90,8 +90,8 @@ class ReferenceResolver(object):
             response = requests.get(design_uri.geturl(), timeout=30)
             if response.status_code >= 400:
                 raise InvalidPathException(
-                    "Error received for HTTP reference: %d" %
-                    response.status_code)
+                    "Error received for HTTP reference: %d"
+                    % response.status_code)
 
         return response.content
 
@@ -122,8 +122,9 @@ class ReferenceResolver(object):
         ks_sess = ks_utils.get_keystone_session()
         (new_scheme, foo) = re.subn(r'^[^+]+\+', '', design_uri.scheme)
         url = urllib.parse.urlunparse(
-            (new_scheme, design_uri.netloc, design_uri.path, design_uri.params,
-             design_uri.query, design_uri.fragment))
+            (
+                new_scheme, design_uri.netloc, design_uri.path,
+                design_uri.params, design_uri.query, design_uri.fragment))
         LOG.debug("Calling Keystone session for url %s" % str(url))
         resp = ks_sess.get(url)
         if resp.status_code >= 400:

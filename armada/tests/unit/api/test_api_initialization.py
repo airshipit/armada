@@ -20,7 +20,6 @@ from armada.tests.unit.api import base as test_base
 
 
 class TestApi(test_base.BaseControllerTest):
-
     def test_init_application(self):
         server = importlib.import_module('armada.api.server')
         api = server.create()

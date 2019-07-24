@@ -18,7 +18,6 @@ from armada.tests.unit.api import base
 
 
 class HealthControllerTest(base.BaseControllerTest):
-
     def test_get_health_status(self):
         """
         Validate that /api/v1.0/health returns 204.

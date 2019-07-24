@@ -13,16 +13,15 @@
 # limitations under the License.
 
 import os
-import yaml
 
 from google.protobuf.any_pb2 import Any
 from hapi.chart.chart_pb2 import Chart
 from hapi.chart.config_pb2 import Config
 from hapi.chart.metadata_pb2 import Metadata
 from hapi.chart.template_pb2 import Template
-
 from oslo_config import cfg
 from oslo_log import log as logging
+import yaml
 
 from armada.exceptions import chartbuilder_exceptions
 from armada import const
@@ -65,16 +64,17 @@ class ChartBuilder(object):
         property from the chart, or else "" if the property isn't a 2-tuple.
         '''
         source_dir = self.chart_data.get('source_dir')
-        return (os.path.join(*source_dir) if
-                (source_dir and isinstance(source_dir, (list, tuple)) and
-                 len(source_dir) == 2) else "")
+        return (
+            os.path.join(*source_dir) if (
+                source_dir and isinstance(source_dir, (list, tuple))
+                and len(source_dir) == 2) else "")
 
     def get_ignored_files(self):
         '''Load files to ignore from .helmignore if present.'''
         try:
             ignored_files = []
-            if os.path.exists(
-                    os.path.join(self.source_directory, '.helmignore')):
+            if os.path.exists(os.path.join(self.source_directory,
+                                           '.helmignore')):
                 with open(os.path.join(self.source_directory,
                                        '.helmignore')) as f:
                     ignored_files = f.readlines()
@@ -90,8 +90,8 @@ class ChartBuilder(object):
                   False otherwise.
         '''
         for ignored_file in self.ignored_files:
-            if (ignored_file.startswith('*') and
-                    filename.endswith(ignored_file.strip('*'))):
+            if (ignored_file.startswith('*')
+                    and filename.endswith(ignored_file.strip('*'))):
                 return True
             elif ignored_file == filename:
                 return True
@@ -153,8 +153,9 @@ class ChartBuilder(object):
                     raise chartbuilder_exceptions.FilesLoadException(
                         file=abspath, details=e)
                 except UnicodeError as e:
-                    LOG.debug('Attempting to read %s using encoding %s.',
-                              abspath, encoding)
+                    LOG.debug(
+                        'Attempting to read %s using encoding %s.', abspath,
+                        encoding)
                     msg = "(encoding=%s) %s" % (encoding, str(e))
                     unicode_errors.append(msg)
                 else:
@@ -176,12 +177,11 @@ class ChartBuilder(object):
             relfolder = os.path.split(root)[-1]
             rel_folder_path = os.path.relpath(root, self.source_directory)
 
-            if not any(
-                    root.startswith(os.path.join(self.source_directory, x))
-                    for x in ['templates', 'charts']):
+            if not any(root.startswith(os.path.join(self.source_directory, x))
+                       for x in ['templates', 'charts']):
                 for file in files:
-                    if (file not in files_to_ignore and
-                            file not in non_template_files):
+                    if (file not in files_to_ignore
+                            and file not in non_template_files):
                         _append_file_to_result(root, rel_folder_path, file)
             elif relfolder == 'charts' and '.prov' in files:
                 _append_file_to_result(root, rel_folder_path, '.prov')
@@ -196,8 +196,9 @@ class ChartBuilder(object):
             with open(os.path.join(self.source_directory, 'values.yaml')) as f:
                 raw_values = f.read()
         else:
-            LOG.warn("No values.yaml in %s, using empty values",
-                     self.source_directory)
+            LOG.warn(
+                "No values.yaml in %s, using empty values",
+                self.source_directory)
             raw_values = ''
 
         return Config(raw=raw_values)
@@ -210,14 +211,13 @@ class ChartBuilder(object):
         '''
         chart_name = self.chart['metadata']['name']
         templates = []
-        if not os.path.exists(
-                os.path.join(self.source_directory, 'templates')):
+        if not os.path.exists(os.path.join(self.source_directory,
+                                           'templates')):
             LOG.warn(
                 "Chart %s has no templates directory. "
                 "No templates will be deployed", chart_name)
-        for root, _, files in os.walk(
-                os.path.join(self.source_directory, 'templates'),
-                topdown=True):
+        for root, _, files in os.walk(os.path.join(self.source_directory,
+                                                   'templates'), topdown=True):
             for tpl_file in files:
                 tname = os.path.relpath(
                     os.path.join(root, tpl_file),
@@ -247,8 +247,9 @@ class ChartBuilder(object):
         chart_release = self.chart_data.get('release', None)
         for dep_chart in chart_dependencies:
             dep_chart_name = dep_chart['metadata']['name']
-            LOG.info("Building dependency chart %s for release %s.",
-                     dep_chart_name, chart_release)
+            LOG.info(
+                "Building dependency chart %s for release %s.", dep_chart_name,
+                chart_release)
             try:
                 dependencies.append(ChartBuilder(dep_chart).get_helm_chart())
             except Exception:

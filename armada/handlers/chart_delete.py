@@ -16,7 +16,6 @@ from armada import const
 
 
 class ChartDelete(object):
-
     def __init__(self, chart, release_name, tiller, purge=True):
         """Initialize a chart delete handler.
 
@@ -39,8 +38,8 @@ class ChartDelete(object):
         # TODO(seaneagan): Consider allowing this to be a percentage of the
         # chart's `wait.timeout` so that the timeouts can scale together, and
         # likely default to some reasonable value, e.g. "50%".
-        self.timeout = self.delete_config.get('timeout',
-                                              const.DEFAULT_DELETE_TIMEOUT)
+        self.timeout = self.delete_config.get(
+            'timeout', const.DEFAULT_DELETE_TIMEOUT)
 
     def get_timeout(self):
         return self.timeout

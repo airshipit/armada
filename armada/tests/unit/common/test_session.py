@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import testtools
-
 import responses
+import testtools
 
 from armada.common.session import ArmadaSession
 
 
 class SessionTestCase(testtools.TestCase):
-
     def test_create_session(self):
         """Tests setting up an Armada session"""
         sess = ArmadaSession("testarmada")

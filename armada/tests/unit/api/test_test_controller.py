@@ -14,9 +14,9 @@
 
 import json
 import os
-import yaml
 
 import mock
+import yaml
 
 from armada import api
 from armada.api.controller import test
@@ -26,10 +26,10 @@ from armada.tests import test_utils
 from armada.tests.unit.api import base
 
 
-@mock.patch.object(test.TestReleasesManifestController, 'handle',
-                   test.TestReleasesManifestController.handle.__wrapped__)
+@mock.patch.object(
+    test.TestReleasesManifestController, 'handle',
+    test.TestReleasesManifestController.handle.__wrapped__)
 class TestReleasesManifestControllerTest(base.BaseControllerTest):
-
     @mock.patch.object(test, 'Manifest')
     @mock.patch.object(api, 'Tiller')
     def test_test_controller_with_manifest(self, mock_tiller, mock_manifest):
@@ -38,8 +38,8 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
 
         # TODO: Don't use example charts in tests.
         # TODO: Test cleanup arg is taken from url, then manifest.
-        manifest_path = os.path.join(os.getcwd(), 'examples',
-                                     'keystone-manifest.yaml')
+        manifest_path = os.path.join(
+            os.getcwd(), 'examples', 'keystone-manifest.yaml')
         with open(manifest_path, 'r') as f:
             payload = f.read()
         documents = list(yaml.safe_load_all(payload))
@@ -59,14 +59,14 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
         m_tiller.__exit__.assert_called()
 
 
-@mock.patch.object(test.TestReleasesReleaseNameController, 'handle',
-                   test.TestReleasesReleaseNameController.handle.__wrapped__)
+@mock.patch.object(
+    test.TestReleasesReleaseNameController, 'handle',
+    test.TestReleasesReleaseNameController.handle.__wrapped__)
 class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
-
     @mock.patch.object(test.Test, 'test_release_for_success')
     @mock.patch.object(api, 'Tiller')
-    def test_test_controller_test_pass(self, mock_tiller,
-                                       mock_test_release_for_success):
+    def test_test_controller_test_pass(
+            self, mock_tiller, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
@@ -79,14 +79,15 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
         resp = self.app.simulate_get('/api/v1.0/test/{}'.format(release))
         mock_test_release_for_success.assert_called_once()
         self.assertEqual(200, resp.status_code)
-        self.assertEqual('MESSAGE: Test Pass',
-                         json.loads(resp.text)['message'])
+        self.assertEqual(
+            'MESSAGE: Test Pass',
+            json.loads(resp.text)['message'])
         m_tiller.__exit__.assert_called()
 
     @mock.patch.object(test.Test, 'test_release_for_success')
     @mock.patch.object(api, 'Tiller')
-    def test_test_controller_test_fail(self, mock_tiller,
-                                       mock_test_release_for_success):
+    def test_test_controller_test_fail(
+            self, mock_tiller, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
@@ -97,14 +98,15 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
         release = 'fake-release'
         resp = self.app.simulate_get('/api/v1.0/test/{}'.format(release))
         self.assertEqual(200, resp.status_code)
-        self.assertEqual('MESSAGE: Test Fail',
-                         json.loads(resp.text)['message'])
+        self.assertEqual(
+            'MESSAGE: Test Fail',
+            json.loads(resp.text)['message'])
         m_tiller.__exit__.assert_called()
 
     @mock.patch.object(test.Test, 'test_release_for_success')
     @mock.patch.object(api, 'Tiller')
-    def test_test_controller_cleanup(self, mock_tiller,
-                                     mock_test_release_for_success):
+    def test_test_controller_cleanup(
+            self, mock_tiller, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
@@ -117,16 +119,17 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
             '/api/v1.0/test/{}'.format(release), query_string='cleanup=true')
         mock_test_release_for_success.assert_called_once()
         self.assertEqual(200, resp.status_code)
-        self.assertEqual('MESSAGE: Test Pass',
-                         json.loads(resp.text)['message'])
+        self.assertEqual(
+            'MESSAGE: Test Pass',
+            json.loads(resp.text)['message'])
         m_tiller.__exit__.assert_called()
 
 
 @test_utils.attr(type=['negative'])
-@mock.patch.object(test.TestReleasesManifestController, 'handle',
-                   test.TestReleasesManifestController.handle.__wrapped__)
+@mock.patch.object(
+    test.TestReleasesManifestController, 'handle',
+    test.TestReleasesManifestController.handle.__wrapped__)
 class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
-
     @mock.patch.object(test, 'Manifest')
     @mock.patch.object(api, 'Tiller')
     @mock.patch.object(test.Test, 'test_release_for_success')
@@ -148,8 +151,8 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
-        manifest_path = os.path.join(os.getcwd(), 'examples',
-                                     'keystone-manifest.yaml')
+        manifest_path = os.path.join(
+            os.getcwd(), 'examples', 'keystone-manifest.yaml')
         with open(manifest_path, 'r') as f:
             payload = f.read()
 
@@ -166,22 +169,22 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         resp_body = json.loads(resp.text)
         self.assertEqual(400, resp_body['code'])
         self.assertEqual(1, resp_body['details']['errorCount'])
-        self.assertIn({
-            'message':
-            ('An error occurred while building chart group: '
-             'Could not build ChartGroup named "keystone-infra-services".'),
-            'error':
-            True,
-            'kind':
-            'ValidationMessage',
-            'level':
-            'Error',
-            'name':
-            'ARM001',
-            'documents': []
-        }, resp_body['details']['messageList'])
-        self.assertEqual(('Failed to validate documents or generate Armada '
-                          'Manifest from documents.'), resp_body['message'])
+        self.assertIn(
+            {
+                'message': (
+                    'An error occurred while building chart group: '
+                    'Could not build ChartGroup named '
+                    '"keystone-infra-services".'),
+                'error': True,
+                'kind': 'ValidationMessage',
+                'level': 'Error',
+                'name': 'ARM001',
+                'documents': []
+            }, resp_body['details']['messageList'])
+        self.assertEqual(
+            (
+                'Failed to validate documents or generate Armada '
+                'Manifest from documents.'), resp_body['message'])
         m_tiller.__exit__.assert_called()
 
     @mock.patch('armada.utils.validate.Manifest')
@@ -194,8 +197,8 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         mock_manifest.return_value.get_manifest.side_effect = (
             manifest_exceptions.ManifestException(details='foo'))
 
-        manifest_path = os.path.join(os.getcwd(), 'examples',
-                                     'keystone-manifest.yaml')
+        manifest_path = os.path.join(
+            os.getcwd(), 'examples', 'keystone-manifest.yaml')
         with open(manifest_path, 'r') as f:
             payload = f.read()
 
@@ -208,27 +211,28 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         resp_body = json.loads(resp.text)
         self.assertEqual(400, resp_body['code'])
         self.assertEqual(1, resp_body['details']['errorCount'])
-        self.assertEqual([{
-            'message':
-            ('An error occurred while generating the manifest: foo.'),
-            'error':
-            True,
-            'kind':
-            'ValidationMessage',
-            'level':
-            'Error',
-            'name':
-            'ARM001',
-            'documents': []
-        }], resp_body['details']['messageList'])
-        self.assertEqual(('Failed to validate documents or generate Armada '
-                          'Manifest from documents.'), resp_body['message'])
+        self.assertEqual(
+            [
+                {
+                    'message': (
+                        'An error occurred while generating the manifest: foo.'
+                    ),
+                    'error': True,
+                    'kind': 'ValidationMessage',
+                    'level': 'Error',
+                    'name': 'ARM001',
+                    'documents': []
+                }
+            ], resp_body['details']['messageList'])
+        self.assertEqual(
+            (
+                'Failed to validate documents or generate Armada '
+                'Manifest from documents.'), resp_body['message'])
         m_tiller.__exit__.assert_called()
 
 
 @test_utils.attr(type=['negative'])
 class TestReleasesReleaseNameControllerNegativeTest(base.BaseControllerTest):
-
     @mock.patch.object(api, 'Tiller')
     @mock.patch.object(test.Test, 'test_release_for_success')
     def test_test_controller_tiller_exc_returns_500(
@@ -243,9 +247,8 @@ class TestReleasesReleaseNameControllerNegativeTest(base.BaseControllerTest):
         self.assertEqual(500, resp.status_code)
 
 
-class TestReleasesReleaseNameControllerNegativeRbacTest(
-        base.BaseControllerTest):
-
+class TestReleasesReleaseNameControllerNegativeRbacTest(base.BaseControllerTest
+                                                        ):
     @test_utils.attr(type=['negative'])
     def test_test_release_insufficient_permissions(self):
         """Tests the GET /api/v1.0/test/{release} endpoint returns 403
@@ -258,7 +261,6 @@ class TestReleasesReleaseNameControllerNegativeRbacTest(
 
 
 class TestReleasesManifestControllerNegativeRbacTest(base.BaseControllerTest):
-
     @test_utils.attr(type=['negative'])
     def test_test_manifest_insufficient_permissions(self):
         """Tests the POST /api/v1.0/tests endpoint returns 403 following failed

@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
-
 from oslo_config import cfg
 from oslo_log import log as logging
+import yaml
 
 from armada.exceptions import api_exceptions as err
 from armada.handlers.armada import Override
@@ -27,7 +26,6 @@ API_VERSION = 'v{}/{}'
 
 
 class ArmadaClient(object):
-
     def __init__(self, session):
         self.session = session
 
@@ -69,13 +67,14 @@ class ArmadaClient(object):
 
         return resp.json()
 
-    def post_apply(self,
-                   manifest=None,
-                   manifest_ref=None,
-                   values=None,
-                   set=None,
-                   query=None,
-                   timeout=None):
+    def post_apply(
+            self,
+            manifest=None,
+            manifest_ref=None,
+            values=None,
+            set=None,
+            query=None,
+            timeout=None):
         """Call the Armada API to apply a Manifest.
 
         If ``manifest`` is not None, then the request body will be a fully

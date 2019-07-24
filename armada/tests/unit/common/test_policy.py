@@ -10,10 +10,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import testtools
-
 import mock
 from oslo_policy import policy as common_policy
+import testtools
 
 from armada.common import policy
 from armada import conf as cfg
@@ -24,7 +23,6 @@ CONF = cfg.CONF
 
 
 class PolicyTestCase(testtools.TestCase):
-
     def setUp(self):
         super(PolicyTestCase, self).setUp()
         self.rules = {
@@ -48,8 +46,9 @@ class PolicyTestCase(testtools.TestCase):
         action = "example:nope"
         mock_ctx.to_policy_view.return_value = self.credentials
 
-        self.assertRaises(exc.ActionForbidden, policy._enforce_policy, action,
-                          self.target, mock_ctx)
+        self.assertRaises(
+            exc.ActionForbidden, policy._enforce_policy, action, self.target,
+            mock_ctx)
         mock_log.exception.assert_called_once_with(
             'Policy not registered for %(action)s', {'action': 'example:nope'})
 
@@ -67,5 +66,6 @@ class PolicyTestCase(testtools.TestCase):
         action = "armada:create_endpoints"
         mock_ctx.to_policy_view.return_value = self.credentials
 
-        self.assertRaises(exc.ActionForbidden, policy._enforce_policy, action,
-                          self.target, mock_ctx)
+        self.assertRaises(
+            exc.ActionForbidden, policy._enforce_policy, action, self.target,
+            mock_ctx)

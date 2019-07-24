@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import functools
 import time
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
+
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from oslo_config import cfg
@@ -49,7 +51,6 @@ def lock_and_thread(lock_name="lock"):
     """
 
     def lock_decorator(func):
-
         @functools.wraps(func)
         def func_wrapper(*args, **kwargs):
             bearer_token = None
@@ -62,10 +63,11 @@ def lock_and_thread(lock_name="lock"):
             # we did not find a Tiller object to extract a bearer token from
             # log this to assist with potential debugging in the future
             if not found_tiller:
-                LOG.info("no Tiller object found in parameters of function "
-                         "decorated by lock_and_thread, this might create "
-                         "authentication issues in Kubernetes clusters with "
-                         "external auth backend")
+                LOG.info(
+                    "no Tiller object found in parameters of function "
+                    "decorated by lock_and_thread, this might create "
+                    "authentication issues in Kubernetes clusters with "
+                    "external auth backend")
 
             with Lock(lock_name, bearer_token=bearer_token) as lock:
                 pool = ThreadPoolExecutor(1)
@@ -84,7 +86,6 @@ def lock_and_thread(lock_name="lock"):
 
 
 class Lock:
-
     def __init__(self, lock_name, bearer_token=None, additional_data=None):
         """Creates a lock with the specified name and data. When a lock with
         that name already exists then this will continuously attempt to acquire
@@ -137,8 +138,9 @@ class Lock:
                 return True
             except ApiException as err:
                 if err.status == 404:
-                    LOG.info("Lock Custom Resource Definition not found, "
-                             "creating now")
+                    LOG.info(
+                        "Lock Custom Resource Definition not found, "
+                        "creating now")
                     self.lock_config.create_definition()
                     continue
                 elif err.status == 409:
@@ -157,8 +159,9 @@ class Lock:
                 # of the lock exceeds the expire time in order to avoid
                 # removing another thread's lock while it is still working
                 if self.lock_age() > timedelta(seconds=self.expire_time):
-                    LOG.info("Lock has exceeded expiry time, removing so"
-                             "processing can continue")
+                    LOG.info(
+                        "Lock has exceeded expiry time, removing so"
+                        "processing can continue")
                     self.release_lock()
                     continue
             LOG.debug("Sleeping before attempting to acquire lock again")
@@ -183,7 +186,6 @@ class Lock:
 
 
 class LockConfig:
-
     def __init__(self, name, bearer_token=None, additional_data=None):
         self.name = name
         data = additional_data or dict()

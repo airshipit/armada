@@ -42,7 +42,6 @@ def is_connected():
 
 
 class ArmadaTestCase(testtools.TestCase):
-
     def setUp(self):
         super(ArmadaTestCase, self).setUp()
         self.useFixture(fixtures.FakeLogger('armada'))

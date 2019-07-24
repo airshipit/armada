@@ -15,7 +15,6 @@
 import mock
 
 from armada import const
-
 from armada.handlers import test
 from armada.handlers import tiller
 from armada.tests.unit import base
@@ -24,9 +23,7 @@ from armada.utils import helm
 
 
 class TestHandlerTestCase(base.ArmadaTestCase):
-
     def _test_test_release_for_success(self, expected_success, results):
-
         @mock.patch('armada.handlers.tiller.K8s')
         def do_test(_):
             tiller_obj = tiller.Tiller('host', '8080', None)
@@ -47,26 +44,29 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         self._test_test_release_for_success(True, [])
 
     def test_unknown(self):
-        self._test_test_release_for_success(False, [
-            AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
-            AttrDict(**{'status': helm.TESTRUN_STATUS_UNKNOWN})
-        ])
+        self._test_test_release_for_success(
+            False, [
+                AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
+                AttrDict(**{'status': helm.TESTRUN_STATUS_UNKNOWN})
+            ])
 
     def test_success(self):
         self._test_test_release_for_success(
             True, [AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS})])
 
     def test_failure(self):
-        self._test_test_release_for_success(False, [
-            AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
-            AttrDict(**{'status': helm.TESTRUN_STATUS_FAILURE})
-        ])
+        self._test_test_release_for_success(
+            False, [
+                AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
+                AttrDict(**{'status': helm.TESTRUN_STATUS_FAILURE})
+            ])
 
     def test_running(self):
-        self._test_test_release_for_success(False, [
-            AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
-            AttrDict(**{'status': helm.TESTRUN_STATUS_RUNNING})
-        ])
+        self._test_test_release_for_success(
+            False, [
+                AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
+                AttrDict(**{'status': helm.TESTRUN_STATUS_RUNNING})
+            ])
 
     def test_cg_disabled(self):
         """Test that tests are disabled when a chart group disables all

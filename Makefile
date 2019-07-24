@@ -163,6 +163,11 @@ test-coverage: check-tox
 test-bandit: check-tox
 	tox -e bandit
 
+# Perform auto formatting
+.PHONY: format
+format:
+	tox -e fmt
+
 # style checks
 .PHONY: lint
 lint: test-pep8 helm_lint

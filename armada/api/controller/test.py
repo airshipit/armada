@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import json
-import yaml
 
 import falcon
 from oslo_config import cfg
+import yaml
 
 from armada import api
 from armada.common import policy
@@ -165,8 +165,8 @@ class TestReleasesManifestController(api.BaseResource):
                         else:
                             message['test']['failed'].append(release_name)
                 else:
-                    self.logger.info('Release %s not found - SKIPPING',
-                                     release_name)
+                    self.logger.info(
+                        'Release %s not found - SKIPPING', release_name)
                     message['test']['skipped'].append(release_name)
 
         resp.status = falcon.HTTP_200

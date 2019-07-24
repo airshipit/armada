@@ -31,8 +31,9 @@ class GitException(SourceException):
 
     def __init__(self, location):
         self._location = location
-        self._message = ('Git exception occurred, [', self._location,
-                         '] may not be a valid git repository.')
+        self._message = (
+            'Git exception occurred, [', self._location,
+            '] may not be a valid git repository.')
 
         super(GitException, self).__init__(self._message)
 
@@ -44,10 +45,11 @@ class GitAuthException(SourceException):
         self._repo_url = repo_url
         self._ssh_key_path = ssh_key_path
 
-        self._message = ('Failed to authenticate for repo {} with ssh-key at '
-                         'path {}. Verify the repo exists and the correct ssh '
-                         'key path was supplied in the Armada config '
-                         'file.').format(self._repo_url, self._ssh_key_path)
+        self._message = (
+            'Failed to authenticate for repo {} with ssh-key at '
+            'path {}. Verify the repo exists and the correct ssh '
+            'key path was supplied in the Armada config '
+            'file.').format(self._repo_url, self._ssh_key_path)
 
         super(GitAuthException, self).__init__(self._message)
 
@@ -69,8 +71,8 @@ class GitSSHException(SourceException):
     def __init__(self, ssh_key_path):
         self._ssh_key_path = ssh_key_path
 
-        self._message = ('Failed to find specified SSH key: {}.'.format(
-            self._ssh_key_path))
+        self._message = (
+            'Failed to find specified SSH key: {}.'.format(self._ssh_key_path))
 
         super(GitSSHException, self).__init__(self._message)
 

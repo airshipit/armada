@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import json
-import mock
 
+import mock
 from oslo_config import cfg
 
 from armada import api
@@ -26,15 +26,14 @@ from armada.tests.unit.api import base
 CONF = cfg.CONF
 
 
-@mock.patch.object(armada_api.Apply, 'handle',
-                   armada_api.Apply.handle.__wrapped__)
+@mock.patch.object(
+    armada_api.Apply, 'handle', armada_api.Apply.handle.__wrapped__)
 class ArmadaControllerTest(base.BaseControllerTest):
-
     @mock.patch.object(api, 'Tiller')
     @mock.patch.object(armada_api, 'Armada')
     @mock.patch.object(armada_api, 'ReferenceResolver')
-    def test_armada_apply_resource(self, mock_resolver, mock_armada,
-                                   mock_tiller):
+    def test_armada_apply_resource(
+            self, mock_resolver, mock_armada, mock_tiller):
         """Tests the POST /api/v1.0/apply endpoint."""
         rules = {'armada:create_endpoints': '@'}
         self.policy.set_rules(rules)
@@ -84,9 +83,10 @@ class ArmadaControllerTest(base.BaseControllerTest):
         self.assertEqual('application/json', result.headers['content-type'])
 
         mock_resolver.resolve_reference.assert_called_with([payload_url])
-        mock_armada.assert_called_with([{
-            'foo': 'bar'
-        }], **expected_armada_options)
+        mock_armada.assert_called_with(
+            [{
+                'foo': 'bar'
+            }], **expected_armada_options)
         mock_armada.return_value.sync.assert_called()
 
         mock_tiller.assert_called_with(dry_run=False)
@@ -119,7 +119,6 @@ class ArmadaControllerTest(base.BaseControllerTest):
 
 
 class ArmadaControllerNegativeTest(base.BaseControllerTest):
-
     @test_utils.attr(type=['negative'])
     def test_armada_apply_raises_415_given_unsupported_media_type(self):
         """Tests the POST /api/v1.0/apply endpoint returns 415 given
@@ -133,7 +132,6 @@ class ArmadaControllerNegativeTest(base.BaseControllerTest):
 
 
 class ArmadaControllerNegativeRbacTest(base.BaseControllerTest):
-
     @test_utils.attr(type=['negative'])
     def test_armada_apply_resource_insufficient_permissions(self):
         """Tests the POST /api/v1.0/apply endpoint returns 403 following failed

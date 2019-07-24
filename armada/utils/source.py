@@ -65,8 +65,9 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
             'with SSH authentication.', repo_url, ref)
 
         if not os.path.exists(CONF.ssh_key_path):
-            LOG.error('SSH auth method was specified for cloning repo but '
-                      'the SSH key under CONF.ssh_key_path was not found.')
+            LOG.error(
+                'SSH auth method was specified for cloning repo but '
+                'the SSH key under CONF.ssh_key_path was not found.')
             raise source_exceptions.GitSSHException(CONF.ssh_key_path)
 
         ssh_cmd = (
@@ -99,8 +100,8 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
     except git_exc.GitCommandError as e:
         LOG.exception('Encountered GitCommandError during clone.')
         if ssh_cmd and ssh_cmd in e.stderr:
-            raise source_exceptions.GitAuthException(repo_url,
-                                                     CONF.ssh_key_path)
+            raise source_exceptions.GitAuthException(
+                repo_url, CONF.ssh_key_path)
         elif 'Could not resolve proxy' in e.stderr:
             raise source_exceptions.GitProxyException(proxy_server)
         else:
@@ -165,7 +166,7 @@ def source_cleanup(chart_path):
         try:
             shutil.rmtree(chart_path)
         except OSError as e:
-            LOG.warning('Could not delete the path %s. Details: %s',
-                        chart_path, e)
+            LOG.warning(
+                'Could not delete the path %s. Details: %s', chart_path, e)
     else:
         LOG.warning('Could not find the chart path %s to delete.', chart_path)

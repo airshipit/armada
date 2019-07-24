@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
-
 from oslo_config import cfg
 from oslo_log import log as logging
+import requests
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -35,33 +34,35 @@ class ArmadaSession(object):
         read timeout to use
     """
 
-    def __init__(self,
-                 host,
-                 port=None,
-                 scheme='http',
-                 token=None,
-                 marker=None,
-                 end_user=None,
-                 timeout=None):
+    def __init__(
+            self,
+            host,
+            port=None,
+            scheme='http',
+            token=None,
+            marker=None,
+            end_user=None,
+            timeout=None):
 
         self._session = requests.Session()
-        self._session.headers.update({
-            'X-Auth-Token': token,
-            'X-Context-Marker': marker,
-            'X-End-User': end_user,
-        })
+        self._session.headers.update(
+            {
+                'X-Auth-Token': token,
+                'X-Context-Marker': marker,
+                'X-End-User': end_user,
+            })
         self.host = host
         self.scheme = scheme
 
         if port:
             self.port = port
-            self.base_url = "{}://{}:{}/api/".format(self.scheme, self.host,
-                                                     self.port)
+            self.base_url = "{}://{}:{}/api/".format(
+                self.scheme, self.host, self.port)
         else:
             self.base_url = "{}://{}/api/".format(self.scheme, self.host)
 
-        self.default_timeout = ArmadaSession._calc_timeout_tuple((20, 3600),
-                                                                 timeout)
+        self.default_timeout = ArmadaSession._calc_timeout_tuple(
+            (20, 3600), timeout)
         self.token = token
         self.marker = marker
         self.end_user = end_user
@@ -91,13 +92,14 @@ class ArmadaSession(object):
 
         return resp
 
-    def post(self,
-             endpoint,
-             query=None,
-             body=None,
-             data=None,
-             headers=None,
-             timeout=None):
+    def post(
+            self,
+            endpoint,
+            query=None,
+            body=None,
+            data=None,
+            headers=None,
+            timeout=None):
         """
         Send a POST request to armada. If both body and data are specified,
         body will will be used.

@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
-
 import click
 from oslo_config import cfg
+import yaml
 
 from armada.cli import CliAction
 from armada.exceptions.source_exceptions import InvalidPathException
@@ -86,11 +85,12 @@ SHORT_DESC = "Command installs manifest charts."
     '--use-doc-ref', help="Use armada manifest file reference.", is_flag=True)
 @click.option(
     '--set',
-    help=("Use to override Armada Manifest values. Accepts "
-          "overrides that adhere to the format "
-          "<path>:<to>:<property>=<value> to specify a primitive or "
-          "<path>:<to>:<property>=<value1>,...,<valueN> to specify "
-          "a list of values."),
+    help=(
+        "Use to override Armada Manifest values. Accepts "
+        "overrides that adhere to the format "
+        "<path>:<to>:<property>=<value> to specify a primitive or "
+        "<path>:<to>:<property>=<value1>,...,<valueN> to specify "
+        "a list of values."),
     multiple=True,
     type=str,
     default=[])
@@ -111,42 +111,47 @@ SHORT_DESC = "Command installs manifest charts."
 @click.option(
     '--values',
     '-f',
-    help=("Use to override multiple Armada Manifest values by "
-          "reading overrides from a values.yaml-type file."),
+    help=(
+        "Use to override multiple Armada Manifest values by "
+        "reading overrides from a values.yaml-type file."),
     multiple=True,
     type=str,
     default=[])
 @click.option(
     '--wait',
-    help=("Force Tiller to wait until all charts are deployed, "
-          "rather than using each chart's specified wait policy. "
-          "This is equivalent to sequenced chartgroups."),
+    help=(
+        "Force Tiller to wait until all charts are deployed, "
+        "rather than using each chart's specified wait policy. "
+        "This is equivalent to sequenced chartgroups."),
     is_flag=True)
 @click.option(
     '--target-manifest',
-    help=("The target manifest to run. Required for specifying "
-          "which manifest to run when multiple are available."),
+    help=(
+        "The target manifest to run. Required for specifying "
+        "which manifest to run when multiple are available."),
     default=None)
 @click.option('--bearer-token', help="User Bearer token", default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
-def apply_create(ctx, locations, api, disable_update_post, disable_update_pre,
-                 dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
-                 tiller_port, tiller_namespace, timeout, values, wait,
-                 target_manifest, bearer_token, debug):
+def apply_create(
+        ctx, locations, api, disable_update_post, disable_update_pre, dry_run,
+        enable_chart_cleanup, use_doc_ref, set, tiller_host, tiller_port,
+        tiller_namespace, timeout, values, wait, target_manifest, bearer_token,
+        debug):
     CONF.debug = debug
-    ApplyManifest(ctx, locations, api, disable_update_post, disable_update_pre,
-                  dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
-                  tiller_port, tiller_namespace, timeout, values, wait,
-                  target_manifest, bearer_token).safe_invoke()
+    ApplyManifest(
+        ctx, locations, api, disable_update_post, disable_update_pre, dry_run,
+        enable_chart_cleanup, use_doc_ref, set, tiller_host, tiller_port,
+        tiller_namespace, timeout, values, wait, target_manifest,
+        bearer_token).safe_invoke()
 
 
 class ApplyManifest(CliAction):
-
-    def __init__(self, ctx, locations, api, disable_update_post,
-                 disable_update_pre, dry_run, enable_chart_cleanup,
-                 use_doc_ref, set, tiller_host, tiller_port, tiller_namespace,
-                 timeout, values, wait, target_manifest, bearer_token):
+    def __init__(
+            self, ctx, locations, api, disable_update_post, disable_update_pre,
+            dry_run, enable_chart_cleanup, use_doc_ref, set, tiller_host,
+            tiller_port, tiller_namespace, timeout, values, wait,
+            target_manifest, bearer_token):
         super(ApplyManifest, self).__init__()
         self.ctx = ctx
         # Filename can also be a URL reference
@@ -199,12 +204,11 @@ class ApplyManifest(CliAction):
             return
 
         if not self.ctx.obj.get('api', False):
-            with Tiller(
-                    tiller_host=self.tiller_host,
-                    tiller_port=self.tiller_port,
-                    tiller_namespace=self.tiller_namespace,
-                    bearer_token=self.bearer_token,
-                    dry_run=self.dry_run) as tiller:
+            with Tiller(tiller_host=self.tiller_host,
+                        tiller_port=self.tiller_port,
+                        tiller_namespace=self.tiller_namespace,
+                        bearer_token=self.bearer_token,
+                        dry_run=self.dry_run) as tiller:
 
                 resp = self.handle(documents, tiller)
                 self.output(resp)

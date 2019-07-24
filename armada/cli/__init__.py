@@ -28,7 +28,6 @@ LOG = logging.getLogger(__name__)
 
 
 class CliAction(object):
-
     def __init__(self):
         self.logger = LOG
         logging.set_defaults(default_log_levels=CONF.default_log_levels)

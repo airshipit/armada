@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import jsonschema
-import requests
 import traceback
 
+import jsonschema
+import requests
 from oslo_log import log as logging
 
 from armada import const
@@ -124,8 +124,9 @@ def validate_armada_document(document):
                 LOG.info('ValidationMessage: %s', vmsg.get_output_json())
                 details.append(vmsg.get_output())
         except jsonschema.SchemaError as e:
-            error_message = ('The built-in Armada JSON schema %s is invalid. '
-                             'Details: %s.' % (e.schema, e.message))
+            error_message = (
+                'The built-in Armada JSON schema %s is invalid. '
+                'Details: %s.' % (e.schema, e.message))
             vmsg = ValidationMessage(
                 message=error_message,
                 error=True,

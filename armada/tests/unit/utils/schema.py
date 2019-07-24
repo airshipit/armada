@@ -18,7 +18,6 @@ from armada.utils import schema
 
 
 class SchemaTestCase(unittest.TestCase):
-
     def test_validate_load_schemas(self):
         expected_schemas = [
             'armada/Chart/v1', 'armada/ChartGroup/v1', 'armada/Manifest/v1'

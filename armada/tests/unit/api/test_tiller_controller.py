@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import mock
-
 from oslo_config import cfg
 
 from armada import api
@@ -25,7 +24,6 @@ CONF = cfg.CONF
 
 
 class TillerControllerTest(base.BaseControllerTest):
-
     @mock.patch.object(api, 'Tiller')
     def test_get_tiller_status(self, mock_tiller):
         """Tests GET /api/v1.0/status endpoint."""
@@ -140,7 +138,6 @@ class TillerControllerTest(base.BaseControllerTest):
 
 
 class TillerControllerNegativeRbacTest(base.BaseControllerTest):
-
     @test_utils.attr(type=['negative'])
     def test_list_tiller_releases_insufficient_permissions(self):
         """Tests the GET /api/v1.0/releases endpoint returns 403 following

@@ -43,9 +43,9 @@ def get_wait_labels(chart):
 
 # TODO: Validate this object up front in armada validate flow.
 class ChartWait():
-
-    def __init__(self, k8s, release_name, chart, namespace, k8s_wait_attempts,
-                 k8s_wait_attempt_sleep, timeout):
+    def __init__(
+            self, k8s, release_name, chart, namespace, k8s_wait_attempts,
+            k8s_wait_attempt_sleep, timeout):
         self.k8s = k8s
         self.release_name = release_name
         self.chart = chart
@@ -65,12 +65,14 @@ class ChartWait():
         else:
             # TODO: Remove when v1 doc support is removed.
             if schema_info.version < 2:
-                resources_list = [{
-                    'type': 'job',
-                    'required': False
-                }, {
-                    'type': 'pod'
-                }]
+                resources_list = [
+                    {
+                        'type': 'job',
+                        'required': False
+                    }, {
+                        'type': 'pod'
+                    }
+                ]
             else:
                 resources_list = self.get_resources_list(resources)
 
@@ -96,15 +98,17 @@ class ChartWait():
         # TODO: Remove when v1 doc support is removed.
         deprecated_timeout = self.chart_data.get('timeout')
         if deprecated_timeout is not None:
-            LOG.warn('The `timeout` key is deprecated and support '
-                     'for this will be removed soon. Use '
-                     '`wait.timeout` instead.')
+            LOG.warn(
+                'The `timeout` key is deprecated and support '
+                'for this will be removed soon. Use '
+                '`wait.timeout` instead.')
             if wait_timeout is None:
                 wait_timeout = deprecated_timeout
 
         if wait_timeout is None:
-            LOG.info('No Chart timeout specified, using default: %ss',
-                     const.DEFAULT_CHART_TIMEOUT)
+            LOG.info(
+                'No Chart timeout specified, using default: %ss',
+                const.DEFAULT_CHART_TIMEOUT)
             wait_timeout = const.DEFAULT_CHART_TIMEOUT
 
         self.timeout = wait_timeout
@@ -206,13 +210,9 @@ class ChartWait():
 
 
 class ResourceWait(ABC):
-
-    def __init__(self,
-                 resource_type,
-                 chart_wait,
-                 labels,
-                 get_resources,
-                 required=True):
+    def __init__(
+            self, resource_type, chart_wait, labels, get_resources,
+            required=True):
         self.resource_type = resource_type
         self.chart_wait = chart_wait
         self.label_selector = label_selectors(labels)
@@ -241,8 +241,9 @@ class ResourceWait(ABC):
         exclude_reason = self.get_exclude_reason(resource)
 
         if exclude_reason:
-            LOG.debug('Excluding %s %s from wait: %s', self.resource_type,
-                      resource.metadata.name, exclude_reason)
+            LOG.debug(
+                'Excluding %s %s from wait: %s', self.resource_type,
+                resource.metadata.name, exclude_reason)
 
         return not exclude_reason
 
@@ -276,8 +277,9 @@ class ResourceWait(ABC):
             self.chart_wait.namespace, self.label_selector, self.required,
             min_ready_msg, timeout)
         if not self.label_selector:
-            LOG.warn('"label_selector" not specified, waiting with no labels '
-                     'may cause unintended consequences.')
+            LOG.warn(
+                '"label_selector" not specified, waiting with no labels '
+                'may cause unintended consequences.')
 
         # Track the overall deadline for timing out during waits
         deadline = time.time() + timeout
@@ -319,10 +321,11 @@ class ResourceWait(ABC):
 
         deadline_remaining = int(round(deadline - time.time()))
         if deadline_remaining <= 0:
-            error = ("Timed out waiting for resource type={}, namespace={}, "
-                     "labels={}".format(self.resource_type,
-                                        self.chart_wait.namespace,
-                                        self.label_selector))
+            error = (
+                "Timed out waiting for resource type={}, namespace={}, "
+                "labels={}".format(
+                    self.resource_type, self.chart_wait.namespace,
+                    self.label_selector))
             LOG.error(error)
             raise k8s_exceptions.KubernetesWatchTimeoutException(error)
 
@@ -339,12 +342,14 @@ class ResourceWait(ABC):
                     '`wait.resources` need to exclude `type: {}`?'.format(
                         self.resource_type))
             else:
-                details = ('These {}s were not ready={}'.format(
-                    self.resource_type, sorted(unready)))
+                details = (
+                    'These {}s were not ready={}'.format(
+                        self.resource_type, sorted(unready)))
             error = (
                 'Timed out waiting for {}s (namespace={}, labels=({})). {}'.
-                format(self.resource_type, self.chart_wait.namespace,
-                       self.label_selector, details))
+                format(
+                    self.resource_type, self.chart_wait.namespace,
+                    self.label_selector, details))
             LOG.error(error)
             raise k8s_exceptions.KubernetesWatchTimeoutException(error)
 
@@ -399,10 +404,12 @@ class ResourceWait(ABC):
             if not self.include_resource(resource):
                 continue
 
-            msg = ('Watch event: type=%s, name=%s, namespace=%s,'
-                   'resource_version=%s')
-            LOG.debug(msg, event_type, resource_name,
-                      self.chart_wait.namespace, resource_version)
+            msg = (
+                'Watch event: type=%s, name=%s, namespace=%s,'
+                'resource_version=%s')
+            LOG.debug(
+                msg, event_type, resource_name, self.chart_wait.namespace,
+                resource_version)
 
             if event_type in {'ADDED', 'MODIFIED'}:
                 found_resources = True
@@ -417,25 +424,29 @@ class ResourceWait(ABC):
                 ready.pop(resource_name)
 
             elif event_type == 'ERROR':
-                LOG.error('Resource %s: Got error event %s', resource_name,
-                          event['object'].to_dict())
+                LOG.error(
+                    'Resource %s: Got error event %s', resource_name,
+                    event['object'].to_dict())
                 raise k8s_exceptions.KubernetesErrorEventException(
                     'Got error event for resource: %s' % event['object'])
 
             else:
-                LOG.error('Unrecognized event type (%s) for resource: %s',
-                          event_type, event['object'])
-                raise (k8s_exceptions.
-                       KubernetesUnknownStreamingEventTypeException(
-                           'Got unknown event type (%s) for resource: %s' %
-                           (event_type, event['object'])))
+                LOG.error(
+                    'Unrecognized event type (%s) for resource: %s',
+                    event_type, event['object'])
+                raise (
+                    k8s_exceptions.
+                    KubernetesUnknownStreamingEventTypeException(
+                        'Got unknown event type (%s) for resource: %s' %
+                        (event_type, event['object'])))
 
             if all(ready.values()):
                 return (False, modified, [], found_resources)
 
-        return (True, modified,
-                [name for name, is_ready in ready.items() if not is_ready],
-                found_resources)
+        return (
+            True, modified,
+            [name for name, is_ready in ready.items()
+             if not is_ready], found_resources)
 
     def _get_resource_condition(self, resource_conditions, condition_type):
         for pc in resource_conditions:
@@ -444,7 +455,6 @@ class ResourceWait(ABC):
 
 
 class PodWait(ResourceWait):
-
     def __init__(self, resource_type, chart_wait, labels, **kwargs):
         super(PodWait, self).__init__(
             resource_type, chart_wait, labels,
@@ -494,7 +504,6 @@ class PodWait(ResourceWait):
 
 
 class JobWait(ResourceWait):
-
     def __init__(self, resource_type, chart_wait, labels, **kwargs):
         super(JobWait, self).__init__(
             resource_type, chart_wait, labels,
@@ -533,8 +542,8 @@ def has_owner(resource, kind=None):
     return False
 
 
-CountOrPercent = collections.namedtuple('CountOrPercent',
-                                        'number is_percent source')
+CountOrPercent = collections.namedtuple(
+    'CountOrPercent', 'number is_percent source')
 
 # Controller logic (Deployment, DaemonSet, StatefulSet) is adapted from
 # `kubectl rollout status`:
@@ -542,16 +551,16 @@ CountOrPercent = collections.namedtuple('CountOrPercent',
 
 
 class ControllerWait(ResourceWait):
-
-    def __init__(self,
-                 resource_type,
-                 chart_wait,
-                 labels,
-                 get_resources,
-                 min_ready="100%",
-                 **kwargs):
-        super(ControllerWait, self).__init__(resource_type, chart_wait, labels,
-                                             get_resources, **kwargs)
+    def __init__(
+            self,
+            resource_type,
+            chart_wait,
+            labels,
+            get_resources,
+            min_ready="100%",
+            **kwargs):
+        super(ControllerWait, self).__init__(
+            resource_type, chart_wait, labels, get_resources, **kwargs)
 
         if isinstance(min_ready, str):
             match = re.match('(.*)%$', min_ready)
@@ -578,7 +587,6 @@ class ControllerWait(ResourceWait):
 
 
 class DeploymentWait(ControllerWait):
-
     def __init__(self, resource_type, chart_wait, labels, **kwargs):
         super(DeploymentWait, self).__init__(
             resource_type, chart_wait, labels,
@@ -596,8 +604,8 @@ class DeploymentWait(ControllerWait):
             # TODO: Don't fail for lack of progress if `min_ready` is met.
             # TODO: Consider continuing after `min_ready` is met, so long as
             # progress is being made.
-            cond = self._get_resource_condition(status.conditions,
-                                                'Progressing')
+            cond = self._get_resource_condition(
+                status.conditions, 'Progressing')
             if cond and (cond.reason or '') == 'ProgressDeadlineExceeded':
                 msg = "deployment {} exceeded its progress deadline"
                 return (msg.format(name), False)
@@ -606,21 +614,26 @@ class DeploymentWait(ControllerWait):
             updated_replicas = status.updated_replicas or 0
             available_replicas = status.available_replicas or 0
             if updated_replicas < replicas:
-                msg = ("Waiting for deployment {} rollout to finish: {} out "
-                       "of {} new replicas have been updated...")
+                msg = (
+                    "Waiting for deployment {} rollout to finish: {} out "
+                    "of {} new replicas have been updated...")
                 return (msg.format(name, updated_replicas, replicas), False)
 
             if replicas > updated_replicas:
-                msg = ("Waiting for deployment {} rollout to finish: {} old "
-                       "replicas are pending termination...")
+                msg = (
+                    "Waiting for deployment {} rollout to finish: {} old "
+                    "replicas are pending termination...")
                 pending = replicas - updated_replicas
                 return (msg.format(name, pending), False)
 
             if not self._is_min_ready(available_replicas, updated_replicas):
-                msg = ("Waiting for deployment {} rollout to finish: {} of {} "
-                       "updated replicas are available, with min_ready={}")
-                return (msg.format(name, available_replicas, updated_replicas,
-                                   self.min_ready.source), False)
+                msg = (
+                    "Waiting for deployment {} rollout to finish: {} of {} "
+                    "updated replicas are available, with min_ready={}")
+                return (
+                    msg.format(
+                        name, available_replicas, updated_replicas,
+                        self.min_ready.source), False)
             msg = "deployment {} successfully rolled out\n"
             return (msg.format(name), True)
 
@@ -629,13 +642,13 @@ class DeploymentWait(ControllerWait):
 
 
 class DaemonSetWait(ControllerWait):
-
-    def __init__(self,
-                 resource_type,
-                 chart_wait,
-                 labels,
-                 allow_async_updates=False,
-                 **kwargs):
+    def __init__(
+            self,
+            resource_type,
+            chart_wait,
+            labels,
+            allow_async_updates=False,
+            **kwargs):
         super(DaemonSetWait, self).__init__(
             resource_type, chart_wait, labels,
             chart_wait.k8s.apps_v1_api.list_namespaced_daemon_set, **kwargs)
@@ -667,18 +680,23 @@ class DaemonSetWait(ControllerWait):
             number_available = status.number_available or 0
 
             if (updated_number_scheduled < desired_number_scheduled):
-                msg = ("Waiting for daemon set {} rollout to finish: {} out "
-                       "of {} new pods have been updated...")
-                return (msg.format(name, updated_number_scheduled,
-                                   desired_number_scheduled), False)
+                msg = (
+                    "Waiting for daemon set {} rollout to finish: {} out "
+                    "of {} new pods have been updated...")
+                return (
+                    msg.format(
+                        name, updated_number_scheduled,
+                        desired_number_scheduled), False)
 
             if not self._is_min_ready(number_available,
                                       desired_number_scheduled):
-                msg = ("Waiting for daemon set {} rollout to finish: {} of {} "
-                       "updated pods are available, with min_ready={}")
-                return (msg.format(name, number_available,
-                                   desired_number_scheduled,
-                                   self.min_ready.source), False)
+                msg = (
+                    "Waiting for daemon set {} rollout to finish: {} of {} "
+                    "updated pods are available, with min_ready={}")
+                return (
+                    msg.format(
+                        name, number_available, desired_number_scheduled,
+                        self.min_ready.source), False)
 
             msg = "daemon set {} successfully rolled out"
             return (msg.format(name), True)
@@ -688,13 +706,13 @@ class DaemonSetWait(ControllerWait):
 
 
 class StatefulSetWait(ControllerWait):
-
-    def __init__(self,
-                 resource_type,
-                 chart_wait,
-                 labels,
-                 allow_async_updates=False,
-                 **kwargs):
+    def __init__(
+            self,
+            resource_type,
+            chart_wait,
+            labels,
+            allow_async_updates=False,
+            **kwargs):
         super(StatefulSetWait, self).__init__(
             resource_type, chart_wait, labels,
             chart_wait.k8s.apps_v1_api.list_namespaced_stateful_set, **kwargs)
@@ -724,9 +742,9 @@ class StatefulSetWait(ControllerWait):
                     raise armada_exceptions.WaitException(
                         msg.format(ASYNC_UPDATE_NOT_ALLOWED_MSG, strategy))
 
-                if (is_rolling and replicas and
-                        spec.update_strategy.rolling_update and
-                        spec.update_strategy.rolling_update.partition):
+                if (is_rolling and replicas
+                        and spec.update_strategy.rolling_update
+                        and spec.update_strategy.rolling_update.partition):
                     msg = "{}: partitioned rollout"
 
                     raise armada_exceptions.WaitException(
@@ -737,17 +755,21 @@ class StatefulSetWait(ControllerWait):
             return (msg, False)
 
         if replicas and not self._is_min_ready(ready_replicas, replicas):
-            msg = ("Waiting for statefulset {} rollout to finish: {} of {} "
-                   "pods are ready, with min_ready={}")
-            return (msg.format(name, ready_replicas, replicas,
-                               self.min_ready.source), False)
+            msg = (
+                "Waiting for statefulset {} rollout to finish: {} of {} "
+                "pods are ready, with min_ready={}")
+            return (
+                msg.format(
+                    name, ready_replicas, replicas,
+                    self.min_ready.source), False)
 
         update_revision = status.update_revision or 0
         current_revision = status.current_revision or 0
 
         if update_revision != current_revision:
-            msg = ("waiting for statefulset rolling update to complete {} "
-                   "pods at revision {}...")
+            msg = (
+                "waiting for statefulset rolling update to complete {} "
+                "pods at revision {}...")
             return (msg.format(updated_replicas, update_revision), False)
 
         msg = "statefulset rolling update complete {} pods at revision {}..."

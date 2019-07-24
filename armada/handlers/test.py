@@ -15,7 +15,6 @@
 from oslo_log import log as logging
 
 from armada import const
-
 from armada.handlers.wait import get_wait_labels
 from armada.utils.release import label_selectors
 from armada.utils.helm import get_test_suite_run_success, is_test_pod
@@ -24,14 +23,14 @@ LOG = logging.getLogger(__name__)
 
 
 class Test(object):
-
-    def __init__(self,
-                 chart,
-                 release_name,
-                 tiller,
-                 cg_test_charts=None,
-                 cleanup=None,
-                 enable_all=False):
+    def __init__(
+            self,
+            chart,
+            release_name,
+            tiller,
+            cg_test_charts=None,
+            cleanup=None,
+            enable_all=False):
         """Initialize a test handler to run Helm tests corresponding to a
         release.
 
@@ -62,16 +61,18 @@ class Test(object):
 
         # TODO: Remove when v1 doc support is removed.
         if cg_test_charts is not None:
-            LOG.warn('Chart group key `test_charts` is deprecated and will be '
-                     'removed. Use `test.enabled` instead.')
+            LOG.warn(
+                'Chart group key `test_charts` is deprecated and will be '
+                'removed. Use `test.enabled` instead.')
             self.test_enabled = cg_test_charts
         else:
             self.test_enabled = True
 
         # TODO: Remove when v1 doc support is removed.
         if (type(test_values) == bool):
-            LOG.warn('Boolean value for chart `test` key is deprecated and '
-                     'will be removed. Use `test.enabled` instead.')
+            LOG.warn(
+                'Boolean value for chart `test` key is deprecated and '
+                'will be removed. Use `test.enabled` instead.')
 
             self.test_enabled = test_values
 
@@ -107,14 +108,16 @@ class Test(object):
 
         :return: Helm test suite run result
         """
-        LOG.info('RUNNING: %s tests with timeout=%ds', self.release_name,
-                 self.timeout)
+        LOG.info(
+            'RUNNING: %s tests with timeout=%ds', self.release_name,
+            self.timeout)
 
         try:
             self.delete_test_pods()
         except Exception:
-            LOG.exception("Exception when deleting test pods for release: %s",
-                          self.release_name)
+            LOG.exception(
+                "Exception when deleting test pods for release: %s",
+                self.release_name)
 
         test_suite_run = self.tiller.test_release(
             self.release_name, timeout=self.timeout, cleanup=self.cleanup)

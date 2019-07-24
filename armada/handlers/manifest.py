@@ -23,7 +23,6 @@ LOG = logging.getLogger(__name__)
 
 
 class Manifest(object):
-
     def __init__(self, documents, target_manifest=None):
         """Instantiates a Manifest object.
 
@@ -54,9 +53,10 @@ class Manifest(object):
             target_manifest)
 
         if len(manifests) > 1:
-            error = ('Multiple manifests are not supported. Ensure that the '
-                     '`target_manifest` option is set to specify the target '
-                     'manifest')
+            error = (
+                'Multiple manifests are not supported. Ensure that the '
+                '`target_manifest` option is set to specify the target '
+                'manifest')
             LOG.error(error)
             raise exceptions.ManifestException(details=error)
         else:
@@ -64,9 +64,10 @@ class Manifest(object):
 
         if not all([self.charts, self.groups, self.manifest]):
             expected_schemas = [schema.TYPE_CHART, schema.TYPE_CHARTGROUP]
-            error = ('Documents must include at least one of each of {} '
-                     'and only one {}').format(expected_schemas,
-                                               schema.TYPE_MANIFEST)
+            error = (
+                'Documents must include at least one of each of {} '
+                'and only one {}').format(
+                    expected_schemas, schema.TYPE_MANIFEST)
             LOG.error(error)
             raise exceptions.ManifestException(details=error)
 
@@ -147,8 +148,8 @@ class Manifest(object):
             under ``chart['data']['dependencies']`` could not be found.
         """
         try:
-            chart_dependencies = chart.get(const.KEYWORD_DATA, {}).get(
-                'dependencies', [])
+            chart_dependencies = chart.get(const.KEYWORD_DATA,
+                                           {}).get('dependencies', [])
             for iter, dep in enumerate(chart_dependencies):
                 if isinstance(dep, dict):
                     continue
@@ -175,9 +176,8 @@ class Manifest(object):
         """
         try:
             chart = None
-            for iter, chart in enumerate(
-                    chart_group.get(const.KEYWORD_DATA).get(
-                        const.KEYWORD_CHARTS, [])):
+            for iter, chart in enumerate(chart_group.get(
+                    const.KEYWORD_DATA).get(const.KEYWORD_CHARTS, [])):
                 if isinstance(chart, dict):
                     continue
                 chart_object = self.find_chart_document(chart)
@@ -201,9 +201,8 @@ class Manifest(object):
         :raises ManifestException: If a chart group's data listed
             under ``chart_group[const.KEYWORD_DATA]`` could not be found.
         """
-        for iter, group in enumerate(
-                self.manifest.get(const.KEYWORD_DATA, {}).get(
-                    const.KEYWORD_GROUPS, [])):
+        for iter, group in enumerate(self.manifest.get(
+                const.KEYWORD_DATA, {}).get(const.KEYWORD_GROUPS, [])):
             if isinstance(group, dict):
                 continue
             chart_grp = self.find_chart_group_document(group)

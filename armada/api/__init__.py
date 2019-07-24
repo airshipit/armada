@@ -15,13 +15,12 @@
 import json
 import logging as log
 import uuid
-import yaml
-
-from oslo_utils import excutils
 
 import falcon
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_utils import excutils
+import yaml
 
 from armada.handlers.tiller import Tiller
 
@@ -31,7 +30,6 @@ HEALTH_PATH = 'health'
 
 
 class BaseResource(object):
-
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -80,11 +78,12 @@ class BaseResource(object):
             raise Exception("%s: Invalid JSON in body: %s" % (req.path, jex))
 
     def return_error(self, resp, status_code, message="", retry=False):
-        resp.body = json.dumps({
-            'type': 'error',
-            'message': message,
-            'retry': retry
-        })
+        resp.body = json.dumps(
+            {
+                'type': 'error',
+                'message': message,
+                'retry': retry
+            })
         resp.status = status_code
 
     def log_error(self, ctx, level, msg):
@@ -122,7 +121,6 @@ class BaseResource(object):
 
 
 class ArmadaRequestContext(object):
-
     def __init__(self):
         self.log_level = 'ERROR'
         self.user = None  # Username

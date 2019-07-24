@@ -29,7 +29,8 @@ default_options = [
     cfg.StrOpt(
         'certs',
         default=None,
-        help=utils.fmt("""
+        help=utils.fmt(
+            """
 Absolute path to the certificate file to use for chart registries
 """)),
     cfg.StrOpt(
@@ -39,13 +40,15 @@ Absolute path to the certificate file to use for chart registries
     cfg.BoolOpt(
         'middleware',
         default=True,
-        help=utils.fmt("""
+        help=utils.fmt(
+            """
 Enables or disables Keystone authentication middleware.
 """)),
     cfg.StrOpt(
         'project_domain_name',
         default='default',
-        help=utils.fmt("""
+        help=utils.fmt(
+            """
 The Keystone project domain name used for authentication.
 """)),
     cfg.StrOpt(
@@ -58,7 +61,8 @@ The Keystone project domain name used for authentication.
     cfg.StrOpt(
         'ssh_key_path',
         default='/home/user/.ssh/',
-        help=utils.fmt("""Optional path to an SSH private key used for
+        help=utils.fmt(
+            """Optional path to an SSH private key used for
 authenticating against a Git source repository. The path must be an absolute
 path to the private key that includes the name of the key itself.""")),
     cfg.StrOpt(
@@ -85,25 +89,29 @@ path to the private key that includes the name of the key itself.""")),
         'lock_acquire_timeout',
         default=60,
         min=0,
-        help=utils.fmt("""Time in seconds of how long armada will attempt to
+        help=utils.fmt(
+            """Time in seconds of how long armada will attempt to
         acquire a lock before an exception is raised""")),
     cfg.IntOpt(
         'lock_acquire_delay',
         default=5,
         min=0,
-        help=utils.fmt("""Time in seconds of how long to wait between attempts
+        help=utils.fmt(
+            """Time in seconds of how long to wait between attempts
     to acquire a lock""")),
     cfg.IntOpt(
         'lock_update_interval',
         default=60,
         min=0,
-        help=utils.fmt("""Time in seconds of how often armada will update the
+        help=utils.fmt(
+            """Time in seconds of how often armada will update the
         lock while it is continuing to do work""")),
     cfg.IntOpt(
         'lock_expiration',
         default=600,
         min=0,
-        help=utils.fmt("""Time in seconds of how much time needs to pass since
+        help=utils.fmt(
+            """Time in seconds of how much time needs to pass since
         the last update of an existing lock before armada forcibly removes it
         and tries to acquire its own lock""")),
 ]
@@ -116,11 +124,10 @@ def register_opts(conf):
 
 def list_opts():
     return {
-        'DEFAULT':
-        default_options,
-        'keystone_authtoken':
-        (ks_loading.get_session_conf_options() +
-         ks_loading.get_auth_common_conf_options() +
-         ks_loading.get_auth_plugin_conf_options('password') +
-         ks_loading.get_auth_plugin_conf_options('v3password'))
+        'DEFAULT': default_options,
+        'keystone_authtoken': (
+            ks_loading.get_session_conf_options()
+            + ks_loading.get_auth_common_conf_options()
+            + ks_loading.get_auth_plugin_conf_options('password')
+            + ks_loading.get_auth_plugin_conf_options('v3password'))
     }

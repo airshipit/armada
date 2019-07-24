@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
-
 import click
 from oslo_config import cfg
+import yaml
 
 from armada.cli import CliAction
 from armada import const
@@ -70,17 +69,19 @@ SHORT_DESC = "Command deletes releases."
 @click.option('--bearer-token', help="User Bearer token.", default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
-def delete_charts(ctx, manifest, releases, no_purge, tiller_host, tiller_port,
-                  bearer_token, debug):
+def delete_charts(
+        ctx, manifest, releases, no_purge, tiller_host, tiller_port,
+        bearer_token, debug):
     CONF.debug = debug
-    DeleteChartManifest(ctx, manifest, releases, no_purge, tiller_host,
-                        tiller_port, bearer_token).safe_invoke()
+    DeleteChartManifest(
+        ctx, manifest, releases, no_purge, tiller_host, tiller_port,
+        bearer_token).safe_invoke()
 
 
 class DeleteChartManifest(CliAction):
-
-    def __init__(self, ctx, manifest, releases, no_purge, tiller_host,
-                 tiller_port, bearer_token):
+    def __init__(
+            self, ctx, manifest, releases, no_purge, tiller_host, tiller_port,
+            bearer_token):
 
         super(DeleteChartManifest, self).__init__()
         self.ctx = ctx
@@ -92,10 +93,8 @@ class DeleteChartManifest(CliAction):
         self.bearer_token = bearer_token
 
     def invoke(self):
-        with Tiller(
-                tiller_host=self.tiller_host,
-                tiller_port=self.tiller_port,
-                bearer_token=self.bearer_token) as tiller:
+        with Tiller(tiller_host=self.tiller_host, tiller_port=self.tiller_port,
+                    bearer_token=self.bearer_token) as tiller:
             self.handle(tiller)
 
     @lock_and_thread()

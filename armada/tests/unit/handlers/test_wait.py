@@ -23,7 +23,6 @@ test_chart = {'wait': {'timeout': 10, 'native': {'enabled': False}}}
 
 
 class ChartWaitTestCase(base.ArmadaTestCase):
-
     def get_unit(self, chart_data, timeout=None, version=2):
         chart = {
             'schema': 'armada/Chart/v{}'.format(str(version)),
@@ -118,60 +117,66 @@ class ChartWaitTestCase(base.ArmadaTestCase):
         self.assertIsInstance(unit.waits[4], wait.StatefulSetWait)
 
     def test_waits_init_min_ready_fails_if_not_controller(self):
-
         def create_pod_wait_min_ready():
-            self.get_unit({
-                'wait': {
-                    'resources': [{
-                        'type': 'pod',
-                        'labels': {
-                            'foo': 'bar'
-                        },
-                        'min_ready': 5
-                    }]
-                }
-            })
+            self.get_unit(
+                {
+                    'wait': {
+                        'resources': [
+                            {
+                                'type': 'pod',
+                                'labels': {
+                                    'foo': 'bar'
+                                },
+                                'min_ready': 5
+                            }
+                        ]
+                    }
+                })
 
-        self.assertRaises(manifest_exceptions.ManifestException,
-                          create_pod_wait_min_ready)
+        self.assertRaises(
+            manifest_exceptions.ManifestException, create_pod_wait_min_ready)
 
         def create_job_wait_min_ready():
-            self.get_unit({
-                'wait': {
-                    'resources': [{
-                        'type': 'job',
-                        'labels': {
-                            'foo': 'bar'
-                        },
-                        'min_ready': 5
-                    }]
-                }
-            })
+            self.get_unit(
+                {
+                    'wait': {
+                        'resources': [
+                            {
+                                'type': 'job',
+                                'labels': {
+                                    'foo': 'bar'
+                                },
+                                'min_ready': 5
+                            }
+                        ]
+                    }
+                })
 
-        self.assertRaises(manifest_exceptions.ManifestException,
-                          create_job_wait_min_ready)
+        self.assertRaises(
+            manifest_exceptions.ManifestException, create_job_wait_min_ready)
 
     def test_waits_init_invalid_type(self):
-
         def create_with_invalid_type():
-            self.get_unit({
-                'wait': {
-                    'resources': [{
-                        'type': 'invalid',
-                        'labels': {
-                            'foo': 'bar'
-                        },
-                        'min_ready': 5
-                    }]
-                }
-            })
+            self.get_unit(
+                {
+                    'wait': {
+                        'resources': [
+                            {
+                                'type': 'invalid',
+                                'labels': {
+                                    'foo': 'bar'
+                                },
+                                'min_ready': 5
+                            }
+                        ]
+                    }
+                })
 
-        self.assertRaises(manifest_exceptions.ManifestException,
-                          create_with_invalid_type)
+        self.assertRaises(
+            manifest_exceptions.ManifestException, create_with_invalid_type)
 
     @mock.patch.object(wait.ChartWait, 'get_resource_wait')
     def test_wait(self, get_resource_wait):
-
         def return_mock(*args, **kwargs):
             return mock.MagicMock()
 
@@ -194,7 +199,6 @@ class ChartWaitTestCase(base.ArmadaTestCase):
 
 
 class PodWaitTestCase(base.ArmadaTestCase):
-
     def get_unit(self, labels, version=2):
         return wait.PodWait(
             resource_type='pod',
@@ -202,7 +206,6 @@ class PodWaitTestCase(base.ArmadaTestCase):
             labels=labels)
 
     def test_include_resource(self):
-
         def mock_resource(annotations={}, owner_references=None):
             resource = mock.Mock()
             resource.metadata.annotations = annotations
@@ -219,10 +222,11 @@ class PodWaitTestCase(base.ArmadaTestCase):
         ]
         job_pods = [
             mock_resource(owner_references=[mock.Mock(kind='Job')]),
-            mock_resource(owner_references=[
-                mock.Mock(kind='NotAJob'),
-                mock.Mock(kind='Job')
-            ])
+            mock_resource(
+                owner_references=[
+                    mock.Mock(kind='NotAJob'),
+                    mock.Mock(kind='Job')
+                ])
         ]
         included_pods = [
             mock_resource(),
@@ -248,13 +252,11 @@ class PodWaitTestCase(base.ArmadaTestCase):
 
 
 class JobWaitTestCase(base.ArmadaTestCase):
-
     def get_unit(self, labels):
         return wait.JobWait(
             resource_type='job', chart_wait=mock.MagicMock(), labels=labels)
 
     def test_include_resource(self):
-
         def mock_resource(annotations={}, owner_references=None):
             resource = mock.Mock()
             resource.metadata.annotations = annotations
@@ -263,10 +265,11 @@ class JobWaitTestCase(base.ArmadaTestCase):
 
         cronjob_jobs = [
             mock_resource(owner_references=[mock.Mock(kind='CronJob')]),
-            mock_resource(owner_references=[
-                mock.Mock(kind='NotACronJob'),
-                mock.Mock(kind='CronJob')
-            ])
+            mock_resource(
+                owner_references=[
+                    mock.Mock(kind='NotACronJob'),
+                    mock.Mock(kind='CronJob')
+                ])
         ]
         included_jobs = [
             mock_resource(),

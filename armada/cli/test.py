@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
-
 import click
 from oslo_config import cfg
+import yaml
 
 from armada.cli import CliAction
 from armada import const
@@ -69,8 +68,9 @@ SHORT_DESC = "Command tests releases."
     default=None)
 @click.option(
     '--target-manifest',
-    help=("The target manifest to run. Required for specifying "
-          "which manifest to run when multiple are available."),
+    help=(
+        "The target manifest to run. Required for specifying "
+        "which manifest to run when multiple are available."),
     default=None)
 @click.option(
     '--cleanup',
@@ -79,24 +79,26 @@ SHORT_DESC = "Command tests releases."
     default=None)
 @click.option(
     '--enable-all',
-    help=("Run all tests for all releases regardless of any disabled chart "
-          "tests."),
+    help=(
+        "Run all tests for all releases regardless of any disabled chart "
+        "tests."),
     is_flag=True,
     default=False)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
-def test_charts(ctx, file, release, tiller_host, tiller_port, tiller_namespace,
-                target_manifest, cleanup, enable_all, debug):
+def test_charts(
+        ctx, file, release, tiller_host, tiller_port, tiller_namespace,
+        target_manifest, cleanup, enable_all, debug):
     CONF.debug = debug
-    TestChartManifest(ctx, file, release, tiller_host, tiller_port,
-                      tiller_namespace, target_manifest, cleanup,
-                      enable_all).safe_invoke()
+    TestChartManifest(
+        ctx, file, release, tiller_host, tiller_port, tiller_namespace,
+        target_manifest, cleanup, enable_all).safe_invoke()
 
 
 class TestChartManifest(CliAction):
-
-    def __init__(self, ctx, file, release, tiller_host, tiller_port,
-                 tiller_namespace, target_manifest, cleanup, enable_all):
+    def __init__(
+            self, ctx, file, release, tiller_host, tiller_port,
+            tiller_namespace, target_manifest, cleanup, enable_all):
 
         super(TestChartManifest, self).__init__()
         self.ctx = ctx
@@ -110,10 +112,8 @@ class TestChartManifest(CliAction):
         self.enable_all = enable_all
 
     def invoke(self):
-        with Tiller(
-                tiller_host=self.tiller_host,
-                tiller_port=self.tiller_port,
-                tiller_namespace=self.tiller_namespace) as tiller:
+        with Tiller(tiller_host=self.tiller_host, tiller_port=self.tiller_port,
+                    tiller_namespace=self.tiller_namespace) as tiller:
 
             self.handle(tiller)
 
@@ -123,10 +123,8 @@ class TestChartManifest(CliAction):
 
         if self.release:
             if not self.ctx.obj.get('api', False):
-                test_handler = Test({},
-                                    self.release,
-                                    tiller,
-                                    cleanup=self.cleanup)
+                test_handler = Test(
+                    {}, self.release, tiller, cleanup=self.cleanup)
                 test_handler.test_release_for_success()
             else:
                 client = self.ctx.obj.get('CLIENT')
@@ -168,8 +166,9 @@ class TestChartManifest(CliAction):
                             if test_handler.test_enabled:
                                 test_handler.test_release_for_success()
                         else:
-                            self.logger.info('Release %s not found - SKIPPING',
-                                             release_name)
+                            self.logger.info(
+                                'Release %s not found - SKIPPING',
+                                release_name)
             else:
                 client = self.ctx.obj.get('CLIENT')
                 query = {

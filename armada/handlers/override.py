@@ -14,6 +14,7 @@
 
 import collections
 import json
+
 import yaml
 
 from armada.exceptions import override_exceptions
@@ -23,7 +24,6 @@ from armada.utils import validate
 
 
 class Override(object):
-
     def __init__(self, documents, overrides=None, values=None):
         self.documents = documents
         self.overrides = overrides

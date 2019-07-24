@@ -32,8 +32,9 @@ class BaseControllerTest(test_base.ArmadaTestCase):
         # the sample configuration files to avoid oslo.conf errors when
         # creating the server below.
         current_dir = os.path.dirname(os.path.realpath(__file__))
-        sample_conf_dir = os.path.join(current_dir, os.pardir, os.pardir,
-                                       os.pardir, os.pardir, 'etc', 'armada')
+        sample_conf_dir = os.path.join(
+            current_dir, os.pardir, os.pardir, os.pardir, os.pardir, 'etc',
+            'armada')
         sample_conf_files = ['api-paste.ini', 'armada.conf.sample']
         with mock.patch.object(armada.conf,
                                '_get_config_files') as mock_get_config_files:

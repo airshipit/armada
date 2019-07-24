@@ -212,5 +212,6 @@ class TillerListReleasesPagingException(TillerException):
     *Coming Soon*
     '''
 
-    message = ('Failed to page through tiller releases, possibly due to '
-               'releases being added between pages')
+    message = (
+        'Failed to page through tiller releases, possibly due to '
+        'releases being added between pages')

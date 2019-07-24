@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import os
-import pkg_resources
 import re
+
+import pkg_resources
 import yaml
 
 # Types
@@ -34,7 +35,6 @@ _SCHEMAS = {}
 
 
 class SchemaInfo(object):
-
     def __init__(self, type, version, data):
         self.type = type
         self.version = version

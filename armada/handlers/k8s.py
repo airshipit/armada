@@ -60,11 +60,12 @@ class K8s(object):
         self.extension_api = client.ExtensionsV1beta1Api(api_client)
         self.apps_v1_api = client.AppsV1Api(api_client)
 
-    def delete_job_action(self,
-                          name,
-                          namespace="default",
-                          propagation_policy='Foreground',
-                          timeout=DEFAULT_K8S_TIMEOUT):
+    def delete_job_action(
+            self,
+            name,
+            namespace="default",
+            propagation_policy='Foreground',
+            timeout=DEFAULT_K8S_TIMEOUT):
         '''
         Delete a job from a namespace (see _delete_item_action).
 
@@ -74,15 +75,17 @@ class K8s(object):
             to the delete.
         :param timeout: The timeout to wait for the delete to complete
         '''
-        self._delete_item_action(self.batch_api.list_namespaced_job,
-                                 self.batch_api.delete_namespaced_job, "job",
-                                 name, namespace, propagation_policy, timeout)
+        self._delete_item_action(
+            self.batch_api.list_namespaced_job,
+            self.batch_api.delete_namespaced_job, "job", name, namespace,
+            propagation_policy, timeout)
 
-    def delete_cron_job_action(self,
-                               name,
-                               namespace="default",
-                               propagation_policy='Foreground',
-                               timeout=DEFAULT_K8S_TIMEOUT):
+    def delete_cron_job_action(
+            self,
+            name,
+            namespace="default",
+            propagation_policy='Foreground',
+            timeout=DEFAULT_K8S_TIMEOUT):
         '''
         Delete a cron job from a namespace (see _delete_item_action).
 
@@ -97,11 +100,12 @@ class K8s(object):
             self.batch_v1beta1_api.delete_namespaced_cron_job, "cron job",
             name, namespace, propagation_policy, timeout)
 
-    def delete_pod_action(self,
-                          name,
-                          namespace="default",
-                          propagation_policy='Foreground',
-                          timeout=DEFAULT_K8S_TIMEOUT):
+    def delete_pod_action(
+            self,
+            name,
+            namespace="default",
+            propagation_policy='Foreground',
+            timeout=DEFAULT_K8S_TIMEOUT):
         '''
         Delete a pod from a namespace (see _delete_item_action).
 
@@ -111,18 +115,19 @@ class K8s(object):
             to the delete.
         :param timeout: The timeout to wait for the delete to complete
         '''
-        self._delete_item_action(self.client.list_namespaced_pod,
-                                 self.client.delete_namespaced_pod, "pod",
-                                 name, namespace, propagation_policy, timeout)
+        self._delete_item_action(
+            self.client.list_namespaced_pod, self.client.delete_namespaced_pod,
+            "pod", name, namespace, propagation_policy, timeout)
 
-    def _delete_item_action(self,
-                            list_func,
-                            delete_func,
-                            object_type_description,
-                            name,
-                            namespace="default",
-                            propagation_policy='Foreground',
-                            timeout=DEFAULT_K8S_TIMEOUT):
+    def _delete_item_action(
+            self,
+            list_func,
+            delete_func,
+            object_type_description,
+            name,
+            namespace="default",
+            propagation_policy='Foreground',
+            timeout=DEFAULT_K8S_TIMEOUT):
         '''
         This function takes the action to delete an object (job, cronjob, pod)
         from kubernetes. It will wait for the object to be fully deleted before
@@ -145,14 +150,15 @@ class K8s(object):
         try:
             timeout = self._check_timeout(timeout)
 
-            LOG.debug('Watching to delete %s %s, Wait timeout=%s',
-                      object_type_description, name, timeout)
+            LOG.debug(
+                'Watching to delete %s %s, Wait timeout=%s',
+                object_type_description, name, timeout)
             body = client.V1DeleteOptions()
             w = watch.Watch()
             issue_delete = True
             found_events = False
-            for event in w.stream(
-                    list_func, namespace=namespace, timeout_seconds=timeout):
+            for event in w.stream(list_func, namespace=namespace,
+                                  timeout_seconds=timeout):
                 if issue_delete:
                     delete_func(
                         name=name,
@@ -168,23 +174,27 @@ class K8s(object):
                 if item_name == name:
                     found_events = True
                     if event_type == 'DELETED':
-                        LOG.info('Successfully deleted %s %s',
-                                 object_type_description, item_name)
+                        LOG.info(
+                            'Successfully deleted %s %s',
+                            object_type_description, item_name)
                         return
 
             if not found_events:
-                LOG.warn('Saw no delete events for %s %s in namespace=%s',
-                         object_type_description, name, namespace)
+                LOG.warn(
+                    'Saw no delete events for %s %s in namespace=%s',
+                    object_type_description, name, namespace)
 
-            err_msg = ('Reached timeout while waiting to delete %s: '
-                       'name=%s, namespace=%s' % (object_type_description,
-                                                  name, namespace))
+            err_msg = (
+                'Reached timeout while waiting to delete %s: '
+                'name=%s, namespace=%s' %
+                (object_type_description, name, namespace))
             LOG.error(err_msg)
             raise exceptions.KubernetesWatchTimeoutException(err_msg)
 
         except ApiException as e:
-            LOG.exception("Exception when deleting %s: name=%s, namespace=%s",
-                          object_type_description, name, namespace)
+            LOG.exception(
+                "Exception when deleting %s: name=%s, namespace=%s",
+                object_type_description, name, namespace)
             raise e
 
     def get_namespace_job(self, namespace="default", **kwargs):
@@ -196,8 +206,9 @@ class K8s(object):
         try:
             return self.batch_api.list_namespaced_job(namespace, **kwargs)
         except ApiException as e:
-            LOG.error("Exception getting jobs: namespace=%s, label=%s: %s",
-                      namespace, kwargs.get('label_selector', ''), e)
+            LOG.error(
+                "Exception getting jobs: namespace=%s, label=%s: %s",
+                namespace, kwargs.get('label_selector', ''), e)
 
     def get_namespace_cron_job(self, namespace="default", **kwargs):
         '''
@@ -276,8 +287,8 @@ class K8s(object):
         base_pod_pattern = re.compile('^(.+)-[a-zA-Z0-9]+$')
 
         if not base_pod_pattern.match(old_pod_name):
-            LOG.error('Could not identify new pod after purging %s',
-                      old_pod_name)
+            LOG.error(
+                'Could not identify new pod after purging %s', old_pod_name)
             return
 
         pod_base_name = base_pod_pattern.match(old_pod_name).group(1)
@@ -297,13 +308,13 @@ class K8s(object):
                 new_pod_name = event_name
             elif new_pod_name:
                 for condition in pod_conditions:
-                    if (condition.type == 'Ready' and
-                            condition.status == 'True'):
+                    if (condition.type == 'Ready'
+                            and condition.status == 'True'):
                         LOG.info('New pod %s deployed', new_pod_name)
                         w.stop()
 
-    def wait_get_completed_podphase(self, release,
-                                    timeout=DEFAULT_K8S_TIMEOUT):
+    def wait_get_completed_podphase(
+            self, release, timeout=DEFAULT_K8S_TIMEOUT):
         '''
         :param release: part of namespace
         :param timeout: time before disconnecting stream
@@ -312,9 +323,8 @@ class K8s(object):
 
         w = watch.Watch()
         found_events = False
-        for event in w.stream(
-                self.client.list_pod_for_all_namespaces,
-                timeout_seconds=timeout):
+        for event in w.stream(self.client.list_pod_for_all_namespaces,
+                              timeout_seconds=timeout):
             resource_name = event['object'].metadata.name
 
             if release in resource_name:
@@ -362,8 +372,8 @@ class K8s(object):
         return self.custom_objects.create_namespaced_custom_object(
             group, version, namespace, plural, body)
 
-    def delete_custom_resource(self, group, version, namespace, plural, name,
-                               body):
+    def delete_custom_resource(
+            self, group, version, namespace, plural, name, body):
         """Deletes a custom resource
 
         :param group: the custom resource's group
@@ -394,8 +404,8 @@ class K8s(object):
         return self.custom_objects.get_namespaced_custom_object(
             group, version, namespace, plural, name)
 
-    def replace_custom_resource(self, group, version, namespace, plural, name,
-                                body):
+    def replace_custom_resource(
+            self, group, version, namespace, plural, name, body):
         """Replaces a custom resource
 
         :param group: the custom resource's group

@@ -51,10 +51,12 @@ armada_policies = [
         name=base.ARMADA % 'rollback_release',
         check_str=base.RULE_ADMIN_REQUIRED,
         description='Rollback release',
-        operations=[{
-            'path': '/api/v1.0/rollback/{release}',
-            'method': 'POST'
-        }]),
+        operations=[
+            {
+                'path': '/api/v1.0/rollback/{release}',
+                'method': 'POST'
+            }
+        ]),
 ]
 
 

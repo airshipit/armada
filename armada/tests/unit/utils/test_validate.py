@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import os
-import yaml
 
 import testtools
+import yaml
 
 from armada.tests.unit import base
 from armada.utils import validate
@@ -67,7 +67,6 @@ data:
 
 
 class BaseValidateTest(base.ArmadaTestCase):
-
     def setUp(self):
         super(BaseValidateTest, self).setUp()
         self.basepath = os.path.join(os.path.dirname(__file__), os.pardir)
@@ -110,7 +109,6 @@ class ValidateOwnExamplesTestCase(BaseValidateTest):
 
 
 class ValidateTestCase(BaseValidateTest):
-
     def test_validate_armada_yaml_passes(self):
         template = '{}/resources/valid_armada_document.yaml'.format(
             self.basepath)
@@ -215,12 +213,11 @@ data:
 
 
 class ValidateNegativeTestCase(BaseValidateTest):
-
     def test_validate_no_dictionary_expect_type_error(self):
         expected_error = 'The provided input "invalid" must be a dictionary.'
-        self.assertRaisesRegexp(TypeError, expected_error,
-                                validate.validate_armada_documents,
-                                ['invalid'])
+        self.assertRaisesRegexp(
+            TypeError, expected_error, validate.validate_armada_documents,
+            ['invalid'])
 
     def test_validate_invalid_chart_armada_manifest(self):
         template = '{}/resources/valid_armada_document.yaml'.format(

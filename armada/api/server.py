@@ -79,8 +79,8 @@ def create(enable_middleware=CONF.middleware):
 
     # Error handlers (FILO handling)
     api.add_error_handler(Exception, exceptions.default_exception_handler)
-    api.add_error_handler(exceptions.ArmadaAPIException,
-                          exceptions.ArmadaAPIException.handle)
+    api.add_error_handler(
+        exceptions.ArmadaAPIException, exceptions.ArmadaAPIException.handle)
 
     # Built-in error serializer
     api.set_error_serializer(exceptions.default_error_serializer)

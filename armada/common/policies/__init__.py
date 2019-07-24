@@ -18,5 +18,5 @@ from armada.common.policies import tiller
 
 
 def list_rules():
-    return itertools.chain(base.list_rules(), service.list_rules(),
-                           tiller.list_rules())
+    return itertools.chain(
+        base.list_rules(), service.list_rules(), tiller.list_rules())

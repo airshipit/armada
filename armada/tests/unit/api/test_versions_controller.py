@@ -16,7 +16,6 @@ from armada.tests.unit.api import base
 
 
 class VersionsControllerTest(base.BaseControllerTest):
-
     def test_list_versions(self):
         """
         Validate that /api/v1.0/health returns 204.

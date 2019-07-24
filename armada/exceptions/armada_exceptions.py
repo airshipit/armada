@@ -51,8 +51,8 @@ class InvalidValuesYamlException(ArmadaException):
 
     def __init__(self, chart_description):
         self._message = (
-            'Armada encountered invalid values.yaml in helm chart: %s' %
-            chart_description)
+            'Armada encountered invalid values.yaml in helm chart: %s'
+            % chart_description)
         super(InvalidValuesYamlException, self).__init__(self._message)
 
 
@@ -64,8 +64,8 @@ class InvalidOverrideValuesYamlException(ArmadaException):
 
     def __init__(self, chart_description):
         self._message = (
-            'Armada encountered invalid values.yaml in helm chart: %s' %
-            chart_description)
+            'Armada encountered invalid values.yaml in helm chart: %s'
+            % chart_description)
         super(InvalidValuesYamlException, self).__init__(self._message)
 
 

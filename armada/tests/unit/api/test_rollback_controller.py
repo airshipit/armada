@@ -23,10 +23,9 @@ from armada.tests.unit.api import base
 from armada.api.controller import rollback
 
 
-@mock.patch.object(rollback.Rollback, 'handle',
-                   rollback.Rollback.handle.__wrapped__)
+@mock.patch.object(
+    rollback.Rollback, 'handle', rollback.Rollback.handle.__wrapped__)
 class RollbackReleaseControllerTest(base.BaseControllerTest):
-
     @mock.patch.object(api, 'Tiller')
     def test_rollback_controller_pass(self, mock_tiller):
         rules = {'armada:rollback_release': '@'}
@@ -62,14 +61,14 @@ class RollbackReleaseControllerTest(base.BaseControllerTest):
             release, 2, wait=True, timeout=123, force=True, recreate_pods=True)
 
         self.assertEqual(200, resp.status_code)
-        self.assertEqual('Rollback of test-release complete.',
-                         json.loads(resp.text)['message'])
+        self.assertEqual(
+            'Rollback of test-release complete.',
+            json.loads(resp.text)['message'])
         m_tiller.__exit__.assert_called()
 
 
 @test_utils.attr(type=['negative'])
 class RollbackReleaseControllerNegativeTest(base.BaseControllerTest):
-
     @mock.patch.object(api, 'Tiller')
     def test_rollback_controller_tiller_exc_return_500(self, mock_tiller):
         rules = {'armada:rollback_release': '@'}
@@ -83,7 +82,6 @@ class RollbackReleaseControllerNegativeTest(base.BaseControllerTest):
 
 @test_utils.attr(type=['negative'])
 class RollbackReleaseControllerNegativeRbacTest(base.BaseControllerTest):
-
     def test_rollback_release_insufficient_permissions(self):
         """Tests the GET /api/v1.0/rollback/{release} endpoint returns 403
         following failed authorization.

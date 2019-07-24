@@ -15,9 +15,9 @@
 import copy
 import json
 import os
-import yaml
 
 import testtools
+import yaml
 
 from armada.handlers.override import Override
 from armada.handlers import schema
@@ -25,7 +25,6 @@ from armada.exceptions import override_exceptions
 
 
 class OverrideTestCase(testtools.TestCase):
-
     def setUp(self):
         super(OverrideTestCase, self).setUp()
         self.basepath = os.path.join(os.path.dirname(__file__))
@@ -80,8 +79,9 @@ class OverrideTestCase(testtools.TestCase):
         ][0]
         self.assertEqual('overridden', target_doc['data']['release_prefix'])
 
-        override = ('manifest:simple-armada:chart_groups='
-                    'blog-group3,blog-group4', )
+        override = (
+            'manifest:simple-armada:chart_groups='
+            'blog-group3,blog-group4', )
 
         # Case 2: Checking if list gets updated.
         ovr = Override(original_documents, override, [values_yaml])
@@ -93,8 +93,9 @@ class OverrideTestCase(testtools.TestCase):
         with open(comparison_yaml) as c:
             comparison_documents = list(yaml.safe_load_all(c.read()))
         # verifying that the override is correct
-        self.assertEqual(original_documents[2]['data']['chart_groups'],
-                         comparison_documents[0]['data']['chart_groups'])
+        self.assertEqual(
+            original_documents[2]['data']['chart_groups'],
+            comparison_documents[0]['data']['chart_groups'])
 
     def test_update_manifests_invalid_override_format(self):
         with open(self.base_manifest) as f:
@@ -141,8 +142,9 @@ class OverrideTestCase(testtools.TestCase):
         ovr.update_document(documents_modified[0])
 
         # after the update, both documents are equal
-        self.assertEqual(ovr.documents[0]['data']['chart_name'],
-                         documents_modified[0]['data']['chart_name'])
+        self.assertEqual(
+            ovr.documents[0]['data']['chart_name'],
+            documents_modified[0]['data']['chart_name'])
         self.assertEqual(ovr.documents[0], documents_modified[0])
 
         # Case 2: Checking if dictionaries get updated
@@ -151,8 +153,9 @@ class OverrideTestCase(testtools.TestCase):
         ovr.update_document(documents_modified[0])
 
         # after the update, both documents are equal
-        self.assertEqual(ovr.documents[0]['data']['values'],
-                         documents_modified[0]['data']['values'])
+        self.assertEqual(
+            ovr.documents[0]['data']['values'],
+            documents_modified[0]['data']['values'])
         self.assertEqual(ovr.documents[0], documents_modified[0])
 
         # Case 3: Checking if lists get updated
@@ -161,10 +164,11 @@ class OverrideTestCase(testtools.TestCase):
         ovr.update_document(documents_modified[0])
 
         # after the update, both documents are equal
-        self.assertEqual(['foo', 'bar'],
-                         ovr.documents[0]['data']['dependencies'])
-        self.assertEqual(documents_modified[0]['data']['dependencies'],
-                         ovr.documents[0]['data']['dependencies'])
+        self.assertEqual(
+            ['foo', 'bar'], ovr.documents[0]['data']['dependencies'])
+        self.assertEqual(
+            documents_modified[0]['data']['dependencies'],
+            ovr.documents[0]['data']['dependencies'])
         self.assertEqual(ovr.documents[0], documents_modified[0])
 
     def test_update_chart_document_keys_not_removed_with_override(self):
@@ -198,8 +202,9 @@ class OverrideTestCase(testtools.TestCase):
         ovr.update_document(documents_modified[1])
 
         # after the update, both documents are equal
-        self.assertEqual(ovr.documents[1]['data']['sequenced'],
-                         documents_modified[1]['data']['sequenced'])
+        self.assertEqual(
+            ovr.documents[1]['data']['sequenced'],
+            documents_modified[1]['data']['sequenced'])
         self.assertEqual(ovr.documents[1], documents_modified[1])
 
     def test_update_chart_group_document_keys_not_removed_with_override(self):
@@ -233,8 +238,9 @@ class OverrideTestCase(testtools.TestCase):
         ovr.update_document(documents_modified[2])
 
         # after the update, both documents are equal
-        self.assertEqual(ovr.documents[2]['data']['release_prefix'],
-                         documents_modified[2]['data']['release_prefix'])
+        self.assertEqual(
+            ovr.documents[2]['data']['release_prefix'],
+            documents_modified[2]['data']['release_prefix'])
         self.assertEqual(ovr.documents[2], documents_modified[2])
 
     def test_update_armada_manifest_keys_not_removed_with_override(self):
@@ -278,7 +284,8 @@ class OverrideTestCase(testtools.TestCase):
         with open(self.base_manifest) as f, open(expected) as e:
             documents = list(yaml.safe_load_all(f.read()))
             doc_path = ['manifest', 'simple-armada']
-            override = ('manifest:simple-armada:chart_groups=\
+            override = (
+                'manifest:simple-armada:chart_groups=\
                          blog-group3,blog-group4', )
             ovr = Override(documents, override)
             ovr.update_manifests()
@@ -312,7 +319,6 @@ class OverrideTestCase(testtools.TestCase):
 
 
 class OverrideNegativeTestCase(testtools.TestCase):
-
     def setUp(self):
         super(OverrideNegativeTestCase, self).setUp()
         self.basepath = os.path.join(os.path.dirname(__file__))
@@ -342,8 +348,9 @@ class OverrideNegativeTestCase(testtools.TestCase):
 
         override = ('manifest:simple-armada:name=' 'overridden', )
         ovr = Override(original_documents, override)
-        self.assertRaises(override_exceptions.InvalidOverrideValueException,
-                          ovr.update_manifests)
+        self.assertRaises(
+            override_exceptions.InvalidOverrideValueException,
+            ovr.update_manifests)
 
     def test_load_yaml_file_invalid(self):
         missing_yaml = "{}/templates/non_existing_yaml.yaml". \
@@ -351,15 +358,16 @@ class OverrideNegativeTestCase(testtools.TestCase):
         with open(self.base_manifest) as f:
             documents = list(yaml.safe_load_all(f.read()))
             ovr = Override(documents)
-            self.assertRaises(override_exceptions.InvalidOverrideFileException,
-                              ovr._load_yaml_file, missing_yaml)
+            self.assertRaises(
+                override_exceptions.InvalidOverrideFileException,
+                ovr._load_yaml_file, missing_yaml)
 
     def test_find_document_type_invalid(self):
         with open(self.base_manifest) as f:
             documents = list(yaml.safe_load_all(f.read()))
             ovr = Override(documents)
-            self.assertRaises(ValueError, ovr.find_document_type,
-                              'non_existing_document')
+            self.assertRaises(
+                ValueError, ovr.find_document_type, 'non_existing_document')
 
     def test_convert_array_to_dict_invalid(self):
         data_path = ['a', 'b', 'c']

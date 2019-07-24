@@ -26,7 +26,6 @@ LOG = logging.getLogger(__name__)
 
 
 class Status(api.BaseResource):
-
     @policy.enforce('tiller:get_status')
     def on_get(self, req, resp):
         '''
@@ -45,9 +44,10 @@ class Status(api.BaseResource):
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
     def handle(self, tiller):
-        LOG.debug('Tiller (Status) at: %s:%s, namespace=%s, '
-                  'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                  tiller.tiller_namespace, tiller.timeout)
+        LOG.debug(
+            'Tiller (Status) at: %s:%s, namespace=%s, '
+            'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+            tiller.tiller_namespace, tiller.timeout)
 
         message = {
             'tiller': {
@@ -59,7 +59,6 @@ class Status(api.BaseResource):
 
 
 class Release(api.BaseResource):
-
     @policy.enforce('tiller:get_release')
     def on_get(self, req, resp):
         '''Controller for listing Tiller releases.
@@ -79,9 +78,10 @@ class Release(api.BaseResource):
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
     def handle(self, tiller):
-        LOG.debug('Tiller (Release) at: %s:%s, namespace=%s, '
-                  'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-                  tiller.tiller_namespace, tiller.timeout)
+        LOG.debug(
+            'Tiller (Release) at: %s:%s, namespace=%s, '
+            'timeout=%s', tiller.tiller_host, tiller.tiller_port,
+            tiller.tiller_namespace, tiller.timeout)
 
         releases = {}
         for release in tiller.list_releases():

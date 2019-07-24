@@ -32,14 +32,15 @@ class ValidationMessage(object):
         or details for resolution.
     """
 
-    def __init__(self,
-                 message='Document validation error.',
-                 error=True,
-                 name='Armada error',
-                 level='Error',
-                 schema=None,
-                 doc_name=None,
-                 diagnostic=None):
+    def __init__(
+            self,
+            message='Document validation error.',
+            error=True,
+            name='Armada error',
+            level='Error',
+            schema=None,
+            doc_name=None,
+            diagnostic=None):
 
         # TODO(MarshM) should validate error and level inputs
 

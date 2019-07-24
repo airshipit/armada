@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+
 import falcon
 import yaml
 
@@ -33,8 +34,9 @@ class Validate(api.BaseResource):
                 self.logger.debug("Validating manifest based on reference.")
                 json_body = self.req_json(req)
                 if json_body.get('href', None):
-                    self.logger.debug("Validating manifest from reference %s."
-                                      % json_body.get('href'))
+                    self.logger.debug(
+                        "Validating manifest from reference %s."
+                        % json_body.get('href'))
                     data = ReferenceResolver.resolve_reference(
                         json_body.get('href'))
                     documents = list()

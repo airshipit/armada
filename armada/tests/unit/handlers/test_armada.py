@@ -145,15 +145,15 @@ data:
       enabled: true
 """
 
-CHART_SOURCES = [('git://opendev.org/dummy/armada.git', 'chart_1'),
-                 ('/tmp/dummy/armada', 'chart_2'),
-                 ('/tmp/dummy/armada', 'chart_3'),
-                 ('/tmp/dummy/armada', 'chart_4')]
+CHART_SOURCES = [
+    ('git://opendev.org/dummy/armada.git', 'chart_1'),
+    ('/tmp/dummy/armada', 'chart_2'), ('/tmp/dummy/armada', 'chart_3'),
+    ('/tmp/dummy/armada', 'chart_4')
+]
 
 
 # TODO(seaneagan): Add unit tests with dependencies, including transitive.
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
-
     def _test_pre_flight_ops(self, armada_obj):
         armada_obj.pre_flight_ops()
 
@@ -343,8 +343,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         armada_obj.post_flight_ops()
 
         for group in armada_obj.manifest['data']['chart_groups']:
-            for counter, chart in enumerate(
-                    group.get(const.KEYWORD_DATA).get(const.KEYWORD_CHARTS)):
+            for counter, chart in enumerate(group.get(const.KEYWORD_DATA).get(
+                    const.KEYWORD_CHARTS)):
                 if chart.get(
                         const.KEYWORD_DATA).get('source').get('type') == 'git':
                     mock_source.source_cleanup.assert_called_with(
@@ -355,20 +355,22 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
     # run sync tests for unsequenced as well by moving them to separate test
     # class with two separate subclasses which set chart group `sequenced`
     # field, one to true, one to false.
-    def _test_sync(self,
-                   known_releases,
-                   test_success=True,
-                   test_failure_to_run=False,
-                   expected_last_test_result=None,
-                   diff={'some_key': {'some diff'}}):
+    def _test_sync(
+            self,
+            known_releases,
+            test_success=True,
+            test_failure_to_run=False,
+            expected_last_test_result=None,
+            diff={'some_key': {'some diff'}}):
         """Test install functionality from the sync() method."""
 
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada.Armada, 'pre_flight_ops')
         @mock.patch('armada.handlers.chart_deploy.ChartBuilder')
         @mock.patch('armada.handlers.chart_deploy.Test')
-        def _do_test(mock_test, mock_chartbuilder, mock_pre_flight,
-                     mock_post_flight):
+        def _do_test(
+                mock_test, mock_chartbuilder, mock_pre_flight,
+                mock_post_flight):
             # Instantiate Armada object.
             yaml_documents = list(yaml.safe_load_all(TEST_YAML))
 
@@ -417,8 +419,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                 release_name = release_prefixer(prefix, release)
                 # Simplified check because the actual code uses logical-or's
                 # multiple conditions, so this is enough.
-                native_wait_enabled = (chart['wait'].get('native', {}).get(
-                    'enabled', True))
+                native_wait_enabled = (
+                    chart['wait'].get('native', {}).get('enabled', True))
 
                 if release_name not in [x.name for x in known_releases]:
                     expected_install_release_calls.append(
@@ -503,8 +505,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             any_order = not chart_group['sequenced']
             # Verify that at least 1 release is either installed or updated.
             self.assertTrue(
-                len(expected_install_release_calls) >= 1 or
-                len(expected_update_release_calls) >= 1)
+                len(expected_install_release_calls) >= 1
+                or len(expected_update_release_calls) >= 1)
             # Verify that the expected number of non-deployed releases are
             # installed with expected arguments.
             self.assertEqual(
@@ -549,8 +551,8 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         chart = self._get_chart_by_name(name)
 
         def get_test_result(success):
-            status = (TESTRUN_STATUS_SUCCESS
-                      if success else TESTRUN_STATUS_FAILURE)
+            status = (
+                TESTRUN_STATUS_SUCCESS if success else TESTRUN_STATUS_FAILURE)
             return mock.Mock(status=status)
 
         last_test_suite_run = None
@@ -658,14 +660,12 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         self.assertRaises(ChartDeployException, _test_method)
 
     def test_armada_sync_test_failure(self):
-
         def _test_method():
             self._test_sync([], test_success=False)
 
         self.assertRaises(ChartDeployException, _test_method)
 
     def test_armada_sync_test_failure_to_run(self):
-
         def _test_method():
             self._test_sync([], test_failure_to_run=True)
 
@@ -673,15 +673,16 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
 
 class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
-
     @mock.patch.object(armada, 'source')
     def test_armada_get_manifest_exception(self, mock_source):
         """Test armada handling with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        error_re = ('.*Documents must include at least one of each of .* and '
-                    'only one .*')
-        self.assertRaisesRegexp(ManifestException, error_re, armada.Armada,
-                                yaml_documents[:1], mock.MagicMock())
+        error_re = (
+            '.*Documents must include at least one of each of .* and '
+            'only one .*')
+        self.assertRaisesRegexp(
+            ManifestException, error_re, armada.Armada, yaml_documents[:1],
+            mock.MagicMock())
 
     @mock.patch.object(armada, 'source')
     def test_armada_override_exception(self, mock_source):

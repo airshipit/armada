@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import grpc
-import yaml
-
 from hapi.chart.config_pb2 import Config
 from hapi.services.tiller_pb2 import GetReleaseContentRequest
 from hapi.services.tiller_pb2 import GetReleaseStatusRequest
@@ -28,6 +26,7 @@ from hapi.services.tiller_pb2 import UninstallReleaseRequest
 from hapi.services.tiller_pb2 import UpdateReleaseRequest
 from oslo_config import cfg
 from oslo_log import log as logging
+import yaml
 
 from armada import const
 from armada.conf import get_current_chart
@@ -52,10 +51,10 @@ LOG = logging.getLogger(__name__)
 
 
 class CommonEqualityMixin(object):
-
     def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                self.__dict__ == other.__dict__)
+        return (
+            isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -78,12 +77,13 @@ class Tiller(object):
     service over gRPC
     '''
 
-    def __init__(self,
-                 tiller_host=None,
-                 tiller_port=None,
-                 tiller_namespace=None,
-                 bearer_token=None,
-                 dry_run=None):
+    def __init__(
+            self,
+            tiller_host=None,
+            tiller_port=None,
+            tiller_namespace=None,
+            bearer_token=None,
+            dry_run=None):
         self.tiller_host = tiller_host or CONF.tiller_host
         self.tiller_port = tiller_port or CONF.tiller_port
         self.tiller_namespace = tiller_namespace or CONF.tiller_namespace
@@ -101,9 +101,10 @@ class Tiller(object):
         # be fed at runtime as an override
         self.timeout = const.DEFAULT_TILLER_TIMEOUT
 
-        LOG.debug('Armada is using Tiller at: %s:%s, namespace=%s, timeout=%s',
-                  self.tiller_host, self.tiller_port, self.tiller_namespace,
-                  self.timeout)
+        LOG.debug(
+            'Armada is using Tiller at: %s:%s, namespace=%s, timeout=%s',
+            self.tiller_host, self.tiller_port, self.tiller_namespace,
+            self.timeout)
 
     @property
     def metadata(self):
@@ -126,9 +127,10 @@ class Tiller(object):
                 MAX_MESSAGE_LENGTH, MAX_MESSAGE_LENGTH)
             return grpc.insecure_channel(
                 '%s:%s' % (tiller_ip, tiller_port),
-                options=[('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
-                         ('grpc.max_receive_message_length',
-                          MAX_MESSAGE_LENGTH)])
+                options=[
+                    ('grpc.max_send_message_length', MAX_MESSAGE_LENGTH),
+                    ('grpc.max_receive_message_length', MAX_MESSAGE_LENGTH)
+                ])
         except Exception:
             LOG.exception('Failed to initialize grpc channel to tiller.')
             raise ex.ChannelException()
@@ -208,8 +210,9 @@ class Tiller(object):
                     limit=LIST_RELEASES_PAGE_SIZE,
                     status_codes=const.STATUS_ALL)
 
-                LOG.debug('Tiller ListReleases() with timeout=%s, request=%s',
-                          self.timeout, req)
+                LOG.debug(
+                    'Tiller ListReleases() with timeout=%s, request=%s',
+                    self.timeout, req)
                 response = stub.ListReleases(
                     req, self.timeout, metadata=self.metadata)
 
@@ -248,8 +251,9 @@ class Tiller(object):
             try:
                 releases = get_results()
             except ex.TillerListReleasesPagingException:
-                LOG.warning('List releases paging failed on attempt %s/%s',
-                            attempt, LIST_RELEASES_ATTEMPTS)
+                LOG.warning(
+                    'List releases paging failed on attempt %s/%s', attempt,
+                    LIST_RELEASES_ATTEMPTS)
                 if attempt == LIST_RELEASES_ATTEMPTS:
                     raise
             else:
@@ -267,14 +271,16 @@ class Tiller(object):
                 latest_releases = []
                 for r in releases:
                     if latest_versions[r.name] == r.version:
-                        LOG.debug('Found release %s, version %s, status: %s',
-                                  r.name, r.version, get_release_status(r))
+                        LOG.debug(
+                            'Found release %s, version %s, status: %s', r.name,
+                            r.version, get_release_status(r))
                         latest_releases.append(r)
 
                 return latest_releases
 
-    def get_chart_templates(self, template_name, name, release_name, namespace,
-                            chart, disable_hooks, values):
+    def get_chart_templates(
+            self, template_name, name, release_name, namespace, chart,
+            disable_hooks, values):
         # returns some info
 
         LOG.info("Template( %s ) : %s ", template_name, name)
@@ -291,15 +297,16 @@ class Tiller(object):
         templates = stub.InstallRelease(
             release_request, self.timeout, metadata=self.metadata)
 
-        for template in yaml.load_all(
-                getattr(templates.release, 'manifest', [])):
-            if template_name == template.get('metadata', None).get(
-                    'name', None):
+        for template in yaml.load_all(getattr(templates.release, 'manifest',
+                                              [])):
+            if template_name == template.get('metadata', None).get('name',
+                                                                   None):
                 LOG.info(template_name)
                 return template
 
-    def _pre_update_actions(self, actions, release_name, namespace, chart,
-                            disable_hooks, values, timeout):
+    def _pre_update_actions(
+            self, actions, release_name, namespace, chart, disable_hooks,
+            values, timeout):
         '''
         :param actions: array of items actions
         :param namespace: name of pod for actions
@@ -353,29 +360,32 @@ class Tiller(object):
         charts = []
         for latest_release in self.list_releases():
             try:
-                release = (latest_release.name, latest_release.version,
-                           latest_release.chart, latest_release.config.raw,
-                           latest_release.info.status.Code.Name(
-                               latest_release.info.status.code))
+                release = (
+                    latest_release.name, latest_release.version,
+                    latest_release.chart, latest_release.config.raw,
+                    latest_release.info.status.Code.Name(
+                        latest_release.info.status.code))
                 charts.append(release)
             except (AttributeError, IndexError) as e:
-                LOG.debug('%s while getting releases: %s, ex=%s',
-                          e.__class__.__name__, latest_release, e)
+                LOG.debug(
+                    '%s while getting releases: %s, ex=%s',
+                    e.__class__.__name__, latest_release, e)
                 continue
         return charts
 
-    def update_release(self,
-                       chart,
-                       release,
-                       namespace,
-                       pre_actions=None,
-                       post_actions=None,
-                       disable_hooks=False,
-                       values=None,
-                       wait=False,
-                       timeout=None,
-                       force=False,
-                       recreate_pods=False):
+    def update_release(
+            self,
+            chart,
+            release,
+            namespace,
+            pre_actions=None,
+            post_actions=None,
+            disable_hooks=False,
+            values=None,
+            wait=False,
+            timeout=None,
+            force=False,
+            recreate_pods=False):
         '''
         Update a Helm Release
         '''
@@ -391,8 +401,9 @@ class Tiller(object):
         else:
             values = Config(raw=values)
 
-        self._pre_update_actions(pre_actions, release, namespace, chart,
-                                 disable_hooks, values, timeout)
+        self._pre_update_actions(
+            pre_actions, release, namespace, chart, disable_hooks, values,
+            timeout)
 
         update_msg = None
         # build release install request
@@ -427,20 +438,17 @@ class Tiller(object):
 
         return tiller_result
 
-    def install_release(self,
-                        chart,
-                        release,
-                        namespace,
-                        values=None,
-                        wait=False,
-                        timeout=None):
+    def install_release(
+            self, chart, release, namespace, values=None, wait=False,
+            timeout=None):
         '''
         Create a Helm Release
         '''
         timeout = self._check_timeout(wait, timeout)
 
-        LOG.info('Helm install release%s: wait=%s, timeout=%s',
-                 (' (dry run)' if self.dry_run else ''), wait, timeout)
+        LOG.info(
+            'Helm install release%s: wait=%s, timeout=%s',
+            (' (dry run)' if self.dry_run else ''), wait, timeout)
 
         if values is None:
             values = Config(raw='')
@@ -477,10 +485,9 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Install')
 
-    def test_release(self,
-                     release,
-                     timeout=const.DEFAULT_TILLER_TIMEOUT,
-                     cleanup=False):
+    def test_release(
+            self, release, timeout=const.DEFAULT_TILLER_TIMEOUT,
+            cleanup=False):
         '''
         :param release: name of release to test
         :param timeout: runtime before exiting
@@ -527,8 +534,9 @@ class Tiller(object):
         :param version: version of release status
         '''
 
-        LOG.debug('Helm getting release status for release=%s, version=%s',
-                  release, version)
+        LOG.debug(
+            'Helm getting release status for release=%s, version=%s', release,
+            version)
         try:
             stub = ReleaseServiceStub(self.channel)
             status_request = GetReleaseStatusRequest(
@@ -549,8 +557,9 @@ class Tiller(object):
         :param version: version of release status
         '''
 
-        LOG.debug('Helm getting release content for release=%s, version=%s',
-                  release, version)
+        LOG.debug(
+            'Helm getting release content for release=%s, version=%s', release,
+            version)
         try:
             stub = ReleaseServiceStub(self.channel)
             status_request = GetReleaseContentRequest(
@@ -585,11 +594,8 @@ class Tiller(object):
             LOG.exception('Failed to get Tiller version.')
             raise ex.TillerVersionException()
 
-    def uninstall_release(self,
-                          release,
-                          disable_hooks=False,
-                          purge=True,
-                          timeout=None):
+    def uninstall_release(
+            self, release, disable_hooks=False, purge=True, timeout=None):
         '''
         :param: release - Helm chart release name
         :param: purge - deep delete of chart
@@ -628,12 +634,13 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Delete')
 
-    def delete_resources(self,
-                         resource_type,
-                         resource_labels,
-                         namespace,
-                         wait=False,
-                         timeout=const.DEFAULT_TILLER_TIMEOUT):
+    def delete_resources(
+            self,
+            resource_type,
+            resource_labels,
+            namespace,
+            wait=False,
+            timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
         Delete resources matching provided resource type, labels, and
         namespace.
@@ -665,8 +672,8 @@ class Tiller(object):
                         namespace)
                     continue
 
-                LOG.info("Deleting job %s in namespace: %s", jb_name,
-                         namespace)
+                LOG.info(
+                    "Deleting job %s in namespace: %s", jb_name, namespace)
                 self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
             handled = True
 
@@ -684,8 +691,9 @@ class Tiller(object):
 
                 # TODO: Remove when v1 doc support is removed.
                 if implied_cronjob:
-                    LOG.warn("Deleting cronjobs via `type: job` is "
-                             "deprecated, use `type: cronjob` instead")
+                    LOG.warn(
+                        "Deleting cronjobs via `type: job` is "
+                        "deprecated, use `type: cronjob` instead")
 
                 if self.dry_run:
                     LOG.info(
@@ -694,8 +702,8 @@ class Tiller(object):
                         namespace)
                     continue
 
-                LOG.info("Deleting cronjob %s in namespace: %s", jb_name,
-                         namespace)
+                LOG.info(
+                    "Deleting cronjob %s in namespace: %s", jb_name, namespace)
                 self.k8s.delete_cron_job_action(jb_name, namespace)
             handled = True
 
@@ -712,27 +720,29 @@ class Tiller(object):
                         namespace)
                     continue
 
-                LOG.info("Deleting pod %s in namespace: %s", pod_name,
-                         namespace)
+                LOG.info(
+                    "Deleting pod %s in namespace: %s", pod_name, namespace)
                 self.k8s.delete_pod_action(pod_name, namespace)
                 if wait:
                     self.k8s.wait_for_pod_redeployment(pod_name, namespace)
             handled = True
 
         if not handled:
-            LOG.error('No resources found with labels=%s type=%s namespace=%s',
-                      resource_labels, resource_type, namespace)
+            LOG.error(
+                'No resources found with labels=%s type=%s namespace=%s',
+                resource_labels, resource_type, namespace)
 
-    def rolling_upgrade_pod_deployment(self,
-                                       name,
-                                       release_name,
-                                       namespace,
-                                       resource_labels,
-                                       action_type,
-                                       chart,
-                                       disable_hooks,
-                                       values,
-                                       timeout=const.DEFAULT_TILLER_TIMEOUT):
+    def rolling_upgrade_pod_deployment(
+            self,
+            name,
+            release_name,
+            namespace,
+            resource_labels,
+            action_type,
+            chart,
+            disable_hooks,
+            values,
+            timeout=const.DEFAULT_TILLER_TIMEOUT):
         '''
         update statefulsets (daemon, stateful)
         '''
@@ -753,8 +763,9 @@ class Tiller(object):
                 ds_name = ds.metadata.name
                 ds_labels = ds.metadata.labels
                 if ds_name == name:
-                    LOG.info("Deleting %s : %s in %s", action_type, ds_name,
-                             namespace)
+                    LOG.info(
+                        "Deleting %s : %s in %s", action_type, ds_name,
+                        namespace)
                     self.k8s.delete_daemon_action(ds_name, namespace)
 
                     # update the daemonset yaml
@@ -779,13 +790,14 @@ class Tiller(object):
         else:
             LOG.error("Unable to exectue name: % type: %s", name, action_type)
 
-    def rollback_release(self,
-                         release_name,
-                         version,
-                         wait=False,
-                         timeout=None,
-                         force=False,
-                         recreate_pods=False):
+    def rollback_release(
+            self,
+            release_name,
+            version,
+            wait=False,
+            timeout=None,
+            force=False,
+            recreate_pods=False):
         '''
         Rollback a helm release.
         '''

@@ -61,17 +61,19 @@ SHORT_DESC = "Command gets Tiller information."
 @click.option('--bearer-token', help="User bearer token.", default=None)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
-def tiller_service(ctx, tiller_host, tiller_port, tiller_namespace, releases,
-                   status, bearer_token, debug):
+def tiller_service(
+        ctx, tiller_host, tiller_port, tiller_namespace, releases, status,
+        bearer_token, debug):
     CONF.debug = debug
-    TillerServices(ctx, tiller_host, tiller_port, tiller_namespace, releases,
-                   status, bearer_token).safe_invoke()
+    TillerServices(
+        ctx, tiller_host, tiller_port, tiller_namespace, releases, status,
+        bearer_token).safe_invoke()
 
 
 class TillerServices(CliAction):
-
-    def __init__(self, ctx, tiller_host, tiller_port, tiller_namespace,
-                 releases, status, bearer_token):
+    def __init__(
+            self, ctx, tiller_host, tiller_port, tiller_namespace, releases,
+            status, bearer_token):
         super(TillerServices, self).__init__()
         self.ctx = ctx
         self.tiller_host = tiller_host
@@ -83,11 +85,9 @@ class TillerServices(CliAction):
 
     def invoke(self):
 
-        with Tiller(
-                tiller_host=self.tiller_host,
-                tiller_port=self.tiller_port,
-                tiller_namespace=self.tiller_namespace,
-                bearer_token=self.bearer_token) as tiller:
+        with Tiller(tiller_host=self.tiller_host, tiller_port=self.tiller_port,
+                    tiller_namespace=self.tiller_namespace,
+                    bearer_token=self.bearer_token) as tiller:
 
             self.handle(tiller)
 
@@ -113,8 +113,9 @@ class TillerServices(CliAction):
         if self.releases:
             if not self.ctx.obj.get('api', False):
                 for release in tiller.list_releases():
-                    self.logger.info("Release %s in namespace: %s",
-                                     release.name, release.namespace)
+                    self.logger.info(
+                        "Release %s in namespace: %s", release.name,
+                        release.namespace)
             else:
                 client = self.ctx.obj.get('CLIENT')
                 query = {
@@ -125,5 +126,5 @@ class TillerServices(CliAction):
                 resp = client.get_releases(query=query)
                 for namespace in resp.get('releases'):
                     for release in resp.get('releases').get(namespace):
-                        self.logger.info('Release %s in namespace: %s',
-                                         release, namespace)
+                        self.logger.info(
+                            'Release %s in namespace: %s', release, namespace)

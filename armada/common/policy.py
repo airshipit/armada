@@ -50,11 +50,11 @@ def _enforce_policy(action, target, credentials, do_raise=True):
     # to enforce anything not found in ``armada.common.policies`` will error
     # out with a 'Policy not registered' message and 403 status code.
     try:
-        _ENFORCER.authorize(action, target, credentials.to_policy_view(),
-                            **extras)
+        _ENFORCER.authorize(
+            action, target, credentials.to_policy_view(), **extras)
     except policy.PolicyNotRegistered:
-        LOG.exception('Policy not registered for %(action)s',
-                      {'action': action})
+        LOG.exception(
+            'Policy not registered for %(action)s', {'action': action})
         raise exc.ActionForbidden()
     except Exception:
         with excutils.save_and_reraise_exception():
@@ -69,9 +69,7 @@ def _enforce_policy(action, target, credentials, do_raise=True):
 # NOTE(felipemonteiro): This naming is OK. It's just kept around for legacy
 # reasons. What's important is that authorize is used above.
 def enforce(rule):
-
     def decorator(func):
-
         @functools.wraps(func)
         def handler(*args, **kwargs):
             setup_policy()

@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_log import log as logging
 import time
+
+from oslo_log import log as logging
 import yaml
 
 from armada import const
@@ -31,9 +32,9 @@ LOG = logging.getLogger(__name__)
 
 
 class ChartDeploy(object):
-
-    def __init__(self, disable_update_pre, disable_update_post, dry_run,
-                 k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, tiller):
+    def __init__(
+            self, disable_update_pre, disable_update_post, dry_run,
+            k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, tiller):
         self.disable_update_pre = disable_update_pre
         self.disable_update_post = disable_update_post
         self.dry_run = dry_run
@@ -84,8 +85,9 @@ class ChartDeploy(object):
         if status == const.STATUS_DEPLOYED:
 
             # indicate to the end user what path we are taking
-            LOG.info("Existing release %s found in namespace %s", release_name,
-                     namespace)
+            LOG.info(
+                "Existing release %s found in namespace %s", release_name,
+                namespace)
 
             # extract the installed chart and installed values from the
             # latest release so we can compare to the intended state
@@ -114,8 +116,9 @@ class ChartDeploy(object):
                     pre_actions = upgrade_pre
 
                 if not self.disable_update_post and upgrade_post:
-                    LOG.warning('Post upgrade actions are ignored by Armada'
-                                'and will not affect deployment.')
+                    LOG.warning(
+                        'Post upgrade actions are ignored by Armada'
+                        'and will not affect deployment.')
                     post_actions = upgrade_post
 
             try:
@@ -158,8 +161,9 @@ class ChartDeploy(object):
                     force=force,
                     recreate_pods=recreate_pods)
 
-                LOG.info('Upgrade completed with results from Tiller: %s',
-                         tiller_result.__dict__)
+                LOG.info(
+                    'Upgrade completed with results from Tiller: %s',
+                    tiller_result.__dict__)
                 result['upgrade'] = release_name
         else:
             # Check for release with status other than DEPLOYED
@@ -213,10 +217,11 @@ class ChartDeploy(object):
                             release_name, status)
                 else:
                     # Purge the release
-                    LOG.info('Purging release %s with status %s', release_name,
-                             status)
-                    chart_delete = ChartDelete(chart, release_name,
-                                               self.tiller)
+                    LOG.info(
+                        'Purging release %s with status %s', release_name,
+                        status)
+                    chart_delete = ChartDelete(
+                        chart, release_name, self.tiller)
                     chart_delete.delete()
                     result['purge'] = release_name
 
@@ -233,8 +238,9 @@ class ChartDeploy(object):
                 wait=native_wait_enabled,
                 timeout=timer)
 
-            LOG.info('Install completed with results from Tiller: %s',
-                     tiller_result.__dict__)
+            LOG.info(
+                'Install completed with results from Tiller: %s',
+                tiller_result.__dict__)
             result['install'] = release_name
 
         # Wait
@@ -251,8 +257,8 @@ class ChartDeploy(object):
             self.tiller,
             cg_test_charts=cg_test_all_charts)
 
-        run_test = test_handler.test_enabled and (just_deployed or
-                                                  not last_test_passed)
+        run_test = test_handler.test_enabled and (
+            just_deployed or not last_test_passed)
         if run_test:
             self._test_chart(release_name, test_handler)
 
@@ -279,6 +285,7 @@ class ChartDeploy(object):
         for release in known_releases:
             if release.name == release_name:
                 return release
-        LOG.info("known: %s, release_name: %s",
-                 list(map(lambda r: r.name, known_releases)), release_name)
+        LOG.info(
+            "known: %s, release_name: %s",
+            list(map(lambda r: r.name, known_releases)), release_name)
         return None

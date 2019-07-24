@@ -76,8 +76,8 @@ def set_default_for_default_log_levels():
     extra_log_level_defaults = ['kubernetes.client.rest=INFO']
 
     log.set_defaults(
-        default_log_levels=log.get_default_log_levels() +
-        extra_log_level_defaults, )
+        default_log_levels=log.get_default_log_levels()
+        + extra_log_level_defaults, )
 
 
 class ChartDeployAwareLogger(logging.Logger):
@@ -93,5 +93,5 @@ class ChartDeployAwareLogger(logging.Logger):
         else:
             prefix = ''
         prefixed = '{}{}'.format(prefix, msg)
-        return super(ChartDeployAwareLogger, self)._log(
-            level, prefixed, *args, **kwargs)
+        return super(ChartDeployAwareLogger,
+                     self)._log(level, prefixed, *args, **kwargs)

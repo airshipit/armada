@@ -60,10 +60,10 @@ class ReleaseDiff(object):
         :rtype: dict
         '''
 
-        old_input = self.make_release_input(self.old_chart, self.old_values,
-                                            'previously deployed')
-        new_input = self.make_release_input(self.new_chart, self.new_values,
-                                            'currently being deployed')
+        old_input = self.make_release_input(
+            self.old_chart, self.old_values, 'previously deployed')
+        new_input = self.make_release_input(
+            self.new_chart, self.new_values, 'currently being deployed')
 
         return DeepDiff(old_input, new_input, view='tree')
 

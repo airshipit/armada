@@ -11,20 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import copy
 from datetime import datetime
 
+from kubernetes.client.rest import ApiException
 import mock
 import testtools
 
-from kubernetes.client.rest import ApiException
 from armada.handlers import lock
 
 
 @mock.patch('armada.handlers.lock.K8s')
 @mock.patch.object(lock.time, 'sleep', lambda x: True)
 class LockTestCase(testtools.TestCase):
-
     def __init__(self, *args, **kwargs):
         super(LockTestCase, self).__init__(*args, **kwargs)
         self.resp = None

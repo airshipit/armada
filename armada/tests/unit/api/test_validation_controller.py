@@ -18,7 +18,6 @@ from armada.tests.unit.api import base
 
 
 class ValidationControllerNegativeRbacTest(base.BaseControllerTest):
-
     @test_utils.attr(type=['negative'])
     def test_validate_manifest_insufficient_permissions(self):
         """Tests the POST /api/v1.0/validate endpoint returns 403 following

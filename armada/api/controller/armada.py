@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import json
-import yaml
 
 import falcon
+import yaml
 
 from armada import api
 from armada.common import policy
@@ -60,8 +60,8 @@ class Apply(api.BaseResource):
                     documents, overrides=req_body.get('overrides'))
                 documents = overrides.update_manifests()
         else:
-            self.error(req.context,
-                       "Unknown content-type %s" % req.content_type)
+            self.error(
+                req.context, "Unknown content-type %s" % req.content_type)
             # TODO(fmontei): Use falcon.<Relevant API Exception Class> instead.
             return self.return_error(
                 resp,
