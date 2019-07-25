@@ -6,8 +6,8 @@ info:
     Armada provides operators a way to deploy or upgrade collections of helm
     charts using a single command.
   contact:
-    name: Armada Github Repository
-    url: https://github.com/openstack/airship-armada
+    name: Airship community
+    url: https://www.airshipit.org/
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html

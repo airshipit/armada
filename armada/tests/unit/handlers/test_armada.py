@@ -133,7 +133,7 @@ data:
     values: {}
     source:
       type: git
-      location: git://github.com/dummy/armada
+      location: git://opendev.org/dummy/armada.git
       subpath: chart_1
       reference: master
     dependencies: []
@@ -145,7 +145,7 @@ data:
       enabled: true
 """
 
-CHART_SOURCES = [('git://github.com/dummy/armada', 'chart_1'),
+CHART_SOURCES = [('git://opendev.org/dummy/armada.git', 'chart_1'),
                  ('/tmp/dummy/armada', 'chart_2'),
                  ('/tmp/dummy/armada', 'chart_3'),
                  ('/tmp/dummy/armada', 'chart_4')]
@@ -185,7 +185,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                                 'release': 'test_chart_1',
                                 'source': {
                                     'location':
-                                        'git://github.com/dummy/armada',
+                                        'git://opendev.org/dummy/armada.git',
                                     'reference': 'master',
                                     'subpath': 'chart_1',
                                     'type': 'git'
@@ -321,7 +321,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         self._test_pre_flight_ops(armada_obj)
 
         mock_source.git_clone.assert_called_once_with(
-            'git://github.com/dummy/armada',
+            'git://opendev.org/dummy/armada.git',
             'master',
             auth_method=None,
             proxy_server=None)

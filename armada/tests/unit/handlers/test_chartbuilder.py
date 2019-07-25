@@ -76,7 +76,7 @@ class BaseChartBuilderTestCase(testtools.TestCase):
                     size: 1Gi
             source:
                 type: git
-                location: git://github.com/openstack/openstack-helm
+                location: git://opendev.org/openstack/openstack-helm
                 subpath: mariadb
                 reference: master
             dependencies: []

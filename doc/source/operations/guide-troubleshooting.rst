@@ -53,5 +53,6 @@ Issue
 -----
 
 If the issue that you are having does not appear here please check the Armada
-issues `section <https://github.com/openstack/airship-armada/issues>`_. If the issue does
-not exist, please create an issue.
+issues on
+`StoryBoard <https://storyboard.openstack.org/#!/project/airship/armada>`_.
+If the issue does not exist, please create an issue.

@@ -10,13 +10,13 @@ Install Plugin
 
 ::
 
-  helm plugin install https://github.com/openstack/airship-armada.git
+  helm plugin install https://opendev.org/airship/armada.git
 
 **Clone and install locally**
 
 ::
 
-  git clone https://github.com/openstack/airship-armada.git ~/.helm/plugins/
+  git clone https://opendev.org/airship/armada.git ~/.helm/plugins/
   helm plugin install ~/.helm/plugins/armada
 
 Usage

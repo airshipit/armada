@@ -33,7 +33,7 @@ def is_connected():
     :returns: True if connected else False.
     """
     try:
-        host = socket.gethostbyname("www.github.com")
+        host = socket.gethostbyname("opendev.org")
         socket.create_connection((host, 80), 2)
         return True
     except (socket.error, socket.herror, socket.timeout):

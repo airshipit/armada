@@ -112,8 +112,8 @@ Further Reading
 .. _Armada Quickstart: https://airship-armada.readthedocs.io/en/latest/operations/guide-use-armada.html
 .. _kubectl: https://kubernetes.io/docs/user-guide/kubectl/kubectl_config/
 .. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
-.. _Deckhand: https://github.com/openstack/airship-deckhand
-.. _Keystone: https://github.com/openstack/keystone
+.. _Deckhand: https://opendev.org/airship/deckhand
+.. _Keystone: https://opendev.org/openstack/keystone
 
 .. |Docker Repository on Quay| image:: https://quay.io/repository/airshipit/armada/status
    :target: https://quay.io/repository/airshipit/armada

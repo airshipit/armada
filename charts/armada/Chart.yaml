@@ -20,5 +20,5 @@ keywords:
 - armada
 home: https://airship-armada.readthedocs.io
 sources:
-- https://github.com/openstack/airship-armada
+- https://opendev.org/airship/armada.git
 engine: gotpl

@@ -13,12 +13,12 @@ Quick Start (via Container)
 
 To use the docker container to develop:
 
-#. Clone the `Armada repository <https://github.com/openstack/airship-armada>`_.
+#. Clone the `Armada repository <https://opendev.org/airship/armada.git>`_.
 #. ``cd`` into the cloned directory.
 
    .. code-block:: bash
 
-     $ git clone https://github.com/openstack/airship-armada.git && cd airship-armada
+     $ git clone https://opendev.org/airship/armada.git && cd armada
 
 #. Next, run the following commands to install ``tox``, generate sample policy
    and configuration files, and build Armada charts as well as the Armada
@@ -120,7 +120,7 @@ Follow the steps below to install the Armada CLI.
 
 Clone the Armada repository, ``cd`` into it::
 
-  git clone https://github.com/openstack/airship-armada.git && cd airship-armada
+  git clone https://opendev.org/airship/armada.git && cd armada
 
 It is recommended that Armada be run inside a virtual environment. To do so::
 
@@ -316,8 +316,8 @@ included beneath each bullet.
 
     $ sudo apt-get install python3-dev -y
 
-.. _Bandit: https://github.com/openstack/bandit
+.. _Bandit: https://opendev.org/openstack/bandit
 .. _kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/
 .. _Helm: https://docs.helm.sh/using_helm/#installing-helm
-.. _Keystone: https://github.com/openstack/keystone
+.. _Keystone: https://opendev.org/openstack/keystone
 .. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
