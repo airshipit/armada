@@ -279,16 +279,16 @@ class Armada(object):
             LOG.debug('Removing temp chart directory: %s', chart_dir)
             source.source_cleanup(chart_dir)
 
-    def _chart_cleanup(self, prefix, charts, msg):
+    def _chart_cleanup(self, prefix, chart_groups, msg):
         LOG.info('Processing chart cleanup to remove unspecified releases.')
 
         valid_releases = []
-        for gchart in charts:
-            for chart in gchart.get(const.KEYWORD_CHARTS, []):
+        for group in chart_groups:
+            group_data = group.get(const.KEYWORD_DATA, {})
+            for chart in group_data.get(const.KEYWORD_CHARTS, []):
+                chart_data = chart.get(const.KEYWORD_DATA, {})
                 valid_releases.append(
-                    release_prefixer(
-                        prefix,
-                        chart.get('chart', {}).get('release')))
+                    release_prefixer(prefix, chart_data.get('release')))
 
         actual_releases = [x.name for x in self.tiller.list_releases()]
         release_diff = list(set(actual_releases) - set(valid_releases))
