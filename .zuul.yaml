@@ -94,6 +94,7 @@
 - job:
     name: armada-docker-build-gate-opensuse
     timeout: 1800
+    voting: false
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     vars:
