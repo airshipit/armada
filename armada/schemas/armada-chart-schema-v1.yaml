@@ -169,7 +169,6 @@ data:
         - no_hooks
       additionalProperties: false
   required:
-    - dependencies
     - namespace
     - chart_name
     - release

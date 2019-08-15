@@ -134,7 +134,9 @@ Chart
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | source          | object   | provide a path to a ``git repo``, ``local dir``, or ``tarball url`` chart             |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| dependencies    | object   | reference any chart dependencies before install                                       |
+| dependencies    | object   | (optional) Override the `builtin chart dependencies`_ with a list of Chart documents  |
+|                 |          | to use as dependencies instead.                                                       |
+|                 |          | NOTE: Builtin ".tgz" dependencies are not yet supported.                              |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | timeout         | int      | time (in seconds) allotted for chart to deploy when 'wait' flag is set (DEPRECATED)   |
 +-----------------+----------+---------------------------------------------------------------------------------------+
@@ -318,7 +320,6 @@ Chart Example
         location: https://github.com/namespace/repo
         subpath: .
         reference: master
-      dependencies: []
 
 Delete
 ^^^^^^
@@ -373,7 +374,6 @@ Source Example
         location: https://github.com/namespace/repo
         subpath: .
         reference: master
-      dependencies: []
 
     # type local
     ---
@@ -397,7 +397,6 @@ Source Example
         location: /path/to/charts
         subpath: chart
         reference: master
-      dependencies: []
 
     # type tar
     ---
@@ -421,7 +420,6 @@ Source Example
         location: https://localhost:8879/charts/chart-0.1.0.tgz
         subpath: mariadb
         reference: null
-      dependencies: []
 
 
 
@@ -481,7 +479,6 @@ Simple Example
         location: https://github.com/namespace/repo
         subpath: blog-1
         reference: new-feat
-      dependencies: []
     ---
     schema: armada/ChartGroup/v1
     metadata:
@@ -522,7 +519,6 @@ Multichart Example
         location: https://github.com/namespace/repo
         subpath: blog1
         reference: master
-      dependencies: []
     ---
     schema: armada/Chart/v1
     metadata:
@@ -537,7 +533,6 @@ Multichart Example
         type: tar
         location: https://github.com/namespace/repo/blog2.tgz
         subpath: blog2
-      dependencies: []
     ---
     schema: armada/Chart/v1
     metadata:
@@ -551,7 +546,6 @@ Multichart Example
       source:
         type: local
         location: /home/user/namespace/repo/blog3
-      dependencies: []
     ---
     schema: armada/ChartGroup/v1
     metadata:
@@ -584,8 +578,67 @@ Multichart Example
         - blog-group-1
         - blog-group-2
 
+Dependency Override Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    ---
+    schema: armada/Chart/v1
+    metadata:
+      schema: metadata/Document/v1
+      name: blog-1
+    data:
+      chart_name: blog-1
+      release: blog-1
+      namespace: default
+      values: {}
+      source:
+        type: git
+        location: https://github.com/namespace/repo
+        subpath: blog-1
+        reference: new-feat
+      dependencies:
+        - blog-1-dep
+    ---
+    schema: armada/Chart/v1
+    metadata:
+      schema: metadata/Document/v1
+      name: blog-1-dep
+    data:
+      chart_name: blog-1-dep
+      release: blog-1-dep
+      namespace: default
+      values: {}
+      source:
+        type: git
+        location: https://github.com/namespace/dep-repo
+        subpath: blog-1-dep
+        reference: new-feat
+    ---
+    schema: armada/ChartGroup/v1
+    metadata:
+      schema: metadata/Document/v1
+      name: blog-group
+    data:
+      description: Deploys Simple Service
+      sequenced: False
+      chart_group:
+        - blog-1
+    ---
+    schema: armada/Manifest/v1
+    metadata:
+      schema: metadata/Document/v1
+      name: simple-armada
+    data:
+      release_prefix: armada
+      chart_groups:
+        - blog-group
+
 References
 ~~~~~~~~~~
 
 For working examples please check the examples in our repo
 `here <https://opendev.org/airship/armada/src/branch/master/examples>`__.
+
+.. _builtin chart dependencies: https://helm.sh/docs/developing_charts/#chart-dependencies

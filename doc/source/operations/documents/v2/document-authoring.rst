@@ -121,7 +121,9 @@ Chart
 +-----------------+----------+---------------------------------------------------------------------------------------+
 | source          | object   | provide a path to a ``git repo``, ``local dir``, or ``tarball url`` chart             |
 +-----------------+----------+---------------------------------------------------------------------------------------+
-| dependencies    | object   | (optional) reference any chart dependencies before install                            |
+| dependencies    | object   | (optional) Override the `builtin chart dependencies`_ with a list of Chart documents  |
+|                 |          | to use as dependencies instead.                                                       |
+|                 |          | NOTE: Builtin ".tgz" dependencies are not yet supported.                              |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 
 .. _wait_v2:
@@ -570,8 +572,63 @@ Multichart Example
         - blog-group-1
         - blog-group-2
 
+Dependency Override Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    ---
+    schema: armada/Chart/v2
+    metadata:
+      schema: metadata/Document/v1
+      name: blog-1
+    data:
+      release: blog-1
+      namespace: default
+      source:
+        type: git
+        location: https://github.com/namespace/repo
+        subpath: blog-1
+        reference: new-feat
+      dependencies:
+        - blog-dep-1
+    ---
+    schema: armada/Chart/v2
+    metadata:
+      schema: metadata/Document/v1
+      name: blog-1-dep
+    data:
+      release: blog-1-dep
+      namespace: default
+      source:
+        type: git
+        location: https://github.com/namespace/dep-repo
+        subpath: blog-1-dep
+        reference: new-feat
+    ---
+    schema: armada/ChartGroup/v2
+    metadata:
+      schema: metadata/Document/v1
+      name: blog-group
+    data:
+      description: Deploys Simple Service
+      chart_group:
+        - blog-1
+    ---
+    schema: armada/Manifest/v2
+    metadata:
+      schema: metadata/Document/v1
+      name: simple-armada
+    data:
+      release_prefix: armada
+      chart_groups:
+        - blog-group
+
 References
 ~~~~~~~~~~
 
 For working examples please check the examples in our repo
-`here <https://opendev.org/airship/armada/src/branch/master/examples>`__.
+`here <https://github.com/openstack/airship-armada/tree/master/examples>`__
+
+
+.. _builtin chart dependencies: https://helm.sh/docs/developing_charts/#chart-dependencies

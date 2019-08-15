@@ -52,9 +52,9 @@ Chart
 | ``upgrade.options.no_hooks``,  |                                                            |
 | and now optional               |                                                            |
 +--------------------------------+------------------------------------------------------------+
-| ``dependencies``,              | Remove as desired.                                         |
-| ``source.subpath``             |                                                            |
-| now optional                   |                                                            |
+| ``source.subpath``             | Remove as desired.                                         |
+| now optional, deafults to no   |                                                            |
+| subpath.                       |                                                            |
 +--------------------------------+------------------------------------------------------------+
 | ``wait`` improvements          | See `Wait Improvements`_.                                  |
 +--------------------------------+------------------------------------------------------------+

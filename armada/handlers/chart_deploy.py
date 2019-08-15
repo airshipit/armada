@@ -96,7 +96,7 @@ class ChartDeploy(object):
 
         native_wait_enabled = chart_wait.is_native_enabled()
 
-        chartbuilder = ChartBuilder(ch)
+        chartbuilder = ChartBuilder.from_chart_doc(ch)
         new_chart = chartbuilder.get_helm_chart()
 
         if status == const.STATUS_DEPLOYED:

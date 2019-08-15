@@ -13,7 +13,6 @@ data:
     location: git://opendev.org/openstack/openstack-helm-infra.git
     subpath: helm-toolkit
     reference: master
-  dependencies: []
 ---
 schema: armada/Chart/v1
 metadata:

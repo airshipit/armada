@@ -366,7 +366,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada.Armada, 'pre_flight_ops')
-        @mock.patch('armada.handlers.chart_deploy.ChartBuilder')
+        @mock.patch('armada.handlers.chart_deploy.ChartBuilder.from_chart_doc')
         @mock.patch('armada.handlers.chart_deploy.Test')
         def _do_test(
                 mock_test, mock_chartbuilder, mock_pre_flight,
@@ -400,7 +400,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             mock_test.return_value.timeout = const.DEFAULT_TEST_TIMEOUT
 
             # Stub out irrelevant methods called by `armada.sync()`.
-            mock_chartbuilder.get_source_path.return_value = None
             mock_chartbuilder.get_helm_chart.return_value = None
 
             # Simulate chart diff, upgrade should only happen if non-empty.

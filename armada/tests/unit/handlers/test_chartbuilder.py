@@ -145,7 +145,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         self._write_temporary_file_contents(
             chart_dir.path, 'Chart.yaml', self.chart_yaml)
 
-        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
+        chartbuilder = ChartBuilder.from_chart_doc(
+            self._get_test_chart(chart_dir))
 
         # Validate response type is :class:`hapi.chart.metadata_pb2.Metadata`
         resp = chartbuilder.get_metadata()
@@ -155,7 +156,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         chart_dir = self.useFixture(fixtures.TempDir())
         self.addCleanup(shutil.rmtree, chart_dir.path)
 
-        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
+        chartbuilder = ChartBuilder.from_chart_doc(
+            self._get_test_chart(chart_dir))
 
         self.assertRaises(
             chartbuilder_exceptions.MetadataLoadException,
@@ -181,7 +183,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         for filename in ['template%d' % x for x in range(3)]:
             self._write_temporary_file_contents(templates_subdir, filename, "")
 
-        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
+        chartbuilder = ChartBuilder.from_chart_doc(
+            self._get_test_chart(chart_dir))
 
         expected_files = (
             '[type_url: "%s"\n, type_url: "%s"\n]' % ('./bar', './foo'))
@@ -197,7 +200,8 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(
                 chart_dir.path, filename, "DIRC^@^@^@^B^@^@^@×Z®<86>F.1")
 
-        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
+        chartbuilder = ChartBuilder.from_chart_doc(
+            self._get_test_chart(chart_dir))
         chartbuilder.get_files()
 
     def test_get_basic_helm_chart(self):
@@ -212,7 +216,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
         expected = inspect.cleandoc(
@@ -244,7 +248,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
         self.assertIsInstance(helm_chart, Chart)
@@ -273,7 +277,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
         expected_files = (
@@ -315,14 +319,14 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         # Files to ignore within templates/ subdirectory.
         self._write_temporary_file_contents(
             templates_subdir, file_to_ignore, "")
-        # Files to ignore within charts/ subdirectory.
-        self._write_temporary_file_contents(charts_subdir, file_to_ignore, "")
         # Files to ignore within templates/bin subdirectory.
         self._write_temporary_file_contents(
             templates_nested_subdir, file_to_ignore, "")
         # Files to ignore within charts/extra subdirectory.
         self._write_temporary_file_contents(
             charts_nested_subdir, file_to_ignore, "")
+        self._write_temporary_file_contents(
+            charts_nested_subdir, 'Chart.yaml', self.chart_yaml)
         # Files to **include** within charts/ subdirectory.
         self._write_temporary_file_contents(charts_subdir, '.prov', "xyzzy")
 
@@ -330,7 +334,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(test_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
         expected_files = (
@@ -369,7 +373,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         dependency_chart = dep_ch
         main_chart['data']['dependencies'] = [dependency_chart]
 
-        chartbuilder = ChartBuilder(main_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(main_chart)
         helm_chart = chartbuilder.get_helm_chart()
 
         expected_dependency = inspect.cleandoc(
@@ -429,7 +433,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
         ch['data']['source_dir'] = (chart_dir.path, '')
 
         test_chart = ch
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(test_chart)
         self.assertRegex(
             repr(chartbuilder.dump()),
             'hello-world-chart.*A sample Helm chart for Kubernetes.*')
@@ -444,7 +448,7 @@ class ChartBuilderTestCase(BaseChartBuilderTestCase):
 
         dependency_chart = dep_ch
         test_chart['data']['dependencies'] = [dependency_chart]
-        chartbuilder = ChartBuilder(test_chart)
+        chartbuilder = ChartBuilder.from_chart_doc(test_chart)
 
         re = inspect.cleandoc(
             """
@@ -473,7 +477,8 @@ class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(
                 chart_dir.path, filename, "DIRC^@^@^@^B^@^@^@×Z®<86>F.1")
 
-        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
+        chartbuilder = ChartBuilder.from_chart_doc(
+            self._get_test_chart(chart_dir))
 
         # Confirm it failed for both encodings.
         error_re = (
@@ -494,7 +499,8 @@ class ChartBuilderNegativeTestCase(BaseChartBuilderTestCase):
             self._write_temporary_file_contents(
                 chart_dir.path, filename, "DIRC^@^@^@^B^@^@^@×Z®<86>F.1")
 
-        chartbuilder = ChartBuilder(self._get_test_chart(chart_dir))
+        chartbuilder = ChartBuilder.from_chart_doc(
+            self._get_test_chart(chart_dir))
 
         side_effects = [self.exc_to_raise, "", ""]
         with mock.patch("builtins.open", mock.mock_open(read_data="")) \

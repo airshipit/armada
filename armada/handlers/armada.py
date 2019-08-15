@@ -169,7 +169,7 @@ class Armada(object):
                 self.chart_cache[source_key] = repo_dir
             chart['source_dir'] = (self.chart_cache.get(source_key), subpath)
         else:
-            name = chart['metadata']['name']
+            name = ch['metadata']['name']
             raise source_exceptions.ChartSourceException(ct_type, name)
 
         for dep in ch.get(const.KEYWORD_DATA, {}).get('dependencies', []):

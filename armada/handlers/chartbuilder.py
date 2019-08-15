@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import re
 
 from google.protobuf.any_pb2 import Any
 from hapi.chart.chart_pb2 import Chart
@@ -37,37 +38,73 @@ class ChartBuilder(object):
     into proper ``protoc`` Helm charts that can be pushed to Tiller.
     '''
 
-    def __init__(self, chart):
-        '''Initialize the :class:`ChartBuilder` class.
-
-        :param dict chart: The document containing all intentions to pass to
-                           Tiller.
+    @classmethod
+    def from_chart_doc(cls, chart):
         '''
+        Returns a ChartBuilder defined by an Armada Chart doc.
+
+        :param chart: Armada Chart doc for which to build the Helm chart.
+        '''
+
+        name = chart['metadata']['name']
+        chart_data = chart[const.KEYWORD_DATA]
+        source_dir = chart_data.get('source_dir')
+        source_directory = os.path.join(*source_dir)
+        dependencies = chart_data.get('dependencies')
+        if dependencies is not None:
+            dependency_builders = []
+            for chart_dep in dependencies:
+                builder = ChartBuilder.from_chart_doc(chart_dep)
+                dependency_builders.append(builder)
+
+            return cls(name, source_directory, dependency_builders)
+
+        return cls.from_source(name, source_directory)
+
+    @classmethod
+    def from_source(cls, name, source_directory):
+        '''
+        Returns a ChartBuilder, which gets it dependencies from within the Helm
+        chart itself.
+
+        :param name: A name to use for the chart.
+        :param source_directory: The source directory of the Helm chart.
+        '''
+        dependency_builders = []
+        charts_dir = os.path.join(source_directory, 'charts')
+        if os.path.isdir(charts_dir):
+            for f in os.scandir(charts_dir):
+                if not f.is_dir():
+                    # TODO: Support ".tgz" dependency charts.
+
+                    # Ignore regular files.
+                    continue
+
+                # Ignore directories that start with "." or "_".
+                if re.match(r'^[._]', f.name):
+                    continue
+
+                builder = ChartBuilder.from_source(f.name, f.path)
+                dependency_builders.append(builder)
+
+        return cls(name, source_directory, dependency_builders)
+
+    def __init__(self, name, source_directory, dependency_builders):
+        '''
+        :param name: A name to use for the chart.
+        :param source_directory: The source directory of the Helm chart.
+        :param dependency_builders: ChartBuilders to use to build the Helm
+               chart's dependency charts.
+        '''
+        self.name = name
+        self.source_directory = source_directory
+        self.dependency_builders = dependency_builders
 
         # cache for generated protoc chart object
         self._helm_chart = None
 
-        # store chart schema
-        self.chart = chart
-        self.chart_data = chart[const.KEYWORD_DATA]
-
-        # extract, pull, whatever the chart from its source
-        self.source_directory = self.get_source_path()
-
         # load ignored files from .helmignore if present
         self.ignored_files = self.get_ignored_files()
-
-    def get_source_path(self):
-        '''Return the joined path of the source directory and subpath.
-
-        Returns "<source directory>/<subpath>" taken from the "source_dir"
-        property from the chart, or else "" if the property isn't a 2-tuple.
-        '''
-        source_dir = self.chart_data.get('source_dir')
-        return (
-            os.path.join(*source_dir) if (
-                source_dir and isinstance(source_dir, (list, tuple))
-                and len(source_dir) == 2) else "")
 
     def get_ignored_files(self):
         '''Load files to ignore from .helmignore if present.'''
@@ -209,7 +246,7 @@ class ChartBuilder(object):
         Process all files in templates/ as a template to attach to the chart,
         building a :class:`hapi.chart.template_pb2.Template` object.
         '''
-        chart_name = self.chart['metadata']['name']
+        chart_name = self.name
         templates = []
         if not os.path.exists(os.path.join(self.source_directory,
                                            'templates')):
@@ -238,22 +275,23 @@ class ChartBuilder(object):
         Constructs a :class:`hapi.chart.chart_pb2.Chart` object from the
         ``chart`` intentions, including all dependencies.
         '''
-        if self._helm_chart:
-            return self._helm_chart
+        if not self._helm_chart:
+            self._helm_chart = self._get_helm_chart()
 
+        return self._helm_chart
+
+    def _get_helm_chart(self):
+        LOG.info(
+            "Building chart %s from path %s", self.name, self.source_directory)
         dependencies = []
-        chart_dependencies = self.chart_data.get('dependencies', [])
-        chart_name = self.chart['metadata']['name']
-        chart_release = self.chart_data.get('release', None)
-        for dep_chart in chart_dependencies:
-            dep_chart_name = dep_chart['metadata']['name']
+        for dep_builder in self.dependency_builders:
             LOG.info(
-                "Building dependency chart %s for release %s.", dep_chart_name,
-                chart_release)
+                "Building dependency chart %s for chart %s.", dep_builder.name,
+                self.name)
             try:
-                dependencies.append(ChartBuilder(dep_chart).get_helm_chart())
+                dependencies.append(dep_builder.get_helm_chart())
             except Exception:
-                raise chartbuilder_exceptions.DependencyException(chart_name)
+                raise chartbuilder_exceptions.DependencyException(self.name)
 
         try:
             helm_chart = Chart(
@@ -264,9 +302,8 @@ class ChartBuilder(object):
                 files=self.get_files())
         except Exception as e:
             raise chartbuilder_exceptions.HelmChartBuildException(
-                chart_name, details=e)
+                self.name, details=e)
 
-        self._helm_chart = helm_chart
         return helm_chart
 
     def dump(self):
