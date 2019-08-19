@@ -31,9 +31,9 @@ RUN mkdir -p /armada && \
        gcc \
        git \
        libopenssl-devel \
-       make && \
-       pip install --upgrade pip && \
-       python3 -m pip install -U pip && \
+       make
+
+RUN    pip3 install --upgrade pip && \
        zypper clean -a && \
        rm -rf \
          /tmp/* \
