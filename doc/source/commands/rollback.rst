@@ -16,7 +16,6 @@ Commands
         $ armada rollback --release my_release
 
     Options:
-      --dry-run                     Perform a dry-run rollback.
       --release TEXT                Release to rollback.
       --tiller-host TEXT            Tiller Host IP
       --tiller-port INTEGER         Tiller Host Port

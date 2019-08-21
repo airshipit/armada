@@ -35,7 +35,6 @@ Commands
       --api                         Contacts service endpoint.
       --disable-update-post         Disable post-update Tiller operations.
       --disable-update-pre          Disable pre-update Tiller operations.
-      --dry-run                     Run charts without installing them.
       --enable-chart-cleanup        Clean up unmanaged charts.
       --metrics-output TEXT         The output path for metric data
       --use-doc-ref                 Use armada manifest file reference.
