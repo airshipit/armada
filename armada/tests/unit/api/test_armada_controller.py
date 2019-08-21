@@ -44,7 +44,6 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'disable_update_post': 'false',
             'enable_chart_cleanup': 'false',
             'skip_pre_flight': 'false',
-            'dry_run': 'false',
             'wait': 'false',
             'timeout': '100'
         }
@@ -56,7 +55,6 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'disable_update_pre': False,
             'disable_update_post': False,
             'enable_chart_cleanup': False,
-            'dry_run': False,
             'force_wait': False,
             'timeout': 100,
             'tiller': m_tiller,
@@ -89,7 +87,7 @@ class ArmadaControllerTest(base.BaseControllerTest):
             }], **expected_armada_options)
         mock_armada.return_value.sync.assert_called()
 
-        mock_tiller.assert_called_with(dry_run=False)
+        mock_tiller.assert_called()
         m_tiller.__exit__.assert_called()
 
     def test_armada_apply_no_href(self):
@@ -103,7 +101,6 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'disable_update_post': 'false',
             'enable_chart_cleanup': 'false',
             'skip_pre_flight': 'false',
-            'dry_run': 'false',
             'wait': 'false',
             'timeout': '100'
         }

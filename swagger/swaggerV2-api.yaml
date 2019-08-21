@@ -92,7 +92,6 @@ paths:
         - $ref: "#/parameters/disable-update-pre"
         - $ref: "#/parameters/disable-update-post"
         - $ref: "#/parameters/enable-chart-cleanup"
-        - $ref: "#/parameters/dry-run"
         - $ref: "#/parameters/wait"
         - $ref: "#/parameters/timeout"
         - name: request_body
@@ -194,7 +193,6 @@ paths:
         - $ref: "#/parameters/tiller-host"
         - $ref: "#/parameters/tiller-port"
         - $ref: "#/parameters/tiller-namespace"
-        - $ref: "#/parameters/dry-run"
         - $ref: "#/parameters/wait"
         - $ref: "#/parameters/timeout"
         - $ref: "#/parameters/force"
@@ -286,13 +284,6 @@ parameters:
     name: enable_chart_cleanup
     required: false
     type: boolean
-    default: False
-  dry-run:
-    in: query
-    name: dry_run
-    required: false
-    type: boolean
-    description: Flag to simulate an action if set to True
     default: False
   wait:
     in: query

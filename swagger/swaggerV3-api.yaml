@@ -118,7 +118,6 @@ paths:
         - $ref: "#/components/parameters/disable-update-pre"
         - $ref: "#/components/parameters/disable-update-post"
         - $ref: "#/components/parameters/enable-chart-cleanup"
-        - $ref: "#/components/parameters/dry-run"
         - $ref: "#/components/parameters/wait"
         - $ref: "#/components/parameters/timeout"
       requestBody:
@@ -219,7 +218,6 @@ paths:
         - $ref: "#/components/parameters/tiller-host"
         - $ref: "#/components/parameters/tiller-port"
         - $ref: "#/components/parameters/tiller-namespace"
-        - $ref: "#/components/parameters/dry-run"
         - $ref: "#/components/parameters/wait"
         - $ref: "#/components/parameters/timeout"
         - $ref: "#/components/parameters/force"
@@ -343,13 +341,6 @@ components:
       name: enable_all
       required: false
       description: Flag to test disabled tests
-      schema:
-        type: boolean
-    dry-run:
-      in: query
-      name: dry_run
-      required: false
-      description: Flag to simulate an install if set to True
       schema:
         type: boolean
     timeout:

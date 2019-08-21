@@ -94,7 +94,6 @@ class Apply(api.BaseResource):
             disable_update_pre=req.get_param_as_bool('disable_update_pre'),
             disable_update_post=req.get_param_as_bool('disable_update_post'),
             enable_chart_cleanup=req.get_param_as_bool('enable_chart_cleanup'),
-            dry_run=req.get_param_as_bool('dry_run'),
             force_wait=req.get_param_as_bool('wait'),
             timeout=req.get_param_as_int('timeout'),
             tiller=tiller,

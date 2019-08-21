@@ -48,7 +48,6 @@ class Rollback(api.BaseResource):
 
     @lock_and_thread()
     def handle(self, req, release, tiller):
-        dry_run = req.get_param_as_bool('dry_run')
         tiller.rollback_release(
             release,
             req.get_param_as_int('version') or 0,
@@ -57,5 +56,4 @@ class Rollback(api.BaseResource):
             force=req.get_param_as_bool('force'),
             recreate_pods=req.get_param_as_bool('recreate_pods'))
 
-        return ('(dry run) ' if dry_run else '') + \
-            'Rollback of {} complete.'.format(release)
+        return 'Rollback of {} complete.'.format(release)
