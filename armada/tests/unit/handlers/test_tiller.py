@@ -392,9 +392,7 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_release_service_stub.return_value.RollbackRelease\
             .return_value = {}
 
-        dry_run = True
-
-        tiller_obj = tiller.Tiller('host', '8080', None, dry_run=dry_run)
+        tiller_obj = tiller.Tiller('host', '8080', None)
 
         release = 'release'
         version = 0
@@ -415,7 +413,6 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_rollback_release_request.assert_called_once_with(
             name=release,
             version=version,
-            dry_run=dry_run,
             wait=wait,
             timeout=timeout,
             force=force,
@@ -465,7 +462,7 @@ class TillerTestCase(base.ArmadaTestCase):
                 })
             })
 
-        tiller_obj = tiller.Tiller('host', '8080', None, dry_run=False)
+        tiller_obj = tiller.Tiller('host', '8080', None)
 
         # TODO: Test these methods as well, either by unmocking, or adding
         #       separate tests for them.
@@ -499,7 +496,6 @@ class TillerTestCase(base.ArmadaTestCase):
         mock_update_release_request.assert_called_once_with(
             chart=chart,
             name=release,
-            dry_run=tiller_obj.dry_run,
             disable_hooks=False,
             values=values,
             wait=wait,

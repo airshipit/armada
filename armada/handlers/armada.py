@@ -48,7 +48,6 @@ class Armada(object):
             disable_update_pre=False,
             disable_update_post=False,
             enable_chart_cleanup=False,
-            dry_run=False,
             set_ovr=None,
             force_wait=False,
             timeout=None,
@@ -65,7 +64,6 @@ class Armada(object):
         :param bool disable_update_post: Disable post-update Tiller
             operations.
         :param bool enable_chart_cleanup: Clean up unmanaged charts.
-        :param bool dry_run: Run charts without installing them.
         :param bool force_wait: Force Tiller to wait until all charts are
             deployed, rather than using each chart's specified wait policy.
         :param int timeout: Specifies overall time in seconds that Tiller
@@ -79,7 +77,6 @@ class Armada(object):
         '''
 
         self.enable_chart_cleanup = enable_chart_cleanup
-        self.dry_run = dry_run
         self.force_wait = force_wait
         self.tiller = tiller
         try:
@@ -94,8 +91,7 @@ class Armada(object):
         self.chart_cache = {}
         self.chart_deploy = ChartDeploy(
             self.manifest, disable_update_pre, disable_update_post,
-            self.dry_run, k8s_wait_attempts, k8s_wait_attempt_sleep, timeout,
-            self.tiller)
+            k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, self.tiller)
 
     def pre_flight_ops(self):
         """Perform a series of checks and operations to ensure proper
@@ -184,9 +180,6 @@ class Armada(object):
             return self._sync()
 
     def _sync(self):
-        if self.dry_run:
-            LOG.info('Armada is in DRY RUN mode, no changes being made.')
-
         msg = {
             'install': [],
             'upgrade': [],

@@ -34,12 +34,11 @@ LOG = logging.getLogger(__name__)
 
 class ChartDeploy(object):
     def __init__(
-            self, manifest, disable_update_pre, disable_update_post, dry_run,
+            self, manifest, disable_update_pre, disable_update_post,
             k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, tiller):
         self.manifest = manifest
         self.disable_update_pre = disable_update_pre
         self.disable_update_post = disable_update_post
-        self.dry_run = dry_run
         self.k8s_wait_attempts = k8s_wait_attempts
         self.k8s_wait_attempt_sleep = k8s_wait_attempt_sleep
         self.timeout = timeout
@@ -298,12 +297,6 @@ class ChartDeploy(object):
         return result
 
     def _test_chart(self, release_name, test_handler):
-        if self.dry_run:
-            LOG.info(
-                'Skipping test during `dry-run`, would have tested '
-                'release=%s', release_name)
-            return True
-
         success = test_handler.test_release_for_success()
         if not success:
             raise tiller_exceptions.TestFailedException(release_name)

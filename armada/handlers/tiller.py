@@ -82,13 +82,11 @@ class Tiller(object):
             tiller_host=None,
             tiller_port=None,
             tiller_namespace=None,
-            bearer_token=None,
-            dry_run=None):
+            bearer_token=None):
         self.tiller_host = tiller_host or CONF.tiller_host
         self.tiller_port = tiller_port or CONF.tiller_port
         self.tiller_namespace = tiller_namespace or CONF.tiller_namespace
         self.bearer_token = bearer_token
-        self.dry_run = dry_run or False
 
         # init k8s connectivity
         self.k8s = K8s(bearer_token=self.bearer_token)
@@ -288,7 +286,6 @@ class Tiller(object):
         stub = ReleaseServiceStub(self.channel)
         release_request = InstallReleaseRequest(
             chart=chart,
-            dry_run=True,
             values=values,
             name=name,
             namespace=namespace,
@@ -392,9 +389,8 @@ class Tiller(object):
         timeout = self._check_timeout(wait, timeout)
 
         LOG.info(
-            'Helm update release%s: wait=%s, timeout=%s, force=%s, '
-            'recreate_pods=%s', (' (dry run)' if self.dry_run else ''), wait,
-            timeout, force, recreate_pods)
+            'Helm update release: wait=%s, timeout=%s, force=%s, '
+            'recreate_pods=%s', wait, timeout, force, recreate_pods)
 
         if values is None:
             values = Config(raw='')
@@ -411,7 +407,6 @@ class Tiller(object):
             stub = ReleaseServiceStub(self.channel)
             release_request = UpdateReleaseRequest(
                 chart=chart,
-                dry_run=self.dry_run,
                 disable_hooks=disable_hooks,
                 values=values,
                 name=release,
@@ -446,9 +441,7 @@ class Tiller(object):
         '''
         timeout = self._check_timeout(wait, timeout)
 
-        LOG.info(
-            'Helm install release%s: wait=%s, timeout=%s',
-            (' (dry run)' if self.dry_run else ''), wait, timeout)
+        LOG.info('Helm install release: wait=%s, timeout=%s', wait, timeout)
 
         if values is None:
             values = Config(raw='')
@@ -460,7 +453,6 @@ class Tiller(object):
             stub = ReleaseServiceStub(self.channel)
             release_request = InstallReleaseRequest(
                 chart=chart,
-                dry_run=self.dry_run,
                 values=values,
                 name=release,
                 namespace=namespace,
@@ -607,15 +599,6 @@ class Tiller(object):
         if timeout is None:
             timeout = const.DEFAULT_DELETE_TIMEOUT
 
-        # Helm client calls ReleaseContent in Delete dry-run scenario
-        if self.dry_run:
-            content = self.get_release_content(release)
-            LOG.info(
-                'Skipping delete during `dry-run`, would have deleted '
-                'release=%s from namespace=%s.', content.release.name,
-                content.release.namespace)
-            return
-
         # build release uninstall request
         try:
             stub = ReleaseServiceStub(self.channel)
@@ -665,13 +648,6 @@ class Tiller(object):
             for jb in get_jobs.items:
                 jb_name = jb.metadata.name
 
-                if self.dry_run:
-                    LOG.info(
-                        'Skipping delete job during `dry-run`, would '
-                        'have deleted job %s in namespace=%s.', jb_name,
-                        namespace)
-                    continue
-
                 LOG.info(
                     "Deleting job %s in namespace: %s", jb_name, namespace)
                 self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
@@ -695,13 +671,6 @@ class Tiller(object):
                         "Deleting cronjobs via `type: job` is "
                         "deprecated, use `type: cronjob` instead")
 
-                if self.dry_run:
-                    LOG.info(
-                        'Skipping delete cronjob during `dry-run`, would '
-                        'have deleted cronjob %s in namespace=%s.', jb_name,
-                        namespace)
-                    continue
-
                 LOG.info(
                     "Deleting cronjob %s in namespace: %s", jb_name, namespace)
                 self.k8s.delete_cron_job_action(jb_name, namespace)
@@ -712,13 +681,6 @@ class Tiller(object):
                 namespace, label_selector=label_selector)
             for pod in release_pods.items:
                 pod_name = pod.metadata.name
-
-                if self.dry_run:
-                    LOG.info(
-                        'Skipping delete pod during `dry-run`, would '
-                        'have deleted pod %s in namespace=%s.', pod_name,
-                        namespace)
-                    continue
 
                 LOG.info(
                     "Deleting pod %s in namespace: %s", pod_name, namespace)
@@ -805,15 +767,13 @@ class Tiller(object):
         timeout = self._check_timeout(wait, timeout)
 
         LOG.debug(
-            'Helm rollback%s of release=%s, version=%s, '
-            'wait=%s, timeout=%s', (' (dry run)' if self.dry_run else ''),
-            release_name, version, wait, timeout)
+            'Helm rollback of release=%s, version=%s, '
+            'wait=%s, timeout=%s', release_name, version, wait, timeout)
         try:
             stub = ReleaseServiceStub(self.channel)
             rollback_request = RollbackReleaseRequest(
                 name=release_name,
                 version=version,
-                dry_run=self.dry_run,
                 wait=wait,
                 timeout=timeout,
                 force=force,
