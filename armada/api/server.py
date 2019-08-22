@@ -18,7 +18,7 @@ from oslo_policy import policy
 from oslo_log import log as logging
 
 from armada import conf
-from armada.api import ArmadaRequest, HEALTH_PATH
+from armada.api import ArmadaRequest, HEALTH_PATH, METRICS_PATH
 from armada.api.controller.armada import Apply
 from armada.api.middleware import AuthMiddleware
 from armada.api.middleware import ContextMiddleware
@@ -69,7 +69,7 @@ def create(enable_middleware=CONF.middleware):
         ('tests', TestReleasesManifestController()),
         ('test/{release}', TestReleasesReleaseNameController()),
         ('validatedesign', Validate()),
-        ('metrics', Metrics()),
+        (METRICS_PATH, Metrics()),
     ]
 
     for route, service in url_routes_v1:

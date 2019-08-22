@@ -27,6 +27,7 @@ from armada.handlers.tiller import Tiller
 CONF = cfg.CONF
 
 HEALTH_PATH = 'health'
+METRICS_PATH = 'metrics'
 
 
 class BaseResource(object):

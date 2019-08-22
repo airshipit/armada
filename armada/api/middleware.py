@@ -18,7 +18,7 @@ from uuid import UUID
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from armada.api import HEALTH_PATH
+from armada.api import HEALTH_PATH, METRICS_PATH
 
 CONF = cfg.CONF
 
@@ -107,7 +107,7 @@ class LoggingMiddleware(object):
     hdr_exclude = re.compile('x-.*', re.IGNORECASE)
 
     # don't log anything for health checks
-    path_exclude = re.compile('.*/{}$'.format(HEALTH_PATH))
+    path_exclude = re.compile('.*/({}|{})$'.format(HEALTH_PATH, METRICS_PATH))
 
     def exclude_path(self, req):
         return LoggingMiddleware.path_exclude.match(req.path)
