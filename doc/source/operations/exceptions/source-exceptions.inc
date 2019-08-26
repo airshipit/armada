@@ -17,27 +17,29 @@
 Source Exceptions
 -----------------
 
-.. autoexception:: armada.exceptions.source_exceptions.ChartSourceException
+.. currentmodule:: armada.exceptions.source_exceptions
+
+.. autoexception:: ChartSourceException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.source_exceptions.GitException
+.. autoexception:: GitException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.source_exceptions.InvalidPathException
+.. autoexception:: InvalidPathException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.source_exceptions.TarballDownloadException
+.. autoexception:: TarballDownloadException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.source_exceptions.TarballExtractException
+.. autoexception:: TarballExtractException
    :members:
    :show-inheritance:
    :undoc-members:

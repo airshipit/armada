@@ -17,27 +17,29 @@
 Chartbuilder Exceptions
 -----------------------
 
-.. autoexception:: armada.exceptions.chartbuilder_exceptions.DependencyException
+.. currentmodule:: armada.exceptions.chartbuilder_exceptions
+
+.. autoexception:: DependencyException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.chartbuilder_exceptions.FilesLoadException
+.. autoexception:: FilesLoadException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.chartbuilder_exceptions.HelmChartBuildException
+.. autoexception:: HelmChartBuildException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.chartbuilder_exceptions.IgnoredFilesLoadException
+.. autoexception:: IgnoredFilesLoadException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.chartbuilder_exceptions.MetadataLoadException
+.. autoexception:: MetadataLoadException
    :members:
    :show-inheritance:
    :undoc-members:

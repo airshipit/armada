@@ -17,7 +17,9 @@
 Manifest Exceptions
 -------------------
 
-.. autoexception:: armada.exceptions.manifest_exceptions.ManifestException
+.. currentmodule:: armada.exceptions.manifest_exceptions
+
+.. autoexception:: ManifestException
    :members:
    :show-inheritance:
    :undoc-members:

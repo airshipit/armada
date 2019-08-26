@@ -17,17 +17,19 @@
 Kubernetes Exceptions
 ---------------------
 
-.. autoexception:: armada.exceptions.k8s_exceptions.KubernetesErrorEventException
+.. currentmodule:: armada.exceptions.k8s_exceptions
+
+.. autoexception:: KubernetesErrorEventException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.k8s_exceptions.KubernetesUnknownStreamingEventTypeException
+.. autoexception:: KubernetesUnknownStreamingEventTypeException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.k8s_exceptions.KubernetesWatchTimeoutException
+.. autoexception:: KubernetesWatchTimeoutException
    :members:
    :show-inheritance:
    :undoc-members:

@@ -17,32 +17,34 @@
 Tiller Exceptions
 -----------------
 
-.. autoexception:: armada.exceptions.tiller_exceptions.ChannelException
+.. currentmodule:: armada.exceptions.tiller_exceptions
+
+.. autoexception:: ChannelException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.tiller_exceptions.GetReleaseStatusException
+.. autoexception:: GetReleaseStatusException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.tiller_exceptions.PostUpdateJobCreateException
+.. autoexception:: PostUpdateJobCreateException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.tiller_exceptions.PreUpdateJobDeleteException
+.. autoexception:: PreUpdateJobDeleteException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.tiller_exceptions.ReleaseException
+.. autoexception:: ReleaseException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.tiller_exceptions.TillerListReleasesPagingException
+.. autoexception:: TillerListReleasesPagingException
    :members:
    :show-inheritance:
    :undoc-members:

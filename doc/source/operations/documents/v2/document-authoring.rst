@@ -628,7 +628,7 @@ References
 ~~~~~~~~~~
 
 For working examples please check the examples in our repo
-`here <https://github.com/openstack/airship-armada/tree/master/examples>`__
+`here <https://opendev.org/airship/armada/src/branch/master/examples>`__.
 
 
 .. _builtin chart dependencies: https://helm.sh/docs/developing_charts/#chart-dependencies

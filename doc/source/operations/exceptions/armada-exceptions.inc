@@ -17,37 +17,39 @@
 Armada Exceptions
 -----------------
 
-.. autoexception:: armada.exceptions.armada_exceptions.ArmadaTimeoutException
+.. currentmodule:: armada.exceptions.armada_exceptions
+
+.. autoexception:: ArmadaTimeoutException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.ProtectedReleaseException
+.. autoexception:: ProtectedReleaseException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.InvalidValuesYamlException
+.. autoexception:: InvalidValuesYamlException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.InvalidOverrideValuesYamlException
+.. autoexception:: InvalidOverrideValuesYamlException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.ChartDeployException
+.. autoexception:: ChartDeployException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.WaitException
+.. autoexception:: WaitException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.armada_exceptions.DeploymentLikelyPendingException
+.. autoexception:: DeploymentLikelyPendingException
    :members:
    :show-inheritance:
    :undoc-members:

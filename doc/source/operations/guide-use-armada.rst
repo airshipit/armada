@@ -244,7 +244,7 @@ like openstack-keystone.
 .. note::
     The bearer token option is available for the following commands
 
-    armada apply
-    armada delete
-    armada tiller
+    armada apply,
+    armada delete,
+    armada tiller,
     armada rollback

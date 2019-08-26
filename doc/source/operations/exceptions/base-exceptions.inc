@@ -17,7 +17,9 @@
 Base Exceptions
 ---------------
 
-.. autoexception:: armada.exceptions.base_exception.ActionForbidden
+.. currentmodule:: armada.exceptions.base_exception
+
+.. autoexception:: ActionForbidden
    :members:
    :show-inheritance:
    :undoc-members:

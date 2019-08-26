@@ -54,55 +54,43 @@ info:
 	@echo "Docker Version:    ${DOCKER_VERSION}"
 	@echo "Registry:          ${DOCKER_REGISTRY}"
 
-.PHONY: all
 all: lint charts images
 
-.PHONY: build
 build: bootstrap
 	$(PYTHON) setup.py install
 
-.PHONY: bootstrap
 bootstrap:
 	pip install -r requirements.txt
 
-.PHONY: bootstrap-all
 bootstrap-all: bootstrap
 	pip install -r test-requirements.txt
 
-.PHONY: check-docker
 check-docker:
 	@if [ -z $$(which docker) ]; then \
 		echo "Missing \`docker\` client which is required for development"; \
 		exit 2; \
 	fi
 
-.PHONY: check-tox
 check-tox:
 	@if [ -z $$(which tox) ]; then \
 		echo "Missing \`tox\` client which is required for development"; \
 		exit 2; \
 	fi
 
-.PHONY: images
 images: check-docker build_armada
 
-.PHONY: docs
 docs: clean build_docs
 
-.PHONY: build_docs
 build_docs:
 	tox -e docs
 
-.PHONY: run_images
 run_images: run_armada
 
-.PHONY: run_armada
 run_armada: build_armada
 	./tools/armada_image_run.sh $(IMAGE)
 
 _BASE_IMAGE_ARG := $(if $(UBUNTU_BASE_IMAGE),--build-arg FROM="${UBUNTU_BASE_IMAGE}" ,)
 
-.PHONY: build_armada
 build_armada:
 ifeq ($(USE_PROXY), true)
 	docker build --network host -t $(IMAGE) --label $(LABEL) \
@@ -130,11 +118,9 @@ ifeq ($(PUSH_IMAGE), true)
 endif
 
 # make tools
-.PHONY: protoc
 protoc:
 	@tools/helm-hapi.sh
 
-.PHONY: clean
 clean:
 	rm -rf build
 	rm -rf doc/build
@@ -143,79 +129,67 @@ clean:
 	rm -rf charts/*/charts
 
 # testing checks
-.PHONY: tests
 tests: check-tox
 	tox
 
-.PHONY: test-all
 test-all: check-tox helm_lint
 	tox
 
-.PHONY: test-unit
 test-unit: check-tox
 	tox -e py35
 
-.PHONY: test-coverage
 test-coverage: check-tox
 	tox -e cover
 
-.PHONY: test-bandit
 test-bandit: check-tox
 	tox -e bandit
 
 # Perform auto formatting
-.PHONY: format
 format:
 	tox -e fmt
 
 # style checks
-.PHONY: lint
 lint: test-pep8 helm_lint
 
-.PHONY: test-pep8
 test-pep8: check-tox
 	tox -e pep8
 
 chartbanner:
 	@echo Building charts: $(CHARTS)
 
-.PHONY: charts
 charts: $(CHARTS)
 	@echo Done building charts.
 
-.PHONY: helm-init
 helm-init: $(addprefix helm-init-,$(CHARTS))
 
-.PHONY: helm-init-%
 helm-init-%: helm-serve
 	@echo Initializing chart $*
 	cd charts;if [ -s $*/requirements.yaml ]; then echo "Initializing $*";$(HELM) dep up $*; fi
 
-.PHONY: helm-serve
 helm-serve: helm-install
 	./tools/helm_tk.sh $(HELM) $(HELM_PIDFILE)
 
-.PHONY: helm-lint
 helm-lint: $(addprefix helm-lint-,$(CHARTS))
 
-.PHONY: helm-lint-%
 helm-lint-%: helm-init-%
 	@echo Linting chart $*
 	cd charts;$(HELM) lint $*
 
-.PHONY: dry-run
 dry-run: clean $(addprefix dry-run-,$(CHARTS))
 
-.PHONY: dry-run-%
 dry-run-%: helm-lint-%
 	echo Running Dry-Run on chart $*
 	cd charts;$(HELM) template --set pod.resources.enabled=true $*
 
-.PHONY: $(CHARTS)
 $(CHARTS): $(addprefix dry-run-,$(CHARTS)) chartbanner
 	$(HELM) package -d charts charts/$@
 
 # Install helm binary
-.PHONY: helm-install
 helm-install:
 	./tools/helm_install.sh $(HELM)
+
+.PHONY: $(CHARTS) all bootstrap bootstrap-all build build_armada \
+  build_docs charts check-docker check-tox clean docs dry-run \
+  dry-run-% format helm-init helm-init-% helm-install helm-lint \
+  helm-lint-% helm-serve images lint protoc run_armada run_images \
+  test-all test-bandit test-coverage test-pep8 tests test-unit

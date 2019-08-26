@@ -17,17 +17,19 @@
 Override Exceptions
 -------------------
 
-.. autoexception:: armada.exceptions.override_exceptions.InvalidOverrideFileException
+.. currentmodule:: armada.exceptions.override_exceptions
+
+.. autoexception:: InvalidOverrideFileException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.override_exceptions.InvalidOverrideValueException
+.. autoexception:: InvalidOverrideValueException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.override_exceptions.UnknownDocumentOverrideException
+.. autoexception:: UnknownDocumentOverrideException
    :members:
    :show-inheritance:
    :undoc-members:

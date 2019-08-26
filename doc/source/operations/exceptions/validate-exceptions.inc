@@ -17,22 +17,24 @@
 Lint (Validate) Exceptions
 --------------------------
 
-.. autoexception:: armada.exceptions.validate_exceptions.InvalidManifestException
+.. currentmodule:: armada.exceptions.validate_exceptions
+
+.. autoexception:: InvalidManifestException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.validate_exceptions.InvalidChartDefinitionException
+.. autoexception:: InvalidChartDefinitionException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.validate_exceptions.InvalidReleaseException
+.. autoexception:: InvalidReleaseException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.validate_exceptions.InvalidArmadaObjectException
+.. autoexception:: InvalidArmadaObjectException
    :members:
    :show-inheritance:
    :undoc-members:

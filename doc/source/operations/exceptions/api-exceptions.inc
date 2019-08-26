@@ -18,22 +18,24 @@
 API Exceptions
 --------------
 
-.. autoexception:: armada.exceptions.api_exceptions.ApiException
+.. currentmodule:: armada.exceptions.api_exceptions
+
+.. autoexception:: ApiException
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.api_exceptions.ClientError
+.. autoexception:: ClientError
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.api_exceptions.ClientForbiddenError
+.. autoexception:: ClientForbiddenError
    :members:
    :show-inheritance:
    :undoc-members:
 
-.. autoexception:: armada.exceptions.api_exceptions.ClientUnauthorizedError
+.. autoexception:: ClientUnauthorizedError
    :members:
    :show-inheritance:
    :undoc-members:

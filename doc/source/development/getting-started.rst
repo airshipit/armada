@@ -168,7 +168,7 @@ following additional functionality:
   * Role-Based Access Control, allowing Armada to provide authorization around
     specific Armada (and by extension) Tiller functionality.
   * `Keystone`_ authentication and project scoping, providing an additional
-     layer of security.
+    layer of security.
 
 Before proceeding, ensure that the steps in :ref:`armada-cli-installation`
 have been followed.
