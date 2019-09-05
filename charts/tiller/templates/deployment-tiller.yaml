@@ -40,7 +40,7 @@ metadata:
     name: tiller
   name: tiller-deploy
   annotations:
-    {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" }}
+{{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 4 }}
 spec:
   replicas: 1
   selector:
@@ -58,7 +58,7 @@ spec:
         app: helm
         name: tiller
 {{ tuple $envAll "tiller" "deploy" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
-    annotations:
+      annotations:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
