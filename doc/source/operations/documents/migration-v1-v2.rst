@@ -56,6 +56,15 @@ Chart
 | now optional, deafults to no   |                                                            |
 | subpath.                       |                                                            |
 +--------------------------------+------------------------------------------------------------+
+| Template naming for template   | If a chart was relying on Armada's previous misaligned     |
+| files aligned with Helm CLI.   | template naming, where it was omitting the ``templates/``  |
+|                                | prefix, such as via ``include`` argument, that argument    |
+|                                | will need to be updated. This could also theoretically     |
+|                                | affect whether the file is ignored, if the old or new      |
+|                                | name is in ``.helmignore`` (unlikely). The fixed template  |
+|                                | names alone will not cause a release to be updated, as the |
+|                                | diff logic accounts for this.                              |
++--------------------------------+------------------------------------------------------------+
 | ``wait`` improvements          | See `Wait Improvements`_.                                  |
 +--------------------------------+------------------------------------------------------------+
 

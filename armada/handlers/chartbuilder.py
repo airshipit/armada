@@ -24,8 +24,9 @@ from oslo_config import cfg
 from oslo_log import log as logging
 import yaml
 
-from armada.exceptions import chartbuilder_exceptions
 from armada import const
+from armada.exceptions import chartbuilder_exceptions
+from armada.handlers.schema import get_schema_info
 
 LOG = logging.getLogger(__name__)
 
@@ -51,18 +52,31 @@ class ChartBuilder(object):
         source_dir = chart_data.get('source_dir')
         source_directory = os.path.join(*source_dir)
         dependencies = chart_data.get('dependencies')
+
+        # TODO: Remove when v1 doc support is removed.
+        schema_info = get_schema_info(chart['schema'])
+        if schema_info.version < 2:
+            fix_tpl_name = False
+        else:
+            fix_tpl_name = True
+
         if dependencies is not None:
             dependency_builders = []
             for chart_dep in dependencies:
                 builder = ChartBuilder.from_chart_doc(chart_dep)
                 dependency_builders.append(builder)
 
-            return cls(name, source_directory, dependency_builders)
+            return cls(
+                name,
+                source_directory,
+                dependency_builders,
+                fix_tpl_name=fix_tpl_name)
 
-        return cls.from_source(name, source_directory)
+        return cls.from_source(
+            name, source_directory, fix_tpl_name=fix_tpl_name)
 
     @classmethod
-    def from_source(cls, name, source_directory):
+    def from_source(cls, name, source_directory, fix_tpl_name=False):
         '''
         Returns a ChartBuilder, which gets it dependencies from within the Helm
         chart itself.
@@ -84,12 +98,19 @@ class ChartBuilder(object):
                 if re.match(r'^[._]', f.name):
                     continue
 
-                builder = ChartBuilder.from_source(f.name, f.path)
+                builder = ChartBuilder.from_source(
+                    f.name, f.path, fix_tpl_name=fix_tpl_name)
                 dependency_builders.append(builder)
 
-        return cls(name, source_directory, dependency_builders)
+        return cls(
+            name,
+            source_directory,
+            dependency_builders,
+            fix_tpl_name=fix_tpl_name)
 
-    def __init__(self, name, source_directory, dependency_builders):
+    def __init__(
+            self, name, source_directory, dependency_builders,
+            fix_tpl_name=False):
         '''
         :param name: A name to use for the chart.
         :param source_directory: The source directory of the Helm chart.
@@ -99,6 +120,7 @@ class ChartBuilder(object):
         self.name = name
         self.source_directory = source_directory
         self.dependency_builders = dependency_builders
+        self.fix_tpl_name = fix_tpl_name
 
         # cache for generated protoc chart object
         self._helm_chart = None
@@ -248,17 +270,22 @@ class ChartBuilder(object):
         '''
         chart_name = self.name
         templates = []
-        if not os.path.exists(os.path.join(self.source_directory,
-                                           'templates')):
+        tpl_dir = os.path.join(self.source_directory, 'templates')
+        if not os.path.exists(tpl_dir):
             LOG.warn(
                 "Chart %s has no templates directory. "
                 "No templates will be deployed", chart_name)
-        for root, _, files in os.walk(os.path.join(self.source_directory,
-                                                   'templates'), topdown=True):
+        for root, _, files in os.walk(tpl_dir, topdown=True):
             for tpl_file in files:
                 tname = os.path.relpath(
                     os.path.join(root, tpl_file),
-                    os.path.join(self.source_directory, 'templates'))
+                    # For v1 compatibility, name template relative to template
+                    # dir, for v2 fix the name to be relative to the chart root
+                    # to match Helm CLI behavior.
+                    self.source_directory if self.fix_tpl_name else tpl_dir)
+                # NOTE: If the template name is fixed (see above), then this
+                # also fixes the path passed here, which could theoretically
+                # affect which files get ignored, though unlikely.
                 if self.ignore_file(tname):
                     LOG.debug('Ignoring file %s', tname)
                     continue

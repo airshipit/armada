@@ -77,7 +77,19 @@ class ReleaseDiff(object):
             chart_desc = '{} ({})'.format(chart.metadata.name, desc)
             raise armada_exceptions.InvalidValuesYamlException(chart_desc)
         files = {f.type_url: f.value for f in chart.files}
-        templates = {t.name: t.data for t in chart.templates}
+
+        # With armada/Chart/v1, Armada deployed releases with incorrect
+        # template names, omitting the `templates/` prefix, which is fixed in
+        # v2. This aligns these template names, so that the prefixes match, to
+        # avoid unwanted updates to releases when consuming this fix.
+        def fix_tpl_name(tpl_name):
+            CORRECT_PREFIX = 'templates/'
+            if tpl_name.startswith(CORRECT_PREFIX):
+                return tpl_name
+            return CORRECT_PREFIX + tpl_name
+
+        templates = {fix_tpl_name(t.name): t.data for t in chart.templates}
+
         dependencies = {
             d.metadata.name: self.make_chart_dict(
                 d, '{}({} dependency)'.format(desc, d.metadata.name))

@@ -60,6 +60,7 @@ class BaseChartBuilderTestCase(testtools.TestCase):
     """
 
     chart_stream = """
+        schema: armada/Chart/v1
         metadata:
             name: test
         data:
@@ -90,6 +91,7 @@ class BaseChartBuilderTestCase(testtools.TestCase):
     """
 
     dependency_chart_stream = """
+        schema: armada/Chart/v1
         metadata:
             name: dep
         data:
@@ -127,6 +129,7 @@ class BaseChartBuilderTestCase(testtools.TestCase):
 
     def _get_test_chart(self, chart_dir):
         return {
+            'schema': 'armada/Chart/v1',
             'metadata': {
                 'name': 'test'
             },
