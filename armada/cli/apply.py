@@ -80,8 +80,6 @@ SHORT_DESC = "Command installs manifest charts."
     help="Disable pre-update Tiller operations.",
     is_flag=True)
 @click.option(
-    '--dry-run', help="Run charts without installing them.", is_flag=True)
-@click.option(
     '--enable-chart-cleanup', help="Clean up unmanaged charts.", is_flag=True)
 @click.option(
     '--metrics-output',
@@ -142,13 +140,13 @@ SHORT_DESC = "Command installs manifest charts."
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def apply_create(
-        ctx, locations, api, disable_update_post, disable_update_pre, dry_run,
+        ctx, locations, api, disable_update_post, disable_update_pre,
         enable_chart_cleanup, metrics_output, use_doc_ref, set, tiller_host,
         tiller_port, tiller_namespace, timeout, values, wait, target_manifest,
         bearer_token, debug):
     CONF.debug = debug
     ApplyManifest(
-        ctx, locations, api, disable_update_post, disable_update_pre, dry_run,
+        ctx, locations, api, disable_update_post, disable_update_pre,
         enable_chart_cleanup, metrics_output, use_doc_ref, set, tiller_host,
         tiller_port, tiller_namespace, timeout, values, wait, target_manifest,
         bearer_token).safe_invoke()
@@ -157,7 +155,7 @@ def apply_create(
 class ApplyManifest(CliAction):
     def __init__(
             self, ctx, locations, api, disable_update_post, disable_update_pre,
-            dry_run, enable_chart_cleanup, metrics_output, use_doc_ref, set,
+            enable_chart_cleanup, metrics_output, use_doc_ref, set,
             tiller_host, tiller_port, tiller_namespace, timeout, values, wait,
             target_manifest, bearer_token):
         super(ApplyManifest, self).__init__()
@@ -167,7 +165,6 @@ class ApplyManifest(CliAction):
         self.api = api
         self.disable_update_post = disable_update_post
         self.disable_update_pre = disable_update_pre
-        self.dry_run = dry_run
         self.enable_chart_cleanup = enable_chart_cleanup
         self.metrics_output = metrics_output
         self.use_doc_ref = use_doc_ref
@@ -216,8 +213,7 @@ class ApplyManifest(CliAction):
             with Tiller(tiller_host=self.tiller_host,
                         tiller_port=self.tiller_port,
                         tiller_namespace=self.tiller_namespace,
-                        bearer_token=self.bearer_token,
-                        dry_run=self.dry_run) as tiller:
+                        bearer_token=self.bearer_token) as tiller:
 
                 try:
                     resp = self.handle(documents, tiller)
@@ -238,7 +234,6 @@ class ApplyManifest(CliAction):
             query = {
                 'disable_update_post': self.disable_update_post,
                 'disable_update_pre': self.disable_update_pre,
-                'dry_run': self.dry_run,
                 'enable_chart_cleanup': self.enable_chart_cleanup,
                 'tiller_host': self.tiller_host,
                 'tiller_port': self.tiller_port,
@@ -263,7 +258,6 @@ class ApplyManifest(CliAction):
             disable_update_pre=self.disable_update_pre,
             disable_update_post=self.disable_update_post,
             enable_chart_cleanup=self.enable_chart_cleanup,
-            dry_run=self.dry_run,
             set_ovr=self.set,
             force_wait=self.wait,
             timeout=self.timeout,
