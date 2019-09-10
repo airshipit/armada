@@ -118,7 +118,7 @@ class BaseResource(object):
         self.log_error(ctx, log.ERROR, msg)
 
     def get_tiller(self, req, resp):
-        return Tiller(dry_run=req.get_param_as_bool('dry_run'))
+        return Tiller()
 
 
 class ArmadaRequestContext(object):

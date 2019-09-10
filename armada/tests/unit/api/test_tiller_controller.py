@@ -45,7 +45,7 @@ class TillerControllerTest(base.BaseControllerTest):
 
         self.assertEqual(expected, result.json)
         self.assertEqual('application/json', result.headers['content-type'])
-        mock_tiller.assert_called_once_with(dry_run=None)
+        mock_tiller.assert_called_once()
         m_tiller.__exit__.assert_called()
 
     @mock.patch.object(api, 'Tiller')
@@ -70,7 +70,7 @@ class TillerControllerTest(base.BaseControllerTest):
 
         self.assertEqual(expected, result.json)
         self.assertEqual('application/json', result.headers['content-type'])
-        mock_tiller.assert_called_once_with(dry_run=None)
+        mock_tiller.assert_called_once()
         m_tiller.__exit__.assert_called()
 
     @mock.patch.object(api, 'Tiller')
@@ -100,7 +100,7 @@ class TillerControllerTest(base.BaseControllerTest):
         }
 
         self.assertEqual(expected, result.json)
-        mock_tiller.assert_called_once_with(dry_run=None)
+        mock_tiller.assert_called_once()
         m_tiller.list_releases.assert_called_once_with()
         m_tiller.__exit__.assert_called()
 
@@ -132,7 +132,7 @@ class TillerControllerTest(base.BaseControllerTest):
         }
 
         self.assertEqual(expected, result.json)
-        mock_tiller.assert_called_once_with(dry_run=None)
+        mock_tiller.assert_called_once()
         m_tiller.list_releases.assert_called_once_with()
         m_tiller.__exit__.assert_called()
 
