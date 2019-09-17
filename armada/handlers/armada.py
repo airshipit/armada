@@ -122,6 +122,7 @@ class Armada(object):
         location = chart_source.get('location')
         ct_type = chart_source.get('type')
         subpath = chart_source.get('subpath', '.')
+        proxy_server = chart_source.get('proxy_server')
 
         if ct_type == 'local':
             chart['source_dir'] = (location, subpath)
@@ -129,15 +130,18 @@ class Armada(object):
             source_key = (ct_type, location)
 
             if source_key not in self.chart_cache:
-                LOG.info('Downloading tarball from: %s', location)
+                LOG.info(
+                    "Downloading tarball from: %s / proxy %s", location,
+                    proxy_server or "not set")
 
                 if not CONF.certs:
                     LOG.warn(
                         'Disabling server validation certs to extract charts')
-                    tarball_dir = source.get_tarball(location, verify=False)
+                    tarball_dir = source.get_tarball(
+                        location, verify=False, proxy_server=proxy_server)
                 else:
                     tarball_dir = source.get_tarball(
-                        location, verify=CONF.certs)
+                        location, verify=CONF.certs, proxy_server=proxy_server)
                 self.chart_cache[source_key] = tarball_dir
             chart['source_dir'] = (self.chart_cache.get(source_key), subpath)
         elif ct_type == 'git':
@@ -146,7 +150,6 @@ class Armada(object):
 
             if source_key not in self.chart_cache:
                 auth_method = chart_source.get('auth_method')
-                proxy_server = chart_source.get('proxy_server')
 
                 logstr = 'Cloning repo: {} from branch: {}'.format(
                     location, reference)

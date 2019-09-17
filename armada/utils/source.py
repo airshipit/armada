@@ -113,21 +113,28 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
     return temp_dir
 
 
-def get_tarball(tarball_url, verify=False):
-    tarball_path = download_tarball(tarball_url, verify=verify)
+def get_tarball(tarball_url, verify=False, proxy_server=None):
+    tarball_path = download_tarball(
+        tarball_url, verify=verify, proxy_server=proxy_server)
     return extract_tarball(tarball_path)
 
 
-def download_tarball(tarball_url, verify=False):
+def download_tarball(tarball_url, verify=False, proxy_server=None):
     '''
     Downloads a tarball to /tmp and returns the path
     '''
     try:
         if not verify:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+        kwargs = {}
+        if proxy_server:
+            kwargs['proxies'] = {
+                'http': proxy_server,
+                'https': proxy_server,
+                'ftp': proxy_server
+            }
         tarball_filename = tempfile.mkstemp(prefix='armada')[1]
-        response = requests.get(tarball_url, verify=verify)
+        response = requests.get(tarball_url, verify=verify, **kwargs)
 
         with open(tarball_filename, 'wb') as f:
             f.write(response.content)
