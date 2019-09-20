@@ -60,6 +60,14 @@ pod:
         memory: "128Mi"
         cpu: "100m"
 
+network_policy:
+  tiller:
+    ingress:
+      - {}
+    egress:
+      - {}
+
 manifests:
   deployment_tiller: true
   service_tiller_deploy: true
+  network_policy: false
