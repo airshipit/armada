@@ -14,17 +14,10 @@
 
 - hosts: primary
   tasks:
-    - name: Install Required Packages
-      shell: |
-        ./tools/deployment/airskiff/developer/000-install-packages.sh
-      args:
-        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
-      become: yes
-
     - name: Clone Required Repositories
       shell: |
         export CLONE_ARMADA={{ CLONE_ARMADA }}
-        ./tools/deployment/airskiff/developer/005-clone-dependencies.sh
+        ./tools/deployment/airskiff/developer/000-clone-dependencies.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
