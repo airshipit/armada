@@ -44,6 +44,7 @@ deployment:
 conf:
   tiller:
     verbosity: 5
+    storage: null
     trace: false
     # Note: Defaulting to the (default) kubernetes grace period, as anything
     # greater than that will have no effect.

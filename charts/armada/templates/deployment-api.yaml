@@ -152,6 +152,9 @@ spec:
               value: {{ .Values.conf.tiller.history_max | quote }}
           command:
             - /tiller
+{{- if .Values.conf.tiller.storage }}
+            - --storage={{ .Values.conf.tiller.storage | quote }}
+{{- end }}
             - -logtostderr
             - -v
             - {{ .Values.conf.tiller.verbosity | quote }}
