@@ -16,13 +16,14 @@ limitations under the License.
 
 {{- if .Values.manifests.deployment_api }}
 {{- $envAll := . }}
+{{- $labels :=  tuple $envAll "armada" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" -}}
 {{- $mounts_armada_api := .Values.pod.mounts.armada_api.armada_api }}
 {{- $mounts_armada_api_init := .Values.pod.mounts.armada_api.init_container }}
 {{- $prometheus_annotations := $envAll.Values.monitoring.prometheus.armada }}
 {{- $serviceAccountName := "armada-api" }}
 {{ tuple $envAll "api" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: armada-api-runner
@@ -40,7 +41,7 @@ rules:
       - list
       - watch
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: run-armada-api
@@ -66,7 +67,7 @@ subjects:
     name: {{ $serviceAccountName }}
     namespace: {{ .Release.Namespace }}
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: armada-api
@@ -74,11 +75,14 @@ metadata:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 4 }}
 spec:
   replicas: {{ .Values.pod.replicas.api }}
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
 {{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "armada" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 8 }}
+{{ $labels | indent 8 }}
       annotations:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
