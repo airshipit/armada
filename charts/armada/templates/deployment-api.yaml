@@ -153,7 +153,7 @@ spec:
           command:
             - /tiller
 {{- if .Values.conf.tiller.storage }}
-            - --storage={{ .Values.conf.tiller.storage | quote }}
+            - --storage={{ .Values.conf.tiller.storage }}
 {{- end }}
             - -logtostderr
             - -v
