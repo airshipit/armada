@@ -21,13 +21,6 @@
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
-    - name: Build Armada with submitted changes
-      shell: |
-        make images
-      args:
-        chdir: "{{ zuul.project.src_dir }}"
-      become: yes
-
     - name: Deploy Kubernetes with Minikube
       shell: |
         ./tools/deployment/airskiff/developer/010-deploy-k8s.sh
@@ -39,6 +32,13 @@
         ./tools/deployment/airskiff/developer/020-setup-client.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+      become: yes
+
+    - name: Build Armada with submitted changes
+      shell: |
+        make images
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
       become: yes
 
     - name: Deploy Airship components using Armada
