@@ -51,6 +51,25 @@ conf:
     prestop_sleep: 30
 
 pod:
+  probes:
+    tiller:
+      tiller:
+        readiness:
+          enabled: true
+          params:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+        liveness:
+          enabled: true
+          params:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
   resources:
     enabled: false
     tiller:

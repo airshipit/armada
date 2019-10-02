@@ -14,6 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
+{{- define "armadaApiProbeTemplate" }}
+httpGet:
+  path: /api/v1.0/health
+  port: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+{{- end }}
+
+{{- define "tillerReadinessProbeTemplate" }}
+httpGet:
+  path: /readiness
+  port: 44135
+  scheme: HTTP
+{{- end }}
+
+{{- define "tillerLivenessProbeTemplate" }}
+httpGet:
+  path: /liveness
+  port: 44135
+  scheme: HTTP
+{{- end }}
+
 {{- if .Values.manifests.deployment_api }}
 {{- $envAll := . }}
 {{- $mounts_armada_api := .Values.pod.mounts.armada_api.armada_api }}
@@ -109,19 +129,8 @@ spec:
           ports:
             - name: armada-api
               containerPort: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-          livenessProbe:
-            httpGet:
-              path: /api/v1.0/health
-              port: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-            initialDelaySeconds: 15
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              scheme: HTTP
-              path: /api/v1.0/health
-              port: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-            initialDelaySeconds: 15
-            periodSeconds: 10
+{{ dict "envAll" $envAll "component" "armada" "container" "api" "type" "readiness" "probeTemplate" (include "armadaApiProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
+{{ dict "envAll" $envAll "component" "armada" "container" "api" "type" "liveness" "probeTemplate" (include "armadaApiProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
           volumeMounts:
             - name: pod-tmp
               mountPath: /tmp
@@ -175,26 +184,8 @@ spec:
             - name: tiller
               containerPort: {{ .Values.conf.tiller.port }}
               protocol: TCP
-          readinessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /readiness
-              port: 44135
-              scheme: HTTP
-            initialDelaySeconds: 1
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          livenessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: /liveness
-              port: 44135
-              scheme: HTTP
-            initialDelaySeconds: 1
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
+{{ dict "envAll" $envAll "component" "armada" "container" "tiller" "type" "readiness" "probeTemplate" (include "tillerReadinessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
+{{ dict "envAll" $envAll "component" "armada" "container" "tiller" "type" "liveness" "probeTemplate" (include "tillerLivenessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
 {{- end }}
 {{ if $mounts_armada_api.volumeMounts }}{{ toYaml $mounts_armada_api.volumeMounts | indent 12 }}{{ end }}
       volumes:
