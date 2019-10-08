@@ -19,7 +19,7 @@ limitations under the License.
 {{- $serviceAccountName := "tiller-deploy" }}
 {{ tuple $envAll "tiller_deploy" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: run-tiller
@@ -32,7 +32,7 @@ subjects:
   name: {{ $serviceAccountName }}
   namespace: {{ .Release.Namespace }}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
