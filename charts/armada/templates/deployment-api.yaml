@@ -138,8 +138,6 @@ spec:
           volumeMounts:
             - name: pod-tmp
               mountPath: /tmp
-            - name: pod-tmp-metrics
-              mountPath: /tmp/armada/metrics
             - name: pod-etc-armada
               mountPath: /etc/armada
             - name: armada-etc
@@ -195,9 +193,6 @@ spec:
       volumes:
         - name: pod-tmp
           emptyDir: {}
-        - name: pod-tmp-metrics
-          emptyDir:
-            medium: Memory
         - name: pod-etc-armada
           emptyDir: {}
         - name: armada-bin

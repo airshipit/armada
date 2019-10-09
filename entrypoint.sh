@@ -27,7 +27,7 @@ ARMADA_UWSGI_WORKERS=${ARMADA_UWSGI_WORKERS:-4}
 # Threads per worker
 ARMADA_UWSGI_THREADS=${ARMADA_UWSGI_THREADS:-1}
 # Prometheus multiprocess dir
-ARMADA_PROMETHEUS_MULTIPROC_DIR=${ARMADA_PROMETHEUS_MULTIPROC_DIR:-$(mktemp -d -p /tmp/armada/metrics XXXXXX)}
+ARMADA_PROMETHEUS_MULTIPROC_DIR=${ARMADA_PROMETHEUS_MULTIPROC_DIR:-$(mktemp -d -p /tmp armada-metrics-XXXXXX)}
 
 # Start Armada application
 # TODO(fmontei): Should be specifying callable too. But Armada spins up the
