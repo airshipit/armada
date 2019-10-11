@@ -225,6 +225,36 @@ monitoring:
       port: 8000
 
 pod:
+  probes:
+    armada:
+      api:
+        readiness:
+          enabled: true
+          params:
+            initialDelaySeconds: 15
+            periodSeconds: 10
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      tiller:
+        readiness:
+          enabled: true
+          params:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+        liveness:
+          enabled: true
+          params:
+            failureThreshold: 3
+            initialDelaySeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
   security_context:
     armada:
       pod:
