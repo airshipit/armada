@@ -118,6 +118,7 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.pod.lifecycle.termination_grace_period.api.timeout | default "30" }}
       initContainers:
 {{ tuple $envAll "api" $mounts_armada_api_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
+{{ dict "envAll" $envAll "application" "armada" "container" "armada_api_init" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
       containers:
         - name: armada-api
 {{ tuple $envAll "api" | include "helm-toolkit.snippets.image" | indent 10 }}
