@@ -153,18 +153,15 @@ class K8s(object):
             LOG.debug(
                 'Watching to delete %s %s, Wait timeout=%s',
                 object_type_description, name, timeout)
-            body = client.V1DeleteOptions()
+            body = client.V1DeleteOptions(
+                propagation_policy=propagation_policy)
             w = watch.Watch()
             issue_delete = True
             found_events = False
             for event in w.stream(list_func, namespace=namespace,
                                   timeout_seconds=timeout):
                 if issue_delete:
-                    delete_func(
-                        name=name,
-                        namespace=namespace,
-                        body=body,
-                        propagation_policy=propagation_policy)
+                    delete_func(name=name, namespace=namespace, body=body)
                     issue_delete = False
 
                 event_type = event['type'].upper()
