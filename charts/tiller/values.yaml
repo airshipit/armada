@@ -49,6 +49,8 @@ conf:
     # Note: Defaulting to the (default) kubernetes grace period, as anything
     # greater than that will have no effect.
     prestop_sleep: 30
+    port: 44134
+    probe_port: 44135
 
 pod:
   probes:

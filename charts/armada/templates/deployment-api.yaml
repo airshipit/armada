@@ -23,14 +23,14 @@ httpGet:
 {{- define "tillerReadinessProbeTemplate" }}
 httpGet:
   path: /readiness
-  port: 44135
+  port: {{ .Values.conf.tiller.probe_port }}
   scheme: HTTP
 {{- end }}
 
 {{- define "tillerLivenessProbeTemplate" }}
 httpGet:
   path: /liveness
-  port: 44135
+  port: {{ .Values.conf.tiller.probe_port }}
   scheme: HTTP
 {{- end }}
 
@@ -167,6 +167,10 @@ spec:
 {{- if .Values.conf.tiller.storage }}
             - --storage={{ .Values.conf.tiller.storage }}
 {{- end }}
+            - -listen
+            - ":{{ .Values.conf.tiller.port }}"
+            - -probe-listen
+            - ":{{ .Values.conf.tiller.probe_port }}"
             - -logtostderr
             - -v
             - {{ .Values.conf.tiller.verbosity | quote }}
