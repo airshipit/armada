@@ -1,0 +1,165 @@
+
+apiVersion: "apiextensions.k8s.io/v1"
+kind: "CustomResourceDefinition"
+metadata:
+  name: "armadacharts.armada.airshipit.org"
+spec:
+  group: "armada.airshipit.org"
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                release:
+                  type: string
+                namespace:
+                  type: string
+                values:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                protected:
+                  type: object
+                  properties:
+                    continue_processing:
+                      type: boolean
+                test:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    timeout:
+                      type: integer
+                    options:
+                      type: object
+                      properties:
+                        cleanup:
+                          type: boolean
+                wait:
+                  type: object
+                  properties:
+                    timeout:
+                      type: integer
+                    resources:
+                      type: object
+                      additionalProperties:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            labels:
+                              type: object
+                              additionalProperties:
+                                type: string
+                            min_ready:
+                              x-kubernetes-int-or-string: true
+                              anyOf:
+                                - type: integer
+                                - type: string
+                            required:
+                              type: boolean
+                    resources_list:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          labels:
+                            type: object
+                            additionalProperties:
+                              type: string
+                          min_ready:
+                            x-kubernetes-int-or-string: true
+                            anyOf:
+                              - type: integer
+                              - type: string
+                          required:
+                            type: boolean
+                          type:
+                            type: string
+                        required:
+                          - type
+                    labels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    native:
+                      type: object
+                      properties:
+                        enabled:
+                          type: boolean
+                  # Note: This is specific to the kubernetes schema.
+                  # Dynamically typed fields are disallowed by kubernetes
+                  # structural schemas, so object and list resource overrides
+                  # need two separate fields. We specify here that, exactly one
+                  # of these can be given.
+                  not:
+                    allOf:
+                      - required:
+                          - resources
+                      - required:
+                          - resources_list
+                source:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    location:
+                      type: string
+                    subpath:
+                      type: string
+                    reference:
+                      type: string
+                    proxy_server:
+                      type: string
+                    auth_method:
+                      type: string
+                  required:
+                    - location
+                    - type
+                delete:
+                  type: object
+                  properties:
+                    timeout:
+                      type: integer
+                upgrade:
+                  type: object
+                  properties:
+                    pre:
+                      type: object
+                      properties:
+                        delete:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                              labels:
+                                type: object
+                                additionalProperties:
+                                  type: string
+                            required:
+                              - type
+                    options:
+                      type: object
+                      properties:
+                        force:
+                          type: boolean
+                        recreate_pods:
+                          type: boolean
+                        no_hooks:
+                          type: boolean
+              required:
+                - namespace
+                - release
+                - source
+  scope: "Namespaced"
+  names:
+    plural: "armadacharts"
+    singular: "armadachart"
+    kind: "ArmadaChart"
