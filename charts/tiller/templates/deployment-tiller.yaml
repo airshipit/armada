@@ -75,6 +75,7 @@ spec:
       annotations:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
     spec:
+{{ dict "envAll" $envAll "application" "tiller" | include "helm-toolkit.snippets.kubernetes_pod_security_context" | indent 6 }}
       serviceAccountName: {{ $serviceAccountName }}
       nodeSelector:
         {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value }}
@@ -82,6 +83,7 @@ spec:
         - name: tiller
 {{ tuple $envAll "tiller" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ tuple $envAll $envAll.Values.pod.resources.tiller | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
+{{ dict "envAll" $envAll "application" "tiller" "container" "tiller" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
           env:
             - name: TILLER_NAMESPACE
               value: {{ .Values.Name }}

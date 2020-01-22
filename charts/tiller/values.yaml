@@ -51,6 +51,14 @@ conf:
     prestop_sleep: 30
 
 pod:
+  security_context:
+    tiller:
+      pod:
+        runAsUser: 65534
+      container:
+        tiller:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
   probes:
     tiller:
       tiller:
