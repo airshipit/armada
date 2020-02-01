@@ -405,7 +405,7 @@ class ResourceWait(ABC):
                 continue
 
             msg = (
-                'Watch event: type=%s, name=%s, namespace=%s,'
+                'Watch event: type=%s, name=%s, namespace=%s, '
                 'resource_version=%s')
             LOG.debug(
                 msg, event_type, resource_name, self.chart_wait.namespace,
