@@ -18,14 +18,14 @@ limitations under the License.
 httpGet:
   scheme: HTTP
   path: /readiness
-  port: 44135
+  port: {{ .Values.conf.tiller.probe_port }}
 {{- end }}
 
 {{- define "tillerLivenessProbeTemplate" }}
 httpGet:
   scheme: HTTP
   path: /liveness
-  port: 44135
+  port: {{ .Values.conf.tiller.probe_port }}
 {{- end }}
 
 {{- if .Values.manifests.deployment_tiller }}
@@ -94,6 +94,10 @@ spec:
 {{- if .Values.conf.tiller.storage }}
             - --storage={{ .Values.conf.tiller.storage }}
 {{- end }}
+            - -listen
+            - ":{{ .Values.conf.tiller.port }}"
+            - -probe-listen
+            - ":{{ .Values.conf.tiller.probe_port }}"
             - -logtostderr
             - -v
             - {{ .Values.conf.tiller.verbosity | quote }}
@@ -112,7 +116,7 @@ spec:
                   - "{{ .Values.conf.tiller.prestop_sleep }}"
           ports:
             - name: tiller
-              containerPort: 44134
+              containerPort: {{ .Values.conf.tiller.port }}
               protocol: TCP
 {{ dict "envAll" $envAll "component" "tiller" "container" "tiller" "type" "readiness" "probeTemplate" (include "tillerReadinessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
 {{ dict "envAll" $envAll "component" "tiller" "container" "tiller" "type" "liveness" "probeTemplate" (include "tillerLivenessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}

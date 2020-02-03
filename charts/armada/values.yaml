@@ -206,7 +206,8 @@ conf:
   tiller:
     # If set to false then some form of Tiller needs to be provided
     enabled: true
-    port: 44134
+    port: 24134
+    probe_port: 24135
     verbosity: 5
     trace: false
     storage: null
