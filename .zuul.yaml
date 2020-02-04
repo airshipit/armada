@@ -46,7 +46,7 @@
     name: armada-single-node
     nodes:
       - name: primary
-        label: ubuntu-xenial
+        label: ubuntu-bionic
 
 - job:
     name: armada-chart-build-gate
