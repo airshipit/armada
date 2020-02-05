@@ -31,6 +31,8 @@ httpGet:
 {{- if .Values.manifests.deployment_tiller }}
 {{- $envAll := . }}
 {{- $serviceAccountName := "tiller-deploy" }}
+{{- $mounts_tiller := .Values.pod.mounts.tiller.tiller }}
+
 {{ tuple $envAll "tiller_deploy" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -89,6 +91,8 @@ spec:
               value: {{ .Values.Name }}
             - name: TILLER_HISTORY_MAX
               value: {{ .Values.deployment.tiller_history | quote }}
+          volumeMounts:
+{{ toYaml $mounts_tiller.volumeMounts | indent 12 }}
           command:
             - /tiller
 {{- if .Values.conf.tiller.storage }}
@@ -120,5 +124,7 @@ spec:
               protocol: TCP
 {{ dict "envAll" $envAll "component" "tiller" "container" "tiller" "type" "readiness" "probeTemplate" (include "tillerReadinessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
 {{ dict "envAll" $envAll "component" "tiller" "container" "tiller" "type" "liveness" "probeTemplate" (include "tillerLivenessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
+      volumes:
+{{ toYaml $mounts_tiller.volumes | indent 8 }}
 status: {}
 {{- end }}
