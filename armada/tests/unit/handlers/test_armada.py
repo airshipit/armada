@@ -19,15 +19,13 @@ from armada import const
 from armada.handlers import armada
 from armada.utils.helm import TESTRUN_STATUS_SUCCESS, TESTRUN_STATUS_FAILURE
 from armada.tests.unit import base
-from armada.tests.test_utils import AttrDict, makeMockThreadSafe
+from armada.tests.test_utils import AttrDict
 from armada.utils.release import release_prefixer, get_release_status
 from armada.exceptions import ManifestException
 from armada.exceptions.override_exceptions import InvalidOverrideValueException
 from armada.exceptions.validate_exceptions import InvalidManifestException
 from armada.exceptions import tiller_exceptions
 from armada.exceptions.armada_exceptions import ChartDeployException
-
-makeMockThreadSafe()
 
 TEST_YAML = """
 ---
