@@ -89,7 +89,17 @@ pod:
       requests:
         memory: "128Mi"
         cpu: "100m"
-
+  mounts:
+    tiller:
+      tiller:
+        volumes:
+          - name: kubernetes-client-cache
+            emptyDir: {}
+        volumeMounts:
+          - name: kubernetes-client-cache
+            # Should be the `$HOME/.kube` of the `runAsUser` above
+            # as this is where tiller's kubernetes client roots its cache dir.
+            mountPath: /tmp/.kube
 network_policy:
   tiller:
     ingress:
