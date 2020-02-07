@@ -226,6 +226,10 @@ monitoring:
       port: 8000
 
 pod:
+  mandatory_access_control:
+    type: apparmor
+    armada-api:
+      armada-api: runtime/default
   probes:
     armada:
       api:

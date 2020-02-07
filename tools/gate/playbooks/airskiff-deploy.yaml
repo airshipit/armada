@@ -31,6 +31,12 @@
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
+    - name: Setup Apparmor
+      shell: |
+        ./tools/deployment/airskiff/developer/015-setup-apparmor.sh
+      args:
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+
     - name: Deploy Kubernetes with Minikube
       shell: |
         ./tools/deployment/airskiff/developer/010-deploy-k8s.sh
