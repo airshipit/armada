@@ -33,7 +33,7 @@
 
     - name: Setup Apparmor
       shell: |
-        ./tools/deployment/airskiff/developer/015-setup-apparmor.sh
+        ./tools/deployment/airskiff/developer/009-setup-apparmor.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
