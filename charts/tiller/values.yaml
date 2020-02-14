@@ -53,6 +53,10 @@ conf:
     probe_port: 44135
 
 pod:
+  mandatory_access_control:
+    type: apparmor
+    tiller:
+      tiller: runtime/default
   security_context:
     tiller:
       pod:
