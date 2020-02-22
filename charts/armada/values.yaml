@@ -263,12 +263,16 @@ pod:
   security_context:
     armada:
       pod:
-        runAsUser: 65534
+        runAsUser: 1000
       container:
         armada_api_init:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         armada_api:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        tiller:
+          runAsUser: 65534
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
   env:
@@ -304,8 +308,14 @@ pod:
         volumes: []
         volumeMounts: []
       tiller:
-        volumes: []
-        volumeMounts: []
+        volumes:
+          - name: kubernetes-client-cache
+            emptyDir: {}
+        volumeMounts:
+          - name: kubernetes-client-cache
+            # Should be the `$HOME/.kube` of the `runAsUser` above
+            # as this is where tiller's kubernetes client roots its cache dir.
+            mountPath: /tmp/.kube
   affinity:
     anti:
       type:
