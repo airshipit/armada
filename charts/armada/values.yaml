@@ -300,6 +300,12 @@ pod:
   mounts:
     armada_api:
       init_container: null
+      armada_api:
+        volumes: []
+        volumeMounts: []
+      tiller:
+        volumes: []
+        volumeMounts: []
   affinity:
     anti:
       type:
