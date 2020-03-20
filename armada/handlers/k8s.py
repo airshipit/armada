@@ -370,7 +370,7 @@ class K8s(object):
             group, version, namespace, plural, body)
 
     def delete_custom_resource(
-            self, group, version, namespace, plural, name, body):
+            self, group, version, namespace, plural, name, body={}):
         """Deletes a custom resource
 
         :param group: the custom resource's group
@@ -384,7 +384,7 @@ class K8s(object):
         :rtype: object
         """
         return self.custom_objects.delete_namespaced_custom_object(
-            group, version, namespace, plural, name, body)
+            group, version, namespace, plural, name, body=body)
 
     def read_custom_resource(self, group, version, namespace, plural, name):
         """Gets information on a specified custom resource
