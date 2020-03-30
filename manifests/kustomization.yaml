@@ -1,0 +1,3 @@
+resources:
+  - chart-crd.yaml
+  - rbac.yaml

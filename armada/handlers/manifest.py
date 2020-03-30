@@ -22,56 +22,12 @@ from armada.handlers import schema
 LOG = logging.getLogger(__name__)
 
 
-class Manifest(object):
-    def __init__(self, documents, target_manifest=None):
-        """Instantiates a Manifest object.
-
-        An Armada Manifest expects that at least one of each of the following
-        be included in ``documents``:
-
-        * A document with schema "armada/Chart/v1"
-        * A document with schema "armada/ChartGroup/v1"
-
-        And only one document of the following is allowed:
-
-        * A document with schema "armada/Manifest/v1"
-
-        If multiple documents with schema "armada/Manifest/v1" are provided,
-        specify ``target_manifest`` to select the target one.
-
-        :param List[dict] documents: Documents out of which to build the
-            Armada Manifest.
-        :param str target_manifest: The target manifest to use when multiple
-            documents with "armada/Manifest/v1" are contained in
-            ``documents``. Default is None.
-        :raises ManifestException: If the expected number of document types
-            are not found or if the document types are missing required
-            properties.
-        """
+class Doc(object):
+    def __init__(self, documents):
         self.documents = deepcopy(documents)
-        self.charts, self.groups, manifests = self._find_documents(
-            target_manifest)
+        self.charts, self.groups, self.manifests = self._find_documents()
 
-        if len(manifests) > 1:
-            error = (
-                'Multiple manifests are not supported. Ensure that the '
-                '`target_manifest` option is set to specify the target '
-                'manifest')
-            LOG.error(error)
-            raise exceptions.ManifestException(details=error)
-        else:
-            self.manifest = manifests[0] if manifests else None
-
-        if not all([self.charts, self.groups, self.manifest]):
-            expected_schemas = [schema.TYPE_CHART, schema.TYPE_CHARTGROUP]
-            error = (
-                'Documents must include at least one of each of {} '
-                'and only one {}').format(
-                    expected_schemas, schema.TYPE_MANIFEST)
-            LOG.error(error)
-            raise exceptions.ManifestException(details=error)
-
-    def _find_documents(self, target_manifest=None):
+    def _find_documents(self):
         """Returns the chart documents, chart group documents,
         and Armada manifest
 
@@ -97,13 +53,43 @@ class Manifest(object):
             if schema_info.type == schema.TYPE_CHARTGROUP:
                 groups.append(document)
             if schema_info.type == schema.TYPE_MANIFEST:
-                manifest_name = document.get('metadata', {}).get('name')
-                if target_manifest:
-                    if manifest_name == target_manifest:
-                        manifests.append(document)
-                else:
-                    manifests.append(document)
+                manifests.append(document)
         return charts, groups, manifests
+
+    def _get_target_doc(self, sch, documents, target, target_arg_name):
+        """Validates there is exactly one document of a given schema and
+        optionally name and returns it.
+
+        :param sch: Schema which corresponds to `documents`.
+        :param documents: Documents which correspond to `sch`.
+        :param target: The target document name of schema `sch` to return.
+            Default is None.
+        :raises ManifestException: If `target` is None and multiple `documents`
+            are passed, or if no documents are found matching the parameters.
+        """
+        candidates = []
+        for manifest in documents:
+            if target:
+                manifest_name = manifest.get('metadata', {}).get('name')
+                if manifest_name == target:
+                    candidates.append(manifest)
+            else:
+                candidates.append(manifest)
+
+        if len(candidates) > 1:
+            error = (
+                'Multiple {} documents are not supported. Ensure that the '
+                '`{}` option is set to specify the target one').format(
+                    sch, target_arg_name)
+            LOG.error(error)
+            raise exceptions.ManifestException(details=error)
+
+        if not candidates:
+            error = 'Documents must include at least one {}'.format(sch)
+            LOG.error(error)
+            raise exceptions.ManifestException(details=error)
+
+        return candidates[0]
 
     def find_chart_document(self, name):
         """Returns a chart document with the specified name
@@ -120,22 +106,6 @@ class Manifest(object):
         raise exceptions.BuildChartException(
             details='Could not find {} named "{}"'.format(
                 schema.TYPE_CHART, name))
-
-    def find_chart_group_document(self, name):
-        """Returns a chart group document with the specified name
-
-        :param str name: name of the desired chart group document
-        :returns: The requested chart group document
-        :rtype: dict
-        :raises ManifestException: If a chart
-            group document with the specified name is not found
-        """
-        for group in self.groups:
-            if group.get('metadata', {}).get('name') == name:
-                return group
-        raise exceptions.BuildChartGroupException(
-            details='Could not find {} named "{}"'.format(
-                schema.TYPE_CHARTGROUP, name))
 
     def build_chart_deps(self, chart):
         """Recursively build chart dependencies for ``chart``.
@@ -163,6 +133,90 @@ class Manifest(object):
                        chart.get('metadata').get('name')))
         else:
             return chart
+
+
+class Chart(Doc):
+    def __init__(self, documents, target_chart=None):
+        """A Chart expects the following be included in ``documents``:
+
+        * A document with schema "armada/Chart/v1"
+
+        If multiple Charts are provided, specify ``target_chart`` to select the
+        target one.
+
+        :param documents: Documents out of which to build the
+            Chart.
+        :param target_chart: The target Chart to use when multiple
+            Charts are contained in ``documents``. Default is None.
+        :raises ManifestException: If the expected number of document types
+            are not found or if the document types are missing required
+            properties.
+        """
+        super(Chart, self).__init__(documents)
+        self.chart = self._get_target_doc(
+            schema.TYPE_CHART, self.documents, target_chart, 'target_chart')
+
+    def get_chart(self):
+        """Builds the Chart
+
+        :returns: The Chart.
+        :rtype: dict
+        """
+        self.build_chart_deps(self.chart)
+        return self.chart
+
+
+class Manifest(Doc):
+    def __init__(self, documents, target_manifest=None):
+        """An Armada Manifest expects that at least one of each of the following
+        be included in ``documents``:
+
+        * A document with schema "armada/Chart/v1"
+        * A document with schema "armada/ChartGroup/v1"
+
+        And only one document of the following is allowed:
+
+        * A document with schema "armada/Manifest/v1"
+
+        If multiple documents with schema "armada/Manifest/v1" are provided,
+        specify ``target_manifest`` to select the target one.
+
+        :param List[dict] documents: Documents out of which to build the
+            Armada Manifest.
+        :param str target_manifest: The target manifest to use when multiple
+            documents with "armada/Manifest/v1" are contained in
+            ``documents``. Default is None.
+        :raises ManifestException: If the expected number of document types
+            are not found or if the document types are missing required
+            properties.
+        """
+        super(Manifest, self).__init__(documents)
+        self.manifest = self._get_target_doc(
+            schema.TYPE_MANIFEST, self.manifests, target_manifest,
+            'target_manifest')
+
+        if not all([self.charts, self.groups]):
+            expected_schemas = [schema.TYPE_CHART, schema.TYPE_CHARTGROUP]
+            error = 'Documents must include at least one of each of {}'.format(
+                expected_schemas)
+            LOG.error(error)
+            raise exceptions.ManifestException(details=error)
+
+    def find_chart_group_document(self, name):
+        """Returns a chart group document with the specified name
+
+        :param str name: name of the desired chart group document
+        :returns: The requested chart group document
+        :rtype: dict
+        :raises ManifestException: If a chart
+            group document with the specified name is not found
+        """
+        for group in self.groups:
+            if group.get('metadata', {}).get('name') == name:
+                return group
+        raise exceptions.BuildChartGroupException(
+            details='Could not find {} named "{}"'.format(
+                schema.TYPE_CHARTGROUP, name))
 
     def build_chart_group(self, chart_group):
         """Builds the chart dependencies for`charts`chart group``.

@@ -11,6 +11,7 @@ Commands Guide
    :caption: Contents:
 
    apply.rst
+   apply_chart.rst
    rollback.rst
    test.rst
    tiller.rst

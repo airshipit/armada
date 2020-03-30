@@ -17,8 +17,10 @@
 import urllib.parse
 import re
 
-import requests
 from oslo_log import log as logging
+import requests
+import yaml
+from kubernetes.client.rest import ApiException
 
 from armada.exceptions.source_exceptions import InvalidPathException
 from armada.utils import keystone as ks_utils
@@ -30,7 +32,7 @@ class ReferenceResolver(object):
     """Class for handling different data references to resolve the data."""
 
     @classmethod
-    def resolve_reference(cls, design_ref):
+    def resolve_reference(cls, design_ref, k8s=None):
         """Resolve a reference to a design document.
 
         Locate a schema handler based on the URI scheme of the data reference
@@ -51,10 +53,16 @@ class ReferenceResolver(object):
 
                 # when scheme is a empty string assume it is a local
                 # file path
-                if design_uri.scheme == '':
-                    handler = cls.scheme_handlers.get('file')
-                else:
-                    handler = cls.scheme_handlers.get(design_uri.scheme, None)
+                scheme = design_uri.scheme or 'file'
+                handler = cls.scheme_handlers.get(scheme, None)
+                handler = handler.__get__(None, cls)
+                if design_uri.scheme == 'kube':
+                    handler_2 = handler
+
+                    def handler_1(design_uri):
+                        return handler_2(design_uri, k8s)
+
+                    handler = handler_1
 
                 if handler is None:
                     raise InvalidPathException(
@@ -70,6 +78,50 @@ class ReferenceResolver(object):
                     "to parse as valid URI." % l)
 
         return data
+
+    @classmethod
+    def resolve_reference_kube(cls, design_uri, k8s):
+        """Retrieve design documents from kubernetes crd.
+
+        Return the result of converting the CRD to the armada/Chart/v2 schema.
+
+        :param design_uri: Tuple as returned by urllib.parse
+                            for the design reference
+        """
+        if design_uri.path != '':
+            parts = design_uri.path.split('/')
+            if len(parts) != 3:
+                raise InvalidPathException(
+                    "Invalid kubernetes custom resource path segment count {} "
+                    "for '{}', expected <kind>/<namespace>/<name>".format(
+                        len(parts), design_uri.path))
+            plural, namespace, name = parts
+            if plural != 'armadacharts':
+                raise InvalidPathException(
+                    "Invalid kubernetes custom resource kind '{}' for '{}', "
+                    "only 'armadacharts' are supported".format(
+                        plural, design_uri.path))
+
+            try:
+                cr = k8s.read_custom_resource(
+                    group='armada.airshipit.org',
+                    version='v1alpha1',
+                    namespace=namespace,
+                    plural=plural,
+                    name=name)
+
+            except ApiException as err:
+                if err.status == 404:
+                    raise InvalidPathException(
+                        "Kubernetes custom resource not found: plural='{}', "
+                        "namespace='{}', name='{}', api exception=\n{}".format(
+                            plural, namespace, name, err.message))
+                raise
+
+            cr['schema'] = 'armada/Chart/v2'
+            spec = cr.pop('spec')
+            cr['data'] = spec
+        return yaml.safe_dump(cr, encoding='utf-8')
 
     @classmethod
     def resolve_reference_http(cls, design_uri):
@@ -134,6 +186,7 @@ class ReferenceResolver(object):
         return resp.content
 
     scheme_handlers = {
+        'kube': resolve_reference_kube,
         'http': resolve_reference_http,
         'file': resolve_reference_file,
         'https': resolve_reference_http,

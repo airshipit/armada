@@ -124,6 +124,7 @@ Chart
 | dependencies    | object   | (optional) Override the `builtin chart dependencies`_ with a list of Chart documents  |
 |                 |          | to use as dependencies instead.                                                       |
 |                 |          | NOTE: Builtin ".tgz" dependencies are not yet supported.                              |
+|                 |          | NOTE: This field is not supported in the ArmadaChart CRD.                             |
 +-----------------+----------+---------------------------------------------------------------------------------------+
 
 .. _wait_v2:
@@ -154,6 +155,8 @@ Wait
 |             |          | **array** - Lists all `Wait Resource`_ s to use, completely        |
 |             |          | overriding the default. Can be set to ``[]`` to disable all        |
 |             |          | resource types.                                                    |
+|             |          | NOTE: To use the array form with the ArmadaChart CRD, the keyword  |
+|             |          | must be ``resources_list`` instead of ``resources``.               |
 |             |          |                                                                    |
 |             |          | See also `Wait Resources Examples`_.                               |
 +-------------+----------+--------------------------------------------------------------------+

@@ -59,6 +59,9 @@ class ChartWait():
         schema_info = get_schema_info(self.chart['schema'])
 
         resources = self.wait_config.get('resources')
+        if not resources:
+            resources = self.wait_config.get('resources_list')
+
         if isinstance(resources, list):
             # Explicit resource config list provided.
             resources_list = resources

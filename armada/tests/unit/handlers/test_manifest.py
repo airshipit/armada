@@ -117,7 +117,7 @@ class ManifestTestCase(testtools.TestCase):
     def test_find_documents(self):
         armada_manifest = manifest.Manifest(self.documents)
         chart_documents, chart_groups, manifests = armada_manifest. \
-            _find_documents(target_manifest='armada-manifest')
+            _find_documents()
 
         # checking if all the chart documents are present
         self.assertIsInstance(chart_documents, list)
@@ -344,7 +344,8 @@ class ManifestNegativeTestCase(testtools.TestCase):
         documents = copy.deepcopy(self.documents)
         documents.append(documents[-1])  # Copy the last manifest.
 
-        error_re = r'Multiple manifests are not supported.*'
+        error_re = r'Multiple {} documents are not supported.*'.format(
+            schema.TYPE_MANIFEST)
         self.assertRaisesRegexp(
             exceptions.ManifestException, error_re, manifest.Manifest,
             documents)
@@ -355,7 +356,8 @@ class ManifestNegativeTestCase(testtools.TestCase):
         documents = copy.deepcopy(self.documents)
         documents.append(documents[-1])  # Copy the last manifest.
 
-        error_re = r'Multiple manifests are not supported.*'
+        error_re = r'Multiple {} documents are not supported.*'.format(
+            schema.TYPE_MANIFEST)
         self.assertRaisesRegexp(
             exceptions.ManifestException,
             error_re,
@@ -364,9 +366,7 @@ class ManifestNegativeTestCase(testtools.TestCase):
             target_manifest='armada-manifest')
 
     def _assert_missing_documents_raises(self, documents):
-        error_re = (
-            '.*Documents must include at least one of each of .* and '
-            'only one .*')
+        error_re = ('.*Documents must include at least one of each of .*')
         self.assertRaisesRegexp(
             exceptions.ManifestException, error_re, manifest.Manifest,
             documents)
@@ -374,7 +374,11 @@ class ManifestNegativeTestCase(testtools.TestCase):
     def test_get_documents_missing_manifest(self):
         # Validates exceptions.ManifestException is thrown if no manifest is
         # found. Manifest is last document in sample YAML.
-        self._assert_missing_documents_raises(self.documents[:-1])
+        error_re = 'Documents must include at least one {}'.format(
+            schema.TYPE_MANIFEST)
+        self.assertRaisesRegexp(
+            exceptions.ManifestException, error_re, manifest.Manifest,
+            self.documents[:-1])
 
     def test_get_documents_missing_charts(self):
         # Validates exceptions.ManifestException is thrown if no chart is

@@ -143,16 +143,21 @@ data:
       enabled: true
 """
 
-CHART_SOURCES = [
-    ('git://opendev.org/dummy/armada.git', 'chart_1'),
-    ('/tmp/dummy/armada', 'chart_2'), ('/tmp/dummy/armada', 'chart_3'),
-    ('/tmp/dummy/armada', 'chart_4')
-]
+CHART_SOURCES = (
+    ('git://opendev.org/dummy/armada.git',
+     'chart_1'), ('/tmp/dummy/armada', 'chart_2'),
+    ('/tmp/dummy/armada', 'chart_3'), ('/tmp/dummy/armada', 'chart_4'))
 
 
 # TODO(seaneagan): Add unit tests with dependencies, including transitive.
 class ArmadaHandlerTestCase(base.ArmadaTestCase):
-    def _test_pre_flight_ops(self, armada_obj):
+    def _test_pre_flight_ops(self, armada_obj, MockChartDownload):
+        def set_source_dir(ch, manifest=None):
+            d = ch['data']
+            d['source_dir'] = (d['source']['location'], d['source']['subpath'])
+
+        MockChartDownload.return_value.get_chart.side_effect = set_source_dir
+
         armada_obj.pre_flight_ops()
 
         expected_config = {
@@ -305,38 +310,30 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
         self.assertIn('data', armada_obj.manifest)
         self.assertEqual(expected_config, armada_obj.manifest)
 
-    @mock.patch.object(armada, 'source')
-    def test_pre_flight_ops(self, mock_source):
+    @mock.patch.object(armada, 'ChartDownload')
+    def test_pre_flight_ops(self, MockChartDownload):
         """Test pre-flight checks and operations."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         m_tiller = mock.Mock()
         m_tiller.tiller_status.return_value = True
         armada_obj = armada.Armada(yaml_documents, m_tiller)
 
-        # Mock methods called by `pre_flight_ops()`.
-        mock_source.git_clone.return_value = CHART_SOURCES[0][0]
+        self._test_pre_flight_ops(armada_obj, MockChartDownload)
 
-        self._test_pre_flight_ops(armada_obj)
+        MockChartDownload.return_value.get_chart.assert_called()
 
-        mock_source.git_clone.assert_called_once_with(
-            'git://opendev.org/dummy/armada.git',
-            'master',
-            auth_method=None,
-            proxy_server=None)
-
-    @mock.patch.object(armada, 'source')
-    def test_post_flight_ops(self, mock_source):
+    @mock.patch.object(armada, 'ChartDownload')
+    def test_post_flight_ops(self, MockChartDownload):
         """Test post-flight operations."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
 
         # Mock methods called by `pre_flight_ops()`.
         m_tiller = mock.Mock()
         m_tiller.tiller_status.return_value = True
-        mock_source.git_clone.return_value = CHART_SOURCES[0][0]
 
         armada_obj = armada.Armada(yaml_documents, m_tiller)
 
-        self._test_pre_flight_ops(armada_obj)
+        self._test_pre_flight_ops(armada_obj, MockChartDownload)
 
         armada_obj.post_flight_ops()
 
@@ -345,8 +342,7 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
                     const.KEYWORD_CHARTS)):
                 if chart.get(
                         const.KEYWORD_DATA).get('source').get('type') == 'git':
-                    mock_source.source_cleanup.assert_called_with(
-                        CHART_SOURCES[counter][0])
+                    MockChartDownload.return_value.cleanup.assert_called_with()
 
     # TODO(seaneagan): Separate ChartDeploy tests into separate module.
     # TODO(seaneagan): Once able to make mock library sufficiently thread safe,
@@ -671,19 +667,17 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
 
 
 class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
-    @mock.patch.object(armada, 'source')
-    def test_armada_get_manifest_exception(self, mock_source):
+    @mock.patch.object(armada, 'ChartDownload')
+    def test_armada_get_manifest_exception(self, MockChartDownload):
         """Test armada handling with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        error_re = (
-            '.*Documents must include at least one of each of .* and '
-            'only one .*')
+        error_re = ('.*Documents must include at least one of each of .*')
         self.assertRaisesRegexp(
             ManifestException, error_re, armada.Armada, yaml_documents[:1],
             mock.MagicMock())
 
-    @mock.patch.object(armada, 'source')
-    def test_armada_override_exception(self, mock_source):
+    @mock.patch.object(armada, 'ChartDownload')
+    def test_armada_override_exception(self, MockChartDownload):
         """Test Armada checks with invalid chart override."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         override = ('chart:example-chart-2:name=' 'overridden', )
@@ -692,8 +686,8 @@ class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
         with self.assertRaisesRegexp(InvalidOverrideValueException, error_re):
             armada.Armada(yaml_documents, mock.MagicMock(), set_ovr=override)
 
-    @mock.patch.object(armada, 'source')
-    def test_armada_manifest_exception_override_none(self, mock_source):
+    @mock.patch.object(armada, 'ChartDownload')
+    def test_armada_manifest_exception_override_none(self, MockChartDownload):
         """Test Armada checks with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         example_document = [

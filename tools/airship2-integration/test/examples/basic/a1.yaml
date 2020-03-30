@@ -1,0 +1,24 @@
+apiVersion: "armada.airshipit.org/v1alpha1"
+kind: "ArmadaChart"
+metadata:
+  name: a1
+  namespace: test
+spec:
+  release: a1
+  namespace: test
+  wait:
+    timeout: 100
+    labels:
+      release_group: armada-a1
+  source:
+    location: https://kubernetes-charts-incubator.storage.googleapis.com/raw-0.2.3.tgz
+    subpath: raw
+    type: tar
+  values:
+    resources:
+      - apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: a1
+        data:
+          chart: a1
