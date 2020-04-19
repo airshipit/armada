@@ -21,6 +21,8 @@ import time
 
 from kubernetes import watch
 from oslo_log import log as logging
+from retry import retry
+import urllib3.exceptions
 
 from armada import const
 from armada.exceptions import k8s_exceptions
@@ -318,6 +320,16 @@ class ResourceWait(ABC):
         else:
             self._wait(deadline)
 
+    # The Kubernetes Python Client does not always recover from broken
+    # connections to the k8s apiserver, and the resulting uncaught exceptions
+    # in the Watch.stream method cause the chart installation to fail. As long
+    # as the wait deadline has not passed, it is better to retry the entire
+    # wait operation.
+    @retry(
+        exceptions=(
+            urllib3.exceptions.ProtocolError,
+            urllib3.exceptions.MaxRetryError),
+        delay=1)
     def _wait(self, deadline):
         '''
         Waits for resources to become ready.
