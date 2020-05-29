@@ -147,7 +147,7 @@ class GetReleaseContentException(TillerException):
     '''Exception that occurs during a failed Release Testing'''
 
     def __init__(self, release, version):
-        message = 'Failed to get {} content {} version {}'.format(
+        message = 'Failed to get {} content {} version'.format(
             release, version)
 
         super(GetReleaseContentException, self).__init__(message)

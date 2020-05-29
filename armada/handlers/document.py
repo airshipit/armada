@@ -46,10 +46,10 @@ class ReferenceResolver(object):
         if isinstance(design_ref, str):
             design_ref = [design_ref]
 
-        for l in design_ref:
+        for link in design_ref:
             try:
-                LOG.debug("Resolving reference %s." % l)
-                design_uri = urllib.parse.urlparse(l)
+                LOG.debug("Resolving reference %s." % link)
+                design_uri = urllib.parse.urlparse(link)
 
                 # when scheme is a empty string assume it is a local
                 # file path
@@ -75,7 +75,7 @@ class ReferenceResolver(object):
             except ValueError:
                 raise InvalidPathException(
                     "Cannot resolve design reference %s: unable "
-                    "to parse as valid URI." % l)
+                    "to parse as valid URI." % link)
 
         return data
 

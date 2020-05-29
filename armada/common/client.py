@@ -154,8 +154,7 @@ class ArmadaClient(object):
     def _check_response(self, resp):
         if resp.status_code == 401:
             raise err.ClientUnauthorizedError(
-                "Unauthorized access to %s, include valid token.".format(
-                    resp.url))
+                "Unauthorized access to %s, include valid token." % resp.url)
         elif resp.status_code == 403:
             raise err.ClientForbiddenError("Forbidden access to %s" % resp.url)
         elif not resp.ok:
