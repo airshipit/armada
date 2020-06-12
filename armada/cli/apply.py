@@ -43,7 +43,7 @@ command once will install all charts defined in manifest. Re-executing apply
 command will execute upgrade.
 
 To see how to create an Armada manifest:
-    https://airship-armada.readthedocs.io/en/latest/operations/
+    https://docs.airshipit.org/armada/operations/
 
 To install or upgrade charts, run:
 

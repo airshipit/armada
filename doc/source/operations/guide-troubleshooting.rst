@@ -28,7 +28,7 @@ When running Armada in the container you can execute docker logs to retrieve log
 Errors/Exceptions
 -----------------
 
-A guide for interpreting errors/exceptions can be found `here <https://airship-armada.readthedocs.io/en/latest/operations/exceptions/guide-exceptions.html>`_.
+A guide for interpreting errors/exceptions can be found `here <https://docs.airshipit.org/armada/operations/exceptions/guide-exceptions.html>`_.
 
 Working with SSL
 ----------------
@@ -54,5 +54,5 @@ Issue
 
 If the issue that you are having does not appear here please check the Armada
 issues on
-`StoryBoard <https://storyboard.openstack.org/#!/project/airship/armada>`_.
+`GitHub <https://github.com/airshipit/armada/issues>`_.
 If the issue does not exist, please create an issue.

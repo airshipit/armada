@@ -1,13 +1,13 @@
 Armada
 ======
 
-|Docker Repository on Quay| |Doc Status|
+|Docker Repository on Quay|
 
 Armada is a tool for managing multiple Helm charts with dependencies by
 centralizing all configurations in a single Armada YAML and providing
 life-cycle hooks for all Helm releases.
 
-Find more documentation for Armada on `Read The Docs <https://airship-armada.readthedocs.io/>`_.
+Find more documentation for Armada in the `Armada documentation <https://docs.airshipit.org/armada>`_.
 
 Overview
 --------
@@ -111,16 +111,14 @@ Further Reading
 
 `Airship <https://airshipit.org>`_.
 
-.. _Manual Install Guide: https://airship-armada.readthedocs.io/en/latest/development/getting-started.html#developer-install-guide
-.. _Armada Quickstart: https://airship-armada.readthedocs.io/en/latest/operations/guide-use-armada.html
-.. _metrics: https://airship-armada.readthedocs.io/en/latest/operations/metrics.html#metrics
+.. _Manual Install Guide: https://docs.airshipit.org/armada/development/getting-started.html#developer-install-guide
+.. _Armada Quickstart: https://docs.airshipit.org/armada/operations/guide-use-armada.html
+.. _metrics: https://docs.airshipit.org/armada/operations/metrics.html#metrics
 .. _kubectl: https://kubernetes.io/docs/user-guide/kubectl/kubectl_config/
 .. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
-.. _Deckhand: https://github.com/openstack/airship-deckhand
+.. _Deckhand: https://opendev.org/airship/deckhand
 .. _Prometheus: https://prometheus.io
 .. _Keystone: https://github.com/openstack/keystone
 
 .. |Docker Repository on Quay| image:: https://quay.io/repository/airshipit/armada/status
    :target: https://quay.io/repository/airshipit/armada
-.. |Doc Status| image:: https://readthedocs.org/projects/airship-armada/badge/?version=latest
-   :target: https://airship-armada.readthedocs.io/

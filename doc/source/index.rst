@@ -3,21 +3,31 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+==================================
 Welcome to Armada's documentation!
 ==================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. include:: ../../README.rst
 
-   readme
+.. toctree::
+   :caption: Armada
+   :hidden:
+   :maxdepth: 2
+
    development/index
    operations/index
    commands/index
 
-Indices and tables
-==================
+.. toctree::
+   :caption: Airship 1 Project Documentation
+   :hidden:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   Airship Documentation <https://docs.airshipit.org>
+   Armada <https://docs.airshipit.org/armada>
+   Deckhand <https://docs.airshipit.org/deckhand>
+   Divingbell <https://docs.airshipit.org/divingbell>
+   Drydock <https://docs.airshipit.org/drydock>
+   Pegleg <https://docs.airshipit.org/pegleg>
+   Promenade <https://docs.airshipit.org/promenade>
+   Shipyard <https://docs.airshipit.org/shipyard>
+   Treasuremap <https://docs.airshipit.org/treasuremap>

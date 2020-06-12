@@ -54,10 +54,10 @@ The validation schemas below are used by Armada to validate all ingested
 Charts, Chart Groups, and Manifests. Use the schemas below as models for
 authoring Armada documents.
 
-.. _Deckhand DataSchema: https://airship-deckhand.readthedocs.io/en/latest/document-types.html?highlight=dataschema#dataschema
+.. _Deckhand DataSchema: https://docs.airshipit.org/deckhand/document-types.html?highlight=dataschema#dataschema
 .. _Helm charts: https://docs.helm.sh/developing_charts/
-.. _layering: https://airship-deckhand.readthedocs.io/en/latest/layering.html
-.. _substitution: https://airship-deckhand.readthedocs.io/en/latest/substitution.html
+.. _layering: https://docs.airshipit.org/deckhand/layering.html
+.. _substitution: https://docs.airshipit.org/deckhand/substitution.html
 
 Schemas
 ^^^^^^^
