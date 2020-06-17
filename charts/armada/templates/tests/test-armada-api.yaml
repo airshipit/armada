@@ -22,10 +22,11 @@ Test the Armada API, to ensure that the health endpoint is active and able to re
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ .Release.Name }}-armada-api-test"
+  name: armada-api-test
   annotations:
     "helm.sh/hook": "test-success"
     {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" }}
+{{ dict "envAll" $envAll "podName" "armada-api-test" "containerNames" (list "armada-api-test") | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 4 }}
   labels:
 {{ tuple $envAll "armada" "api-test" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:
@@ -33,7 +34,7 @@ spec:
   nodeSelector:
     {{ .Values.labels.test.node_selector_key }}: {{ .Values.labels.test.node_selector_value }}
   containers:
-    - name: "{{ .Release.Name }}-armada-api-test"
+    - name: armada-api-test
       env:
         - name: 'ARMADA_URL'
           value: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.host_and_port_endpoint_uri_lookup" | quote }}

@@ -232,6 +232,8 @@ pod:
       init: runtime/default
       armada-api: runtime/default
       tiller: runtime/default
+    armada-api-test:
+      armada-api-test: runtime/default
   probes:
     armada:
       api:
