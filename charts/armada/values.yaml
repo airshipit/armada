@@ -279,6 +279,13 @@ pod:
           runAsUser: 65534
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+    api_test:
+      pod:
+        runAsUser: 1000
+      container:
+        armada_api_test:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
   env:
     # NOTE(@drewwalters96): These configuration values change the Armada API's
     #    uWSGI configuration.
