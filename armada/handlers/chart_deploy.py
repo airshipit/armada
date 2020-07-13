@@ -185,68 +185,6 @@ class ChartDeploy(object):
 
                 deploy = upgrade
         else:
-            # Check for release with status other than DEPLOYED
-            if status:
-                if status != const.STATUS_FAILED:
-                    LOG.warn(
-                        'Unexpected release status encountered '
-                        'release=%s, status=%s', release_name, status)
-
-                    # Make best effort to determine whether a deployment is
-                    # likely pending, by checking if the last deployment
-                    # was started within the timeout window of the chart.
-                    last_deployment_age = r.get_last_deployment_age(
-                        old_release)
-                    likely_pending = last_deployment_age <= wait_timeout
-                    if likely_pending:
-                        # Give up if a deployment is likely pending, we do not
-                        # want to have multiple operations going on for the
-                        # same release at the same time.
-                        raise armada_exceptions.\
-                            DeploymentLikelyPendingException(
-                                release_name, status, last_deployment_age,
-                                wait_timeout)
-                    else:
-                        # Release is likely stuck in an unintended (by tiller)
-                        # state. Log and continue on with remediation steps
-                        # below.
-                        LOG.info(
-                            'Old release %s likely stuck in status %s, '
-                            '(last deployment age=%ss) >= '
-                            '(chart wait timeout=%ss)', release, status,
-                            last_deployment_age, wait_timeout)
-
-                protected = chart.get('protected', {})
-                if protected:
-                    p_continue = protected.get('continue_processing', False)
-                    if p_continue:
-                        LOG.warn(
-                            'Release %s is `protected`, '
-                            'continue_processing=True. Operator must '
-                            'handle %s release manually.', release_name,
-                            status)
-                        result['protected'] = release_name
-                        return result
-                    else:
-                        LOG.error(
-                            'Release %s is `protected`, '
-                            'continue_processing=False.', release_name)
-                        raise armada_exceptions.ProtectedReleaseException(
-                            release_name, status)
-                else:
-                    # Purge the release
-                    with metrics.CHART_DELETE.get_context(manifest_name,
-                                                          chart_name):
-
-                        LOG.info(
-                            'Purging release %s with status %s', release_name,
-                            status)
-                        chart_delete = ChartDelete(
-                            chart, release_name, self.tiller)
-                        chart_delete.delete()
-                        result['purge'] = release_name
-
-            action = metrics.ChartDeployAction.INSTALL
 
             def install():
                 timer = int(round(deadline - time.time()))
@@ -267,6 +205,55 @@ class ChartDeploy(object):
                     tiller_result.__dict__)
                 result['install'] = release_name
 
+            # Check for release with status other than DEPLOYED
+            if status:
+                if status != const.STATUS_FAILED:
+                    LOG.warn(
+                        'Unexpected release status encountered '
+                        'release=%s, status=%s', release_name, status)
+
+                    # Make best effort to determine whether a deployment is
+                    # likely pending, by checking if the last deployment
+                    # was started within the timeout window of the chart.
+                    last_deployment_age = r.get_last_deployment_age(
+                        old_release)
+                    likely_pending = last_deployment_age <= wait_timeout
+                    if likely_pending:
+                        # We don't take any deploy action and wait for the
+                        # to get deployed.
+                        deploy = noop
+                        deadline = deadline - last_deployment_age
+                    else:
+                        # Release is likely stuck in an unintended (by tiller)
+                        # state. Log and continue on with remediation steps
+                        # below.
+                        LOG.info(
+                            'Old release %s likely stuck in status %s, '
+                            '(last deployment age=%ss) >= '
+                            '(chart wait timeout=%ss)', release, status,
+                            last_deployment_age, wait_timeout)
+                        res = self.purge_release(
+                            chart, release_name, status, manifest_name,
+                            chart_name, result)
+                        if isinstance(res, dict):
+                            if 'protected' in res:
+                                return res
+                        action = metrics.ChartDeployAction.INSTALL
+                        deploy = install
+                else:
+                    # The chart is in Failed state, hence we purge
+                    # the chart and attempt to install it again.
+                    res = self.purge_release(
+                        chart, release_name, status, manifest_name, chart_name,
+                        result)
+                    if isinstance(res, dict):
+                        if 'protected' in res:
+                            return res
+                    action = metrics.ChartDeployAction.INSTALL
+                    deploy = install
+
+        if status is None:
+            action = metrics.ChartDeployAction.INSTALL
             deploy = install
 
         # Deploy
@@ -297,6 +284,35 @@ class ChartDeploy(object):
                 self._test_chart(release_name, test_handler)
 
         return result
+
+    def purge_release(
+            self, chart, release_name, status, manifest_name, chart_name,
+            result):
+        protected = chart.get('protected', {})
+        if protected:
+            p_continue = protected.get('continue_processing', False)
+            if p_continue:
+                LOG.warn(
+                    'Release %s is `protected`, '
+                    'continue_processing=True. Operator must '
+                    'handle %s release manually.', release_name, status)
+                result['protected'] = release_name
+                return result
+            else:
+                LOG.error(
+                    'Release %s is `protected`, '
+                    'continue_processing=False.', release_name)
+                raise armada_exceptions.ProtectedReleaseException(
+                    release_name, status)
+        else:
+            # Purge the release
+            with metrics.CHART_DELETE.get_context(manifest_name, chart_name):
+
+                LOG.info(
+                    'Purging release %s with status %s', release_name, status)
+                chart_delete = ChartDelete(chart, release_name, self.tiller)
+                chart_delete.delete()
+                result['purge'] = release_name
 
     def _test_chart(self, release_name, test_handler):
         success = test_handler.test_release_for_success()
