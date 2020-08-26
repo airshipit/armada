@@ -18,7 +18,7 @@ set -xe
 CURRENT_DIR="$(pwd)"
 : "${INSTALL_PATH:="../"}"
 cd ${INSTALL_PATH}
-: "${OSH_INFRA_COMMIT:="eacf93722136636dcfbd2b68c59b71f071ffc085"}"
+: "${OSH_INFRA_COMMIT:="dc58ef9dddd0326cc86229eda4e21e269adb31be"}"
 
 # Clone openstack-helm-infra
 git clone https://opendev.org/openstack/openstack-helm-infra.git
