@@ -1,4 +1,5 @@
 # General
+pyflakes>=2.1.1
 tox
 
 # Docs

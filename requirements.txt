@@ -1,6 +1,6 @@
 deepdiff==3.3.0
 gitpython
-grpcio==1.16.0
+grpcio>=1.16.0
 jsonschema>=2.6.0
 keystoneauth1==2.21.0
 keystonemiddleware==4.9.1
