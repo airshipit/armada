@@ -28,9 +28,11 @@ RUN mkdir -p /armada && \
        python3-devel \
        python3-setuptools \
        python3-pip \
+       automake \
        gcc \
        git \
        libopenssl-devel \
+       libtool \
        make
 
 RUN    pip3 install --upgrade pip && \
@@ -41,6 +43,20 @@ RUN    pip3 install --upgrade pip && \
          /usr/share/man \
          /usr/share/doc \
          /usr/share/doc-base
+
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
+ARG LIBYAML_VERSION=0.2.5
+RUN set -ex \
+    && git clone https://github.com/yaml/libyaml.git \
+    && cd libyaml \
+    && git checkout $LIBYAML_VERSION \
+    && ./bootstrap \
+    && ./configure \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -fr libyaml
 
 WORKDIR /armada
 

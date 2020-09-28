@@ -43,17 +43,32 @@ CMD ["server"]
 
 COPY requirements.txt ./
 
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
+ARG LIBYAML_VERSION=0.2.5
+
 # Build
 RUN set -ex \
     && buildDeps=' \
+      automake \
       gcc \
       libssl-dev \
+      libtool \
       make \
       python3-pip \
     ' \
     && apt-get -qq update \
     # Keep git separate so it's not removed below
     && apt-get install -y $buildDeps git --no-install-recommends \
+    && git clone https://github.com/yaml/libyaml.git \
+    && cd libyaml \
+    && git checkout $LIBYAML_VERSION \
+    && ./bootstrap \
+    && ./configure \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -fr libyaml \
     && python3 -m pip install -U pip \
     && pip3 install -r requirements.txt --no-cache-dir \
     && apt-get purge -y --auto-remove $buildDeps \
