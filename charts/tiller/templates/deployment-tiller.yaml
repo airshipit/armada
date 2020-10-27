@@ -98,6 +98,10 @@ spec:
             - /tiller
 {{- if .Values.conf.tiller.storage }}
             - --storage={{ .Values.conf.tiller.storage }}
+{{- if and (eq .Values.conf.tiller.storage "sql") (.Values.conf.tiller.sql_dialect) (.Values.conf.tiller.sql_connection) }}
+            - --sql-dialect={{ .Values.conf.tiller.sql_dialect }}
+            - --sql-connection-string={{ .Values.conf.tiller.sql_connection }}
+{{- end }}
 {{- end }}
             - -listen
             - ":{{ .Values.conf.tiller.port }}"

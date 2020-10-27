@@ -45,6 +45,9 @@ conf:
   tiller:
     verbosity: 5
     storage: null
+    # Only postgres is supported so far
+    sql_dialect: postgres
+    sql_connection: null
     trace: false
     # Note: Defaulting to the (default) kubernetes grace period, as anything
     # greater than that will have no effect.
