@@ -218,7 +218,7 @@ class PodWaitTestCase(base.ArmadaTestCase):
                 'helm.sh/hook': 'test-success'
             }),
             mock_resource({'helm.sh/hook': 'test-failure'}),
-            mock_resource({'helm.sh/hook': 'test-success,pre-install'})
+            mock_resource({'helm.sh/hook': 'test-success,pre-install'}),
         ]
         job_pods = [
             mock_resource(owner_references=[mock.Mock(kind='Job')]),
@@ -233,7 +233,12 @@ class PodWaitTestCase(base.ArmadaTestCase):
             mock_resource(owner_references=[]),
             mock_resource({'helm.sh/hook': 'pre-install'}),
             mock_resource({'key': 'value'}),
-            mock_resource(owner_references=[mock.Mock(kind='NotAJob')])
+            mock_resource(owner_references=[mock.Mock(kind='NotAJob')]),
+        ]
+        evicted_pods = [
+            mock.Mock(
+                metadata=mock.Mock(annotations={}, owner_references=None),
+                status=mock.Mock(phase='Evicted')),
         ]
 
         unit = self.get_unit({}, version=1)
@@ -249,6 +254,10 @@ class PodWaitTestCase(base.ArmadaTestCase):
         # Validate other resources included
         for pod in included_pods:
             self.assertTrue(unit.include_resource(pod))
+
+        # Validate evicted pods are excluded
+        for pod in evicted_pods:
+            self.assertFalse(unit.include_resource(pod))
 
 
 class JobWaitTestCase(base.ArmadaTestCase):

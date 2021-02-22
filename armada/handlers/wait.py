@@ -486,6 +486,9 @@ class PodWait(ResourceWait):
         if is_test_pod(pod):
             return 'helm test pod'
 
+        if pod.status.phase == 'Evicted':
+            return "pod was evicted"
+
         schema_info = get_schema_info(self.chart_wait.chart['schema'])
         # TODO: Remove when v1 doc support is removed.
         if schema_info.version < 2:
