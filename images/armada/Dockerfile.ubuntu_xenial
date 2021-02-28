@@ -69,7 +69,7 @@ RUN set -ex \
     && make install \
     && cd .. \
     && rm -fr libyaml \
-    && python3 -m pip install -U pip \
+    && python3 -m pip install -U 'pip<21.0' \
     && pip3 install -r requirements.txt --no-cache-dir \
     && apt-get purge -y --auto-remove $buildDeps \
     && apt-get autoremove -yqq --purge \

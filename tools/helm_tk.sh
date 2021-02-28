@@ -24,7 +24,7 @@ SERVE_DIR=$(mktemp -d)
 
 HTK_STABLE_COMMIT=${HTK_COMMIT:-"4fe6212dad6e3f07d43122485d60ab8f38642293"}
 
-${HELM} init --client-only
+${HELM} init --client-only --skip-refresh
 
 if [[ -s ${HELM_PIDFILE} ]]; then
     HELM_PID=$(cat "${HELM_PIDFILE}")
