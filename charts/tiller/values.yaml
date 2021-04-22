@@ -52,6 +52,12 @@ conf:
     # Note: Defaulting to the (default) kubernetes grace period, as anything
     # greater than that will have no effect.
     prestop_sleep: 30
+    # To have Tiller bind to all interfaces, allowing direct connections from
+    # the Helm client to pod_ip:port, set 'listen_on_any: true'.
+    # The default setting 'listen_on_any: false' binds Tiller to 127.0.0.1.
+    # Helm clients with Kubernetes API access dynamically set up a portforward
+    # into the pod, which works with the default setting.
+    listen_on_any: false
     port: 44134
     probe_port: 44135
 

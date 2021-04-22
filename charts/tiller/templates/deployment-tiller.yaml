@@ -104,7 +104,7 @@ spec:
 {{- end }}
 {{- end }}
             - -listen
-            - ":{{ .Values.conf.tiller.port }}"
+            - "{{ if not .Values.conf.tiller.listen_on_any }}127.0.0.1{{ end }}:{{ .Values.conf.tiller.port }}"
             - -probe-listen
             - ":{{ .Values.conf.tiller.probe_port }}"
             - -logtostderr

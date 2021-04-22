@@ -206,6 +206,12 @@ conf:
   tiller:
     # If set to false then some form of Tiller needs to be provided
     enabled: true
+    # To have Tiller bind to all interfaces, allowing direct connections from
+    # the Helm client to pod_ip:port, set 'listen_on_any: true'.
+    # The default setting 'listen_on_any: false' binds Tiller to 127.0.0.1.
+    # The Armada container talks directly to Tiller via 127.0.0.1, so the
+    # default value is appropriate for normal operation.
+    listen_on_any: false
     port: 24134
     probe_port: 24135
     verbosity: 5
