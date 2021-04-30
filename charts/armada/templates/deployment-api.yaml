@@ -92,6 +92,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: armada-api
+  labels:
+{{ $labels | indent 4 }}
   annotations:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 4 }}
 spec:
