@@ -32,6 +32,9 @@ DISTRO            ?= ubuntu_bionic
 IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}
 UBUNTU_BASE_IMAGE ?=
 
+# Helm binary download url
+HELM_ARTIFACT_URL ?= https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
+
 # VERSION INFO
 GIT_COMMIT = $(shell git rev-parse HEAD)
 GIT_SHA    = $(shell git rev-parse --short HEAD)
@@ -99,6 +102,7 @@ ifeq ($(USE_PROXY), true)
 		--label "org.opencontainers.image.title=$(IMAGE_NAME)" \
 		-f images/armada/Dockerfile.$(DISTRO) \
 		$(_BASE_IMAGE_ARG) \
+		--build-arg HELM_ARTIFACT_URL=$(HELM_ARTIFACT_URL) \
 		--build-arg http_proxy=$(PROXY) \
 		--build-arg https_proxy=$(PROXY) \
 		--build-arg HTTP_PROXY=$(PROXY) \
@@ -111,7 +115,8 @@ else
 		--label "org.opencontainers.image.created=$(shell date --rfc-3339=seconds --utc)" \
 		--label "org.opencontainers.image.title=$(IMAGE_NAME)" \
 		-f images/armada/Dockerfile.$(DISTRO) \
-		$(_BASE_IMAGE_ARG) .
+		$(_BASE_IMAGE_ARG) \
+		--build-arg HELM_ARTIFACT_URL=$(HELM_ARTIFACT_URL) .
 endif
 ifeq ($(PUSH_IMAGE), true)
 	docker push $(IMAGE)

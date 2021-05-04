@@ -45,6 +45,7 @@ COPY requirements.txt ./
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
+ARG HELM_ARTIFACT_URL
 ARG LIBYAML_VERSION=0.2.5
 
 # Build
@@ -71,6 +72,9 @@ RUN set -ex \
     && rm -fr libyaml \
     && python3 -m pip install -U pip \
     && pip3 install -r requirements.txt --no-cache-dir \
+    && curl -fSSL -O ${HELM_ARTIFACT_URL} \
+    && tar -xvf $(basename ${HELM_ARTIFACT_URL}) \
+    && mv linux-amd64/helm /usr/local/bin \
     && apt-get purge -y --auto-remove $buildDeps \
     && apt-get autoremove -yqq --purge \
     && apt-get clean \
