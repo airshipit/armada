@@ -155,7 +155,7 @@ class ChartDeploy(object):
             else:
                 action = metrics.ChartDeployAction.UPGRADE
                 LOG.info("Found updates to chart release inputs")
-                LOG.debug("%s", diff)
+                LOG.debug("Release=%s, diff=%s", release_name, diff)
                 result['diff'] = {chart['release']: str(diff)}
 
                 def upgrade():
