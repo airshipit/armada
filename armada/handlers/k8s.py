@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import re
+import time
 
 from kubernetes import client
 from kubernetes import config
@@ -151,34 +152,45 @@ class K8s(object):
             timeout = self._check_timeout(timeout)
 
             LOG.debug(
-                'Watching to delete %s %s, Wait timeout=%s',
-                object_type_description, name, timeout)
+                'Watching to delete %s: %s in namespace=%s (wait timeout=%s)',
+                object_type_description, name, namespace, timeout)
             body = client.V1DeleteOptions(
                 propagation_policy=propagation_policy)
             w = watch.Watch()
             issue_delete = True
             found_events = False
-            for event in w.stream(list_func, namespace=namespace,
-                                  timeout_seconds=timeout):
-                if issue_delete:
-                    delete_func(name=name, namespace=namespace, body=body)
-                    issue_delete = False
 
-                event_type = event['type'].upper()
-                item_name = event['object'].metadata.name
-                LOG.debug('Watch event %s on %s', event_type, item_name)
+            deadline = round(time.time() + timeout)
+            while timeout > 0:
+                for event in w.stream(
+                        list_func, namespace=namespace,
+                        field_selector='metadata.name={}'.format(name),
+                        timeout_seconds=timeout):
+                    if issue_delete:
+                        delete_func(name=name, namespace=namespace, body=body)
+                        issue_delete = False
 
-                if item_name == name:
-                    found_events = True
-                    if event_type == 'DELETED':
-                        LOG.info(
-                            'Successfully deleted %s %s',
-                            object_type_description, item_name)
-                        return
+                    event_type = event['type'].upper()
+                    item = event['object']
+                    item_name = item.metadata.name
+                    LOG.debug(
+                        'Watch event seen: type=%s, name=%s, '
+                        'namespace=%s (waiting on %s: %s)', event_type,
+                        item_name, namespace, object_type_description, name)
+
+                    if item_name == name:
+                        found_events = True
+                        if event_type == 'DELETED':
+                            LOG.info(
+                                'Successfully deleted %s: %s in namespace=%s',
+                                object_type_description, item_name, namespace)
+                            return
+
+                timeout = round(deadline - time.time())
 
             if not found_events:
                 LOG.warn(
-                    'Saw no delete events for %s %s in namespace=%s',
+                    'Saw no events for %s: %s in namespace=%s',
                     object_type_description, name, namespace)
 
             err_msg = (

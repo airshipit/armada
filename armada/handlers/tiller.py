@@ -638,8 +638,8 @@ class Tiller(object):
         if resource_labels is not None:
             label_selector = label_selectors(resource_labels)
         LOG.debug(
-            "Deleting resources in namespace %s matching "
-            "selectors (%s).", namespace, label_selector)
+            "Deleting resources in namespace: %s, matching "
+            "selectors: %s (timeout=%s).", namespace, label_selector, timeout)
 
         handled = False
         if resource_type == 'job':
@@ -649,7 +649,7 @@ class Tiller(object):
                 jb_name = jb.metadata.name
 
                 LOG.info(
-                    "Deleting job %s in namespace: %s", jb_name, namespace)
+                    "Deleting job: %s in namespace: %s", jb_name, namespace)
                 self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
             handled = True
 
