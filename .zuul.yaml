@@ -121,6 +121,7 @@
       - airship/treasuremap
     vars:
       CLONE_ARMADA: false
+      HTK_COMMIT: master
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$

@@ -16,6 +16,7 @@
   tasks:
     - name: Overwrite Armada manifest
       shell: |
+        git checkout v1.9
         mv tools/gate/manifests/full-site.yaml \
             type/skiff/manifests/full-site.yaml
       args:
