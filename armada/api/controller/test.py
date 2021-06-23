@@ -53,7 +53,7 @@ class TestReleasesReleaseNameController(api.BaseResource):
                     'message': 'MESSAGE: Test Fail'
                 }
 
-            resp.body = json.dumps(msg)
+            resp.text = json.dumps(msg)
             resp.status = falcon.HTTP_200
             resp.content_type = 'application/json'
         except LockException as e:
@@ -100,7 +100,7 @@ class TestReleasesManifestController(api.BaseResource):
             resp_body['code'] = 400
             self.error(req.context, resp_body['message'])
 
-        resp.body = json.dumps(resp_body)
+        resp.text = json.dumps(resp_body)
         return result
 
     def _validate_documents(self, req, resp, documents):
@@ -170,5 +170,5 @@ class TestReleasesManifestController(api.BaseResource):
                     message['test']['skipped'].append(release_name)
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(message)
+        resp.text = json.dumps(message)
         resp.content_type = 'application/json'

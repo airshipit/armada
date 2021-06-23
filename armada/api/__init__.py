@@ -79,7 +79,7 @@ class BaseResource(object):
             raise Exception("%s: Invalid JSON in body: %s" % (req.path, jex))
 
     def return_error(self, resp, status_code, message="", retry=False):
-        resp.body = json.dumps(
+        resp.text = json.dumps(
             {
                 'type': 'error',
                 'message': message,

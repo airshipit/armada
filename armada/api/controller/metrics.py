@@ -34,5 +34,5 @@ class Metrics(api.BaseResource):
             return self.return_error(
                 resp, falcon.HTTP_500, message=err_message)
         resp.content_type = content_type
-        resp.body = output
+        resp.text = output
         resp.status = falcon.HTTP_200

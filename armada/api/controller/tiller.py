@@ -35,7 +35,7 @@ class Status(api.BaseResource):
             with self.get_tiller(req, resp) as tiller:
                 message = self.handle(tiller)
                 resp.status = falcon.HTTP_200
-                resp.body = json.dumps(message)
+                resp.text = json.dumps(message)
                 resp.content_type = 'application/json'
 
         except Exception as e:
@@ -66,7 +66,7 @@ class Release(api.BaseResource):
         try:
             with self.get_tiller(req, resp) as tiller:
                 releases = self.handle(tiller)
-                resp.body = json.dumps({
+                resp.text = json.dumps({
                     'releases': releases,
                 })
                 resp.content_type = 'application/json'

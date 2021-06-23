@@ -79,7 +79,7 @@ class Validate(api.BaseResource):
                 resp_body['message'] = 'Armada validations failed'
                 resp_body['code'] = 400
 
-            resp.body = json.dumps(resp_body)
+            resp.text = json.dumps(resp_body)
         except Exception as ex:
             err_message = 'Failed to validate Armada Manifest'
             self.logger.error(err_message, exc_info=ex)

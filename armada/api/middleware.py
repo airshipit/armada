@@ -156,7 +156,7 @@ class LoggingMiddleware(object):
             user or '-', req_id or '-', external_ctx or '-', end_user or '-',
             req.method, req.uri, resp.status)
 
-        self.logger.debug("Response body:%s", resp.body)
+        self.logger.debug("Response text:%s", resp.text)
 
     def _log_headers(self, headers):
         """ Log request headers, while scrubbing sensitive values

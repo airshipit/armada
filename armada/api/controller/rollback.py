@@ -33,7 +33,7 @@ class Rollback(api.BaseResource):
         try:
             with self.get_tiller(req, resp) as tiller:
                 msg = self.handle(req, release, tiller)
-                resp.body = json.dumps({
+                resp.text = json.dumps({
                     'message': msg,
                 })
                 resp.content_type = 'application/json'

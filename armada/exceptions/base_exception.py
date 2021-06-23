@@ -134,7 +134,7 @@ def format_error_resp(
         'retry': retry
     }
 
-    resp.body = json.dumps(error_response, default=str)
+    resp.text = json.dumps(error_response, default=str)
     resp.content_type = 'application/json'
     resp.status = status_code
 
