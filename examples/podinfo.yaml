@@ -1,0 +1,59 @@
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: helm-toolkit
+data:
+  chart_name: helm-toolkit
+  release: helm-toolkit
+  namespace: helm-tookit
+  install:
+    no_hooks: false
+  upgrade:
+    no_hooks: false
+  values: {}
+  source:
+    type: tar
+    location: https://tarballs.opendev.org/openstack/openstack-helm-infra/helm-toolkit-0.2.23.tgz
+    subpath: helm-toolkit
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: podinfo
+data:
+  chart_name: podinfo
+  release: podinfo
+  namespace: podinfo
+  install:
+    no_hooks: false
+  upgrade:
+    no_hooks: false
+  values:
+    foo: bar
+  dependencies:
+    - helm-toolkit
+  source:
+    type: local
+    location: /podinfo/charts/podinfo
+    subpath: .
+    reference: master
+---
+schema: armada/ChartGroup/v1
+metadata:
+  schema: metadata/Document/v1
+  name: podinfo
+data:
+  description: Deploys Simple Service
+  sequenced: False
+  chart_group:
+    - podinfo
+---
+schema: armada/Manifest/v1
+metadata:
+  schema: metadata/Document/v1
+  name: podinfo
+data:
+  release_prefix: podinfo
+  chart_groups:
+    - podinfo

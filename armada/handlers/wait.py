@@ -46,15 +46,14 @@ def get_wait_labels(chart):
 # TODO: Validate this object up front in armada validate flow.
 class ChartWait():
     def __init__(
-            self, k8s, release_name, chart, namespace, k8s_wait_attempts,
+            self, k8s, release_id, chart, k8s_wait_attempts,
             k8s_wait_attempt_sleep, timeout):
         self.k8s = k8s
-        self.release_name = release_name
+        self.release_id = release_id
         self.chart = chart
         chart_data = self.chart[const.KEYWORD_DATA]
         self.chart_data = chart_data
         self.wait_config = self.chart_data.get('wait', {})
-        self.namespace = namespace
         self.k8s_wait_attempts = max(k8s_wait_attempts, 1)
         self.k8s_wait_attempt_sleep = max(k8s_wait_attempt_sleep, 1)
 
@@ -276,8 +275,8 @@ class ResourceWait(ABC):
         LOG.info(
             "Waiting for resource type=%s, namespace=%s labels=%s "
             "required=%s%s for %ss", self.resource_type,
-            self.chart_wait.namespace, self.label_selector, self.required,
-            min_ready_msg, timeout)
+            self.chart_wait.release_id.namespace, self.label_selector,
+            self.required, min_ready_msg, timeout)
         if not self.label_selector:
             LOG.warn(
                 '"label_selector" not specified, waiting with no labels '
@@ -336,7 +335,7 @@ class ResourceWait(ABC):
             error = (
                 "Timed out waiting for resource type={}, namespace={}, "
                 "labels={}".format(
-                    self.resource_type, self.chart_wait.namespace,
+                    self.resource_type, self.chart_wait.release_id.namespace,
                     self.label_selector))
             LOG.error(error)
             raise k8s_exceptions.KubernetesWatchTimeoutException(error)
@@ -360,7 +359,7 @@ class ResourceWait(ABC):
             error = (
                 'Timed out waiting for {}s (namespace={}, labels=({})). {}'.
                 format(
-                    self.resource_type, self.chart_wait.namespace,
+                    self.resource_type, self.chart_wait.release_id.namespace,
                     self.label_selector, details))
             LOG.error(error)
             raise k8s_exceptions.KubernetesWatchTimeoutException(error)
@@ -375,14 +374,15 @@ class ResourceWait(ABC):
         '''
         LOG.debug(
             'Starting to wait on: namespace=%s, resource type=%s, '
-            'label_selector=(%s), timeout=%s', self.chart_wait.namespace,
-            self.resource_type, self.label_selector, timeout)
+            'label_selector=(%s), timeout=%s',
+            self.chart_wait.release_id.namespace, self.resource_type,
+            self.label_selector, timeout)
         ready = {}
         modified = set()
         found_resources = False
 
         kwargs = {
-            'namespace': self.chart_wait.namespace,
+            'namespace': self.chart_wait.release_id.namespace,
             'label_selector': self.label_selector,
             'timeout_seconds': timeout
         }
@@ -420,8 +420,8 @@ class ResourceWait(ABC):
                 'Watch event: type=%s, name=%s, namespace=%s, '
                 'resource_version=%s')
             LOG.debug(
-                msg, event_type, resource_name, self.chart_wait.namespace,
-                resource_version)
+                msg, event_type, resource_name,
+                self.chart_wait.release_id.namespace, resource_version)
 
             if event_type in {'ADDED', 'MODIFIED'}:
                 found_resources = True
@@ -491,9 +491,6 @@ class PodWait(ResourceWait):
                 return 'owned by job'
         else:
             # Exclude all pods with an owner (only include raw pods)
-            # TODO: In helm 3, all resources will likely have the release CR as
-            # an owner, so this will need to be updated to not exclude pods
-            # directly owned by the release.
             if has_owner(pod):
                 return 'owned by another resource'
 

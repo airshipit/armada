@@ -18,7 +18,10 @@ TESTRUN_STATUS_FAILURE = 2
 TESTRUN_STATUS_RUNNING = 3
 
 HELM_HOOK_ANNOTATION = 'helm.sh/hook'
-HELM_TEST_HOOKS = ['test-success', 'test-failure']
+# TODO: Eventually remove 'test-failure' as it is removed in Helm 3,
+# leaving for now to ensure test runs leftover from Helm 2 get deleted
+# and don't cause name conflicts.
+HELM_TEST_HOOKS = ['test', 'test-success', 'test-failure']
 
 
 def is_test_pod(pod):

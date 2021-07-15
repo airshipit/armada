@@ -31,21 +31,20 @@ from armada.tests.unit.api import base
     test.TestReleasesManifestController.handle.__wrapped__)
 class TestReleasesManifestControllerTest(base.BaseControllerTest):
     @mock.patch.object(test, 'Manifest')
-    @mock.patch.object(api, 'Tiller')
-    def test_test_controller_with_manifest(self, mock_tiller, mock_manifest):
+    @mock.patch.object(api, 'Helm')
+    def test_test_controller_with_manifest(self, mock_Helm, mock_manifest):
         rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
         # TODO: Don't use example charts in tests.
-        # TODO: Test cleanup arg is taken from url, then manifest.
         manifest_path = os.path.join(
             os.getcwd(), 'examples', 'keystone-manifest.yaml')
         with open(manifest_path, 'r') as f:
             payload = f.read()
         documents = list(yaml.safe_load_all(payload))
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
+        m_helm = mock_Helm.return_value
+        m_helm.__enter__.return_value = m_helm
 
         resp = self.app.simulate_post('/api/v1.0/tests', body=payload)
         self.assertEqual(200, resp.status_code)
@@ -55,8 +54,8 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
         self.assertEqual(expected, result)
 
         mock_manifest.assert_called_once_with(documents, target_manifest=None)
-        mock_tiller.assert_called()
-        m_tiller.__exit__.assert_called()
+        mock_Helm.assert_called()
+        m_helm.__exit__.assert_called()
 
 
 @mock.patch.object(
@@ -64,65 +63,48 @@ class TestReleasesManifestControllerTest(base.BaseControllerTest):
     test.TestReleasesReleaseNameController.handle.__wrapped__)
 class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
     @mock.patch.object(test.Test, 'test_release_for_success')
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     def test_test_controller_test_pass(
-            self, mock_tiller, mock_test_release_for_success):
+            self, mock_Helm, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
         mock_test_release_for_success.return_value = True
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
+        m_helm = mock_Helm.return_value
+        m_helm.__enter__.return_value = m_helm
 
+        namespace = 'fake-namespace'
         release = 'fake-release'
-        resp = self.app.simulate_get('/api/v1.0/test/{}'.format(release))
+        resp = self.app.simulate_get(
+            '/api/v1.0/test/{}/{}'.format(namespace, release))
         mock_test_release_for_success.assert_called_once()
         self.assertEqual(200, resp.status_code)
         self.assertEqual(
             'MESSAGE: Test Pass',
             json.loads(resp.text)['message'])
-        m_tiller.__exit__.assert_called()
+        m_helm.__exit__.assert_called()
 
     @mock.patch.object(test.Test, 'test_release_for_success')
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     def test_test_controller_test_fail(
-            self, mock_tiller, mock_test_release_for_success):
+            self, mock_Helm, mock_test_release_for_success):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
+        m_helm = mock_Helm.return_value
+        m_helm.__enter__.return_value = m_helm
 
         mock_test_release_for_success.return_value = False
+        namespace = 'fake-namespace'
         release = 'fake-release'
-        resp = self.app.simulate_get('/api/v1.0/test/{}'.format(release))
+        resp = self.app.simulate_get(
+            '/api/v1.0/test/{}/{}'.format(namespace, release))
         self.assertEqual(200, resp.status_code)
         self.assertEqual(
             'MESSAGE: Test Fail',
             json.loads(resp.text)['message'])
-        m_tiller.__exit__.assert_called()
-
-    @mock.patch.object(test.Test, 'test_release_for_success')
-    @mock.patch.object(api, 'Tiller')
-    def test_test_controller_cleanup(
-            self, mock_tiller, mock_test_release_for_success):
-        rules = {'armada:test_release': '@'}
-        self.policy.set_rules(rules)
-
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
-
-        mock_test_release_for_success.return_value = True
-        release = 'fake-release'
-        resp = self.app.simulate_get(
-            '/api/v1.0/test/{}'.format(release), query_string='cleanup=true')
-        mock_test_release_for_success.assert_called_once()
-        self.assertEqual(200, resp.status_code)
-        self.assertEqual(
-            'MESSAGE: Test Pass',
-            json.loads(resp.text)['message'])
-        m_tiller.__exit__.assert_called()
+        m_helm.__exit__.assert_called()
 
 
 @test_utils.attr(type=['negative'])
@@ -131,23 +113,23 @@ class TestReleasesReleaseNameControllerTest(base.BaseControllerTest):
     test.TestReleasesManifestController.handle.__wrapped__)
 class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
     @mock.patch.object(test, 'Manifest')
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     @mock.patch.object(test.Test, 'test_release_for_success')
-    def test_test_controller_tiller_exc_returns_500(
-            self, mock_test_release_for_success, mock_tiller, _):
+    def test_test_controller_Helm_exc_returns_500(
+            self, mock_test_release_for_success, mock_Helm, _):
         rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
-        mock_tiller.side_effect = Exception
+        mock_Helm.side_effect = Exception
         mock_test_release_for_success.side_effect = Exception
 
         resp = self.app.simulate_post('/api/v1.0/tests')
         self.assertEqual(500, resp.status_code)
 
     @mock.patch.object(test, 'Manifest')
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     def test_test_controller_validation_failure_returns_400(
-            self, mock_tiller, mock_manifest):
+            self, mock_Helm, mock_manifest):
         rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
@@ -163,8 +145,8 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         resp = self.app.simulate_post('/api/v1.0/tests', body=invalid_payload)
         self.assertEqual(400, resp.status_code)
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
+        m_helm = mock_Helm.return_value
+        m_helm.__enter__.return_value = m_helm
 
         resp_body = json.loads(resp.text)
         self.assertEqual(400, resp_body['code'])
@@ -185,12 +167,12 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
             (
                 'Failed to validate documents or generate Armada '
                 'Manifest from documents.'), resp_body['message'])
-        m_tiller.__exit__.assert_called()
+        m_helm.__exit__.assert_called()
 
     @mock.patch('armada.utils.validate.Manifest')
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     def test_test_controller_manifest_failure_returns_400(
-            self, mock_tiller, mock_manifest):
+            self, mock_Helm, mock_manifest):
         rules = {'armada:test_manifest': '@'}
         self.policy.set_rules(rules)
 
@@ -205,8 +187,8 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         resp = self.app.simulate_post('/api/v1.0/tests', body=payload)
         self.assertEqual(400, resp.status_code)
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
+        m_helm = mock_Helm.return_value
+        m_helm.__enter__.return_value = m_helm
 
         resp_body = json.loads(resp.text)
         self.assertEqual(400, resp_body['code'])
@@ -228,22 +210,25 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
             (
                 'Failed to validate documents or generate Armada '
                 'Manifest from documents.'), resp_body['message'])
-        m_tiller.__exit__.assert_called()
+        m_helm.__exit__.assert_called()
 
 
 @test_utils.attr(type=['negative'])
 class TestReleasesReleaseNameControllerNegativeTest(base.BaseControllerTest):
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     @mock.patch.object(test.Test, 'test_release_for_success')
-    def test_test_controller_tiller_exc_returns_500(
-            self, mock_test_release_for_success, mock_tiller):
+    def test_test_controller_Helm_exc_returns_500(
+            self, mock_test_release_for_success, mock_Helm):
         rules = {'armada:test_release': '@'}
         self.policy.set_rules(rules)
 
-        mock_tiller.side_effect = Exception
+        mock_Helm.side_effect = Exception
         mock_test_release_for_success.side_effect = Exception
 
-        resp = self.app.simulate_get('/api/v1.0/test/fake-release')
+        namespace = 'fake-namespace'
+        release = 'fake-release'
+        resp = self.app.simulate_get(
+            '/api/v1.0/test/{}/{}'.format(namespace, release))
         self.assertEqual(500, resp.status_code)
 
 
@@ -251,12 +236,13 @@ class TestReleasesReleaseNameControllerNegativeRbacTest(base.BaseControllerTest
                                                         ):
     @test_utils.attr(type=['negative'])
     def test_test_release_insufficient_permissions(self):
-        """Tests the GET /api/v1.0/test/{release} endpoint returns 403
+        """Tests the GET /api/v1.0/test/{namespace}/{release} endpoint returns 403
         following failed authorization.
         """
         rules = {'armada:test_release': policy_base.RULE_ADMIN_REQUIRED}
         self.policy.set_rules(rules)
-        resp = self.app.simulate_get('/api/v1.0/test/test-release')
+        resp = self.app.simulate_get(
+            '/api/v1.0/test/test-namespace/test-release')
         self.assertEqual(403, resp.status_code)
 
 

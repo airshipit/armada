@@ -21,11 +21,11 @@ from armada import const
 from armada.conf import set_current_chart
 from armada.exceptions import armada_exceptions
 from armada.exceptions import override_exceptions
-from armada.exceptions import tiller_exceptions
 from armada.exceptions import validate_exceptions
 from armada.handlers import metrics
 from armada.handlers.chart_deploy import ChartDeploy
 from armada.handlers.chart_download import ChartDownload
+from armada.handlers.helm import HelmReleaseId
 from armada.handlers.manifest import Manifest
 from armada.handlers.override import Override
 from armada.utils.release import release_prefixer
@@ -43,7 +43,7 @@ class Armada(object):
     def __init__(
             self,
             documents,
-            tiller,
+            helm,
             disable_update_pre=False,
             disable_update_post=False,
             enable_chart_cleanup=False,
@@ -55,18 +55,16 @@ class Armada(object):
             k8s_wait_attempts=1,
             k8s_wait_attempt_sleep=1):
         '''
-        Initialize the Armada engine and establish a connection to Tiller.
+        Initialize the Armada engine.
 
         :param List[dict] documents: Armada documents.
-        :param tiller: Tiller instance to use.
-        :param bool disable_update_pre: Disable pre-update Tiller operations.
-        :param bool disable_update_post: Disable post-update Tiller
-            operations.
+        :param bool disable_update_pre: Disable pre-update operations.
+        :param bool disable_update_post: Disable post-update operations.
         :param bool enable_chart_cleanup: Clean up unmanaged charts.
-        :param bool force_wait: Force Tiller to wait until all charts are
+        :param bool force_wait: Force to wait until all charts are
             deployed, rather than using each chart's specified wait policy.
-        :param int timeout: Specifies overall time in seconds that Tiller
-            should wait for charts until timing out.
+        :param int timeout: Specifies overall time in seconds t to wait for
+            charts until timing out.
         :param str target_manifest: The target manifest to run. Useful for
             specifying which manifest to run when multiple are available.
         :param int k8s_wait_attempts: The number of times to attempt waiting
@@ -77,7 +75,7 @@ class Armada(object):
 
         self.enable_chart_cleanup = enable_chart_cleanup
         self.force_wait = force_wait
-        self.tiller = tiller
+        self.helm = helm
         try:
             self.documents = Override(
                 documents, overrides=set_ovr,
@@ -90,17 +88,13 @@ class Armada(object):
         self.chart_download = ChartDownload()
         self.chart_deploy = ChartDeploy(
             self.manifest, disable_update_pre, disable_update_post,
-            k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, self.tiller)
+            k8s_wait_attempts, k8s_wait_attempt_sleep, timeout, self.helm)
 
     def pre_flight_ops(self):
         """Perform a series of checks and operations to ensure proper
         deployment.
         """
         LOG.info("Performing pre-flight operations.")
-
-        # Ensure Tiller is available and manifest is valid
-        if not self.tiller.tiller_status():
-            raise tiller_exceptions.TillerServicesUnavailableException()
 
         # Clone the chart sources
         manifest_data = self.manifest.get(const.KEYWORD_DATA, {})
@@ -130,8 +124,6 @@ class Armada(object):
         # a more cleaner format
         self.pre_flight_ops()
 
-        known_releases = self.tiller.list_releases()
-
         manifest_data = self.manifest.get(const.KEYWORD_DATA, {})
         prefix = manifest_data.get(const.KEYWORD_PREFIX)
 
@@ -155,8 +147,7 @@ class Armada(object):
                 set_current_chart(chart)
                 try:
                     return self.chart_deploy.execute(
-                        chart, cg_test_all_charts, prefix, known_releases,
-                        concurrency)
+                        chart, cg_test_all_charts, prefix, concurrency)
                 finally:
                     set_current_chart(None)
 
@@ -225,20 +216,22 @@ class Armada(object):
     def _chart_cleanup(self, prefix, chart_groups, msg):
         LOG.info('Processing chart cleanup to remove unspecified releases.')
 
-        valid_releases = []
+        valid_release_ids = []
         for group in chart_groups:
             group_data = group.get(const.KEYWORD_DATA, {})
             for chart in group_data.get(const.KEYWORD_CHARTS, []):
                 chart_data = chart.get(const.KEYWORD_DATA, {})
-                valid_releases.append(
-                    release_prefixer(prefix, chart_data.get('release')))
+                valid_release_ids.append(
+                    HelmReleaseId(
+                        chart_data['namespace'],
+                        release_prefixer(prefix, chart_data['release'])))
 
-        actual_releases = [x.name for x in self.tiller.list_releases()]
-        release_diff = list(set(actual_releases) - set(valid_releases))
+        actual_release_ids = self.helm.list_release_ids()
+        release_diff = list(set(actual_release_ids) - set(valid_release_ids))
 
-        for release in release_diff:
-            if release.startswith(prefix):
+        for release_id in release_diff:
+            if release_id.name.startswith(prefix):
                 LOG.info(
-                    'Purging release %s as part of chart cleanup.', release)
-                self.tiller.uninstall_release(release)
-                msg['purge'].append(release)
+                    'Purging release %s as part of chart cleanup.', release_id)
+                self.helm.uninstall_release(release_id)
+                msg['purge'].append('{}'.format(release_id))

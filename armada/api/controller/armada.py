@@ -69,8 +69,8 @@ class Apply(api.BaseResource):
                 message="Request must be in application/x-yaml"
                 "or application/json")
         try:
-            with self.get_tiller(req, resp) as tiller:
-                msg = self.handle(req, documents, tiller)
+            with self.get_helm(req, resp) as helm:
+                msg = self.handle(req, documents, helm)
                 resp.text = json.dumps({
                     'message': msg,
                 })
@@ -88,7 +88,7 @@ class Apply(api.BaseResource):
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
     @lock_and_thread()
-    def handle(self, req, documents, tiller):
+    def handle(self, req, documents, helm):
         armada = Armada(
             documents,
             disable_update_pre=req.get_param_as_bool('disable_update_pre'),
@@ -96,7 +96,7 @@ class Apply(api.BaseResource):
             enable_chart_cleanup=req.get_param_as_bool('enable_chart_cleanup'),
             force_wait=req.get_param_as_bool('wait'),
             timeout=req.get_param_as_int('timeout'),
-            tiller=tiller,
+            helm=helm,
             target_manifest=req.get_param('target_manifest'))
 
         return armada.sync()

@@ -16,6 +16,7 @@ import mock
 
 from armada import const
 from armada.exceptions import manifest_exceptions
+from armada.handlers import helm
 from armada.handlers import wait
 from armada.tests.unit import base
 
@@ -33,9 +34,8 @@ class ChartWaitTestCase(base.ArmadaTestCase):
         }
         return wait.ChartWait(
             k8s=mock.MagicMock(),
-            release_name='test-test',
+            release_id=helm.HelmReleaseId('test', 'test-test'),
             chart=chart,
-            namespace='test',
             k8s_wait_attempts=1,
             k8s_wait_attempt_sleep=1,
             timeout=timeout)
@@ -215,10 +215,11 @@ class PodWaitTestCase(base.ArmadaTestCase):
         test_pods = [
             mock_resource({
                 'key': 'value',
-                'helm.sh/hook': 'test-success'
+                'helm.sh/hook': 'test'
             }),
+            mock_resource({'helm.sh/hook': 'test-success'}),
             mock_resource({'helm.sh/hook': 'test-failure'}),
-            mock_resource({'helm.sh/hook': 'test-success,pre-install'}),
+            mock_resource({'helm.sh/hook': 'test,pre-install'}),
         ]
         job_pods = [
             mock_resource(owner_references=[mock.Mock(kind='Job')]),

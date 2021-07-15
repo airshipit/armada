@@ -73,81 +73,8 @@ class TillerControllerTest(base.BaseControllerTest):
         mock_tiller.assert_called_once()
         m_tiller.__exit__.assert_called()
 
-    @mock.patch.object(api, 'Tiller')
-    def test_tiller_releases(self, mock_tiller):
-        """Tests GET /api/v1.0/releases endpoint."""
-        rules = {'tiller:get_release': '@'}
-        self.policy.set_rules(rules)
-
-        def _get_fake_release(name, namespace):
-            fake_release = mock.Mock(namespace='%s_namespace' % namespace)
-            fake_release.configure_mock(name=name)
-            return fake_release
-
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
-        m_tiller.list_releases.return_value = [
-            _get_fake_release('foo', 'bar'),
-            _get_fake_release('baz', 'qux')
-        ]
-
-        result = self.app.simulate_get('/api/v1.0/releases')
-        expected = {
-            'releases': {
-                'bar_namespace': ['foo'],
-                'qux_namespace': ['baz']
-            }
-        }
-
-        self.assertEqual(expected, result.json)
-        mock_tiller.assert_called_once()
-        m_tiller.list_releases.assert_called_once_with()
-        m_tiller.__exit__.assert_called()
-
-    @mock.patch.object(api, 'Tiller')
-    def test_tiller_releases_with_params(self, mock_tiller):
-        """Tests GET /api/v1.0/releases endpoint with query parameters."""
-        rules = {'tiller:get_release': '@'}
-        self.policy.set_rules(rules)
-
-        def _get_fake_release(name, namespace):
-            fake_release = mock.Mock(namespace='%s_namespace' % namespace)
-            fake_release.configure_mock(name=name)
-            return fake_release
-
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
-        m_tiller.list_releases.return_value = [
-            _get_fake_release('foo', 'bar'),
-            _get_fake_release('baz', 'qux')
-        ]
-
-        result = self.app.simulate_get(
-            '/api/v1.0/releases', params_csv=False, params={})
-        expected = {
-            'releases': {
-                'bar_namespace': ['foo'],
-                'qux_namespace': ['baz']
-            }
-        }
-
-        self.assertEqual(expected, result.json)
-        mock_tiller.assert_called_once()
-        m_tiller.list_releases.assert_called_once_with()
-        m_tiller.__exit__.assert_called()
-
 
 class TillerControllerNegativeRbacTest(base.BaseControllerTest):
-    @test_utils.attr(type=['negative'])
-    def test_list_tiller_releases_insufficient_permissions(self):
-        """Tests the GET /api/v1.0/releases endpoint returns 403 following
-        failed authorization.
-        """
-        rules = {'tiller:get_release': policy_base.RULE_ADMIN_REQUIRED}
-        self.policy.set_rules(rules)
-        resp = self.app.simulate_get('/api/v1.0/releases')
-        self.assertEqual(403, resp.status_code)
-
     @test_utils.attr(type=['negative'])
     def test_get_tiller_status_insufficient_permissions(self):
         """Tests the GET /api/v1.0/status endpoint returns 403 following

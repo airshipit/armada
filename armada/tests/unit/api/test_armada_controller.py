@@ -29,11 +29,11 @@ CONF = cfg.CONF
 @mock.patch.object(
     armada_api.Apply, 'handle', armada_api.Apply.handle.__wrapped__)
 class ArmadaControllerTest(base.BaseControllerTest):
-    @mock.patch.object(api, 'Tiller')
+    @mock.patch.object(api, 'Helm')
     @mock.patch.object(armada_api, 'Armada')
     @mock.patch.object(armada_api, 'ReferenceResolver')
     def test_armada_apply_resource(
-            self, mock_resolver, mock_armada, mock_tiller):
+            self, mock_resolver, mock_armada, mock_helm):
         """Tests the POST /api/v1.0/apply endpoint."""
         rules = {'armada:create_endpoints': '@'}
         self.policy.set_rules(rules)
@@ -48,8 +48,8 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'timeout': '100'
         }
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
+        m_helm = mock_helm.return_value
+        m_helm.__enter__.return_value = m_helm
 
         expected_armada_options = {
             'disable_update_pre': False,
@@ -57,7 +57,7 @@ class ArmadaControllerTest(base.BaseControllerTest):
             'enable_chart_cleanup': False,
             'force_wait': False,
             'timeout': 100,
-            'tiller': m_tiller,
+            'helm': m_helm,
             'target_manifest': None
         }
 
@@ -87,8 +87,8 @@ class ArmadaControllerTest(base.BaseControllerTest):
             }], **expected_armada_options)
         mock_armada.return_value.sync.assert_called()
 
-        mock_tiller.assert_called()
-        m_tiller.__exit__.assert_called()
+        mock_helm.assert_called()
+        m_helm.__exit__.assert_called()
 
     def test_armada_apply_no_href(self):
         """Tests /api/v1.0/apply returns 400 when hrefs list is empty."""

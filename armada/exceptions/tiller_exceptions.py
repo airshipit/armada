@@ -21,17 +21,6 @@ class TillerException(ex):
     message = 'An unknown Tiller error occurred.'
 
 
-class TillerServicesUnavailableException(TillerException):
-    '''
-    Exception for tiller service being unavailable.
-
-    **Troubleshoot:**
-    *Coming Soon*
-    '''
-
-    message = 'Tiller services unavailable.'
-
-
 class ChartCleanupException(TillerException):
     '''Exception that occurs during chart cleanup.'''
 

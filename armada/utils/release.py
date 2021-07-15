@@ -14,7 +14,7 @@
 
 import time
 
-from armada.utils.helm import get_test_suite_run_success
+import dateutil
 
 
 def release_prefixer(prefix, release):
@@ -35,26 +35,24 @@ def label_selectors(labels):
 
 def get_release_status(release):
     """
-    :param release: protobuf release object
+    :param release: helm release metadata
 
     :return: status name of release
     """
 
-    status = release.info.status
-    return status.Code.Name(status.code)
+    return release['info']['status']
 
 
 def get_last_test_result(release):
     """
-    :param release: protobuf release object
+    :param release: helm release metadata
 
-    :return: status name of release
+    :return: whether tests are successful (no tests defined implies success)
     """
-
-    status = release.info.status
-    if not status.HasField('last_test_suite_run'):
-        return None
-    return get_test_suite_run_success(status.last_test_suite_run)
+    test_hooks = (
+        hook for hook in release.get('hooks', []) if any(
+            e in ['test', 'test-success'] for e in hook['events']))
+    return all(test['last_run']['phase'] == 'Succeeded' for test in test_hooks)
 
 
 def get_last_deployment_age(release):
@@ -64,7 +62,8 @@ def get_last_deployment_age(release):
     :return: age in seconds of last deployment of release
     """
 
-    last_deployed = release.info.last_deployed.seconds
+    last_deployed_str = release['info']['last_deployed']
+    last_deployed = dateutil.parser.isoparse(last_deployed_str).timestamp()
     now = int(time.time())
     last_deployment_age = now - last_deployed
 

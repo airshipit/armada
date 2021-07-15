@@ -149,8 +149,6 @@ data:
           properties:
             force:
               type: boolean
-            recreate_pods:
-              type: boolean
             no_hooks:
               type: boolean
           additionalProperties: false

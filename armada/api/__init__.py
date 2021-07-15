@@ -22,6 +22,7 @@ from oslo_log import log as logging
 from oslo_utils import excutils
 import yaml
 
+from armada.handlers.helm import Helm
 from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
@@ -119,6 +120,9 @@ class BaseResource(object):
 
     def get_tiller(self, req, resp):
         return Tiller()
+
+    def get_helm(self, req, resp):
+        return Helm()
 
 
 class ArmadaRequestContext(object):

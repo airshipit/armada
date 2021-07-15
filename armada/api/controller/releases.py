@@ -25,34 +25,30 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-class Status(api.BaseResource):
-    @policy.enforce('tiller:get_status')
+class Releases(api.BaseResource):
+    @policy.enforce('armada:get_release')
     def on_get(self, req, resp):
-        '''
-        get tiller status
+        '''Controller for listing Helm releases.
         '''
         try:
-            with self.get_tiller(req, resp) as tiller:
-                message = self.handle(tiller)
-                resp.status = falcon.HTTP_200
-                resp.text = json.dumps(message)
+            with self.get_helm(req, resp) as helm:
+                releases = self.handle(helm)
+                resp.text = json.dumps({
+                    'releases': releases,
+                })
                 resp.content_type = 'application/json'
+                resp.status = falcon.HTTP_200
 
         except Exception as e:
-            err_message = 'Failed to get Tiller Status: {}'.format(e)
+            err_message = 'Unable to find Helm Releases: {}'.format(e)
             self.error(req.context, err_message)
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
-    def handle(self, tiller):
-        LOG.debug(
-            'Tiller (Status) at: %s:%s, namespace=%s, '
-            'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-            tiller.tiller_namespace, tiller.timeout)
+    def handle(self, helm):
+        LOG.debug('Getting helm releases')
 
-        message = {
-            'tiller': {
-                'state': tiller.tiller_status(),
-                'version': tiller.tiller_version()
-            }
-        }
-        return message
+        releases = {}
+        for release in helm.list_release_ids():
+            releases.setdefault(release.namespace, [])
+            releases[release.namespace].append(release.name)
+        return releases

@@ -21,6 +21,7 @@ import yaml
 from armada import api
 from armada.common import policy
 from armada import const
+from armada.handlers.helm import HelmReleaseId
 from armada.handlers.lock import lock_and_thread, LockException
 from armada.handlers.manifest import Manifest
 from armada.handlers.test import Test
@@ -36,11 +37,12 @@ class TestReleasesReleaseNameController(api.BaseResource):
     '''
 
     @policy.enforce('armada:test_release')
-    def on_get(self, req, resp, release):
+    def on_get(self, req, resp, namespace, release):
         try:
+            release_id = HelmReleaseId(namespace, release)
+            with self.get_helm(req, resp) as helm:
 
-            with self.get_tiller(req, resp) as tiller:
-                success = self.handle(req, release, tiller)
+                success = self.handle(req, release_id, helm)
 
             if success:
                 msg = {
@@ -60,9 +62,8 @@ class TestReleasesReleaseNameController(api.BaseResource):
             self.return_error(resp, falcon.HTTP_409, message=str(e))
 
     @lock_and_thread()
-    def handle(self, req, release, tiller):
-        cleanup = req.get_param_as_bool('cleanup')
-        test_handler = Test({}, release, tiller, cleanup=cleanup)
+    def handle(self, req, release_id, helm):
+        test_handler = Test({}, release_id, helm)
         return test_handler.test_release_for_success()
 
 
@@ -111,13 +112,13 @@ class TestReleasesManifestController(api.BaseResource):
     def on_post(self, req, resp):
         # TODO(fmontei): Validation Content-Type is application/x-yaml.
         try:
-            with self.get_tiller(req, resp) as tiller:
-                return self.handle(req, resp, tiller)
+            with self.get_helm(req, resp) as helm:
+                return self.handle(req, resp, helm)
         except LockException as e:
             self.return_error(resp, falcon.HTTP_409, message=str(e))
 
     @lock_and_thread()
-    def handle(self, req, resp, tiller):
+    def handle(self, req, resp, helm):
         try:
             documents = self.req_yaml(req, default=[])
         except yaml.YAMLError:
@@ -134,7 +135,7 @@ class TestReleasesManifestController(api.BaseResource):
             documents, target_manifest=target_manifest).get_manifest()
 
         prefix = armada_obj[const.KEYWORD_DATA][const.KEYWORD_PREFIX]
-        known_releases = [release[0] for release in tiller.list_charts()]
+        release_ids = helm.list_release_ids()
 
         message = {'tests': {'passed': [], 'skipped': [], 'failed': []}}
 
@@ -143,31 +144,30 @@ class TestReleasesManifestController(api.BaseResource):
             for ch in group.get(const.KEYWORD_CHARTS):
                 chart = ch['chart']
 
-                release_name = release_prefixer(prefix, chart.get('release'))
-                if release_name in known_releases:
-                    cleanup = req.get_param_as_bool('cleanup')
+                release_id = helm.HelmReleaseId(
+                    ch['namespace'], release_prefixer(prefix, ch['release']))
+                if release_id in release_ids:
                     enable_all = req.get_param_as_bool('enable_all')
                     cg_test_charts = group.get('test_charts')
 
                     test_handler = Test(
                         chart,
-                        release_name,
-                        tiller,
+                        release_id,
+                        helm,
                         cg_test_charts=cg_test_charts,
-                        cleanup=cleanup,
                         enable_all=enable_all)
 
                     if test_handler.test_enabled:
                         success = test_handler.test_release_for_success()
 
                         if success:
-                            message['test']['passed'].append(release_name)
+                            message['test']['passed'].append(release_id)
                         else:
-                            message['test']['failed'].append(release_name)
+                            message['test']['failed'].append(release_id)
                 else:
                     self.logger.info(
-                        'Release %s not found - SKIPPING', release_name)
-                    message['test']['skipped'].append(release_name)
+                        'Release %s not found - SKIPPING', release_id)
+                    message['test']['skipped'].append(release_id)
 
         resp.status = falcon.HTTP_200
         resp.text = json.dumps(message)

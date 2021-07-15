@@ -23,7 +23,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from armada.handlers.k8s import K8s
-from armada.handlers.tiller import Tiller
+from armada.handlers.helm import Helm
 
 CONF = cfg.CONF
 
@@ -54,17 +54,17 @@ def lock_and_thread(lock_name="lock"):
         @functools.wraps(func)
         def func_wrapper(*args, **kwargs):
             bearer_token = None
-            found_tiller = False
+            found_helm = False
             for arg in args:
-                if type(arg) == Tiller:
+                if type(arg) == Helm:
                     bearer_token = arg.bearer_token
-                    found_tiller = True
+                    found_helm = True
 
-            # we did not find a Tiller object to extract a bearer token from
+            # we did not find a Helm object to extract a bearer token from
             # log this to assist with potential debugging in the future
-            if not found_tiller:
+            if not found_helm:
                 LOG.info(
-                    "no Tiller object found in parameters of function "
+                    "no Helm object found in parameters of function "
                     "decorated by lock_and_thread, this might create "
                     "authentication issues in Kubernetes clusters with "
                     "external auth backend")

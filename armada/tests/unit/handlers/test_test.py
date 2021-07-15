@@ -15,58 +15,42 @@
 import mock
 
 from armada import const
+from armada.exceptions.helm_exceptions import HelmCommandException
+from armada.handlers import helm
 from armada.handlers import test
-from armada.handlers import tiller
 from armada.tests.unit import base
-from armada.tests.test_utils import AttrDict
-from armada.utils import helm
 
 
 class TestHandlerTestCase(base.ArmadaTestCase):
-    def _test_test_release_for_success(self, expected_success, results):
-        @mock.patch('armada.handlers.tiller.K8s')
+    def _test_test_release_for_success(self, expected_success, exception):
+        @mock.patch('armada.handlers.helm.K8s')
         def do_test(_):
-            tiller_obj = tiller.Tiller('host', '8080', None)
+            helm_obj = helm.Helm()
             release = 'release'
 
-            tiller_obj.test_release = mock.Mock()
-            tiller_obj.test_release.return_value = AttrDict(
-                **{'results': results})
+            helm_obj.test_release = mock.Mock()
+            if exception:
+                helm_obj.test_release.side_effect = exception
 
-            test_handler = test.Test({}, release, tiller_obj)
+            test_handler = test.Test({}, release, helm_obj)
             success = test_handler.test_release_for_success()
 
             self.assertEqual(expected_success, success)
 
         do_test()
 
-    def test_no_results(self):
-        self._test_test_release_for_success(True, [])
-
-    def test_unknown(self):
-        self._test_test_release_for_success(
-            False, [
-                AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
-                AttrDict(**{'status': helm.TESTRUN_STATUS_UNKNOWN})
-            ])
-
     def test_success(self):
-        self._test_test_release_for_success(
-            True, [AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS})])
+        self._test_test_release_for_success(True, None)
 
     def test_failure(self):
         self._test_test_release_for_success(
-            False, [
-                AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
-                AttrDict(**{'status': helm.TESTRUN_STATUS_FAILURE})
-            ])
+            False, HelmCommandException(mock.Mock()))
 
-    def test_running(self):
-        self._test_test_release_for_success(
-            False, [
-                AttrDict(**{'status': helm.TESTRUN_STATUS_SUCCESS}),
-                AttrDict(**{'status': helm.TESTRUN_STATUS_RUNNING})
-            ])
+    def test_exception(self):
+        def test():
+            self._test_test_release_for_success(False, Exception())
+
+        self.assertRaises(Exception, test)
 
     def test_cg_disabled(self):
         """Test that tests are disabled when a chart group disables all
@@ -74,8 +58,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         """
         test_handler = test.Test(
             chart={},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             cg_test_charts=False)
 
         assert test_handler.test_enabled is False
@@ -86,8 +70,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         """
         test_handler = test.Test(
             chart={'test': True},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             cg_test_charts=False)
 
         assert test_handler.test_enabled is True
@@ -100,8 +84,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
             chart={'test': {
                 'enabled': True
             }},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             cg_test_charts=False)
 
         assert test_handler.test_enabled is True
@@ -112,8 +96,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         """
         test_handler = test.Test(
             chart={'test': False},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             cg_test_charts=True)
 
         assert test_handler.test_enabled is False
@@ -126,8 +110,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
             chart={'test': {
                 'enabled': False
             }},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             cg_test_charts=True)
 
         assert test_handler.test_enabled is False
@@ -138,8 +122,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         """
         test_handler = test.Test(
             chart={},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             cg_test_charts=False,
             enable_all=True)
 
@@ -151,8 +135,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         """
         test_handler = test.Test(
             chart={'test': True},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             enable_all=True)
 
         assert test_handler.test_enabled is True
@@ -165,8 +149,8 @@ class TestHandlerTestCase(base.ArmadaTestCase):
             chart={'test': {
                 'enabled': False
             }},
-            release_name='release',
-            tiller=mock.Mock(),
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock(),
             enable_all=True)
 
         assert test_handler.test_enabled is True
@@ -176,27 +160,21 @@ class TestHandlerTestCase(base.ArmadaTestCase):
         for a chart's test key.
         """
         test_handler = test.Test(
-            chart={'test': False}, release_name='release', tiller=mock.Mock())
+            chart={'test': False},
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock())
 
         assert not test_handler.test_enabled
 
-    def test_deprecated_test_key_true(self):
-        """Test that cleanup is enabled by default when tests are enabled using
-        the deprecated, boolean value for a chart's `test` key.
-        """
-        test_handler = test.Test(
-            chart={'test': True}, release_name='release', tiller=mock.Mock())
-
-        assert test_handler.test_enabled is True
-        assert test_handler.cleanup is True
-
     def test_deprecated_test_key_timeout(self):
-        """Test that the default Tiller timeout is used when tests are enabled
+        """Test that the default helm timeout is used when tests are enabled
         using the deprecated, boolean value for a chart's `test` key.
         """
-        mock_tiller = mock.Mock()
+        mock_helm = mock.Mock()
         test_handler = test.Test(
-            chart={'test': True}, release_name='release', tiller=mock_tiller)
+            chart={'test': True},
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock_helm)
 
         assert test_handler.timeout == const.DEFAULT_TEST_TIMEOUT
 
@@ -208,86 +186,21 @@ class TestHandlerTestCase(base.ArmadaTestCase):
             chart={'test': {
                 'enabled': False
             }},
-            release_name='release',
-            tiller=mock.Mock())
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock())
 
         assert test_handler.test_enabled is False
 
-    def test_tests_enabled(self):
-        """Test that cleanup is disabled (by default) when tests are enabled by
-        a chart's values using the `test.enabled` path.
-        """
-        test_handler = test.Test(
-            chart={'test': {
-                'enabled': True
-            }},
-            release_name='release',
-            tiller=mock.Mock())
-
-        assert test_handler.test_enabled is True
-        assert test_handler.cleanup is False
-
-    def test_tests_enabled_cleanup_enabled(self):
-        """Test that the test handler uses the values provided by a chart's
-        `test` key.
-        """
-        test_handler = test.Test(
-            chart={'test': {
-                'enabled': True,
-                'options': {
-                    'cleanup': True
-                }
-            }},
-            release_name='release',
-            tiller=mock.Mock())
-
-        assert test_handler.test_enabled is True
-        assert test_handler.cleanup is True
-
-    def test_tests_enabled_cleanup_disabled(self):
-        """Test that the test handler uses the values provided by a chart's
-        `test` key.
-        """
-        test_handler = test.Test(
-            chart={'test': {
-                'enabled': True,
-                'options': {
-                    'cleanup': False
-                }
-            }},
-            release_name='release',
-            tiller=mock.Mock())
-
-        assert test_handler.test_enabled is True
-        assert test_handler.cleanup is False
-
     def test_no_test_values(self):
         """Test that the default values are enforced when no chart `test`
-        values are provided (i.e. tests are enabled and cleanup is disabled).
+        values are provided (i.e. tests are enabled).
         """
         test_handler = test.Test(
-            chart={}, release_name='release', tiller=mock.Mock())
+            chart={},
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock())
 
         assert test_handler.test_enabled is True
-        assert test_handler.cleanup is False
-
-    def test_override_cleanup(self):
-        """Test that a cleanup value passed to the Test handler (i.e. from the
-        API/CLI) takes precedence over a chart's `test.cleanup` value.
-        """
-        test_handler = test.Test(
-            chart={'test': {
-                'enabled': True,
-                'options': {
-                    'cleanup': False
-                }
-            }},
-            release_name='release',
-            tiller=mock.Mock(),
-            cleanup=True)
-
-        assert test_handler.test_enabled is True
-        assert test_handler.cleanup is True
 
     def test_default_timeout_value(self):
         """Test that the default timeout value is used if a test timeout value,
@@ -297,11 +210,10 @@ class TestHandlerTestCase(base.ArmadaTestCase):
             chart={'test': {
                 'enabled': True
             }},
-            release_name='release',
-            tiller=mock.Mock(),
-            cleanup=True)
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock())
 
-        assert test_handler.timeout == const.DEFAULT_TILLER_TIMEOUT
+        assert test_handler.timeout == helm.DEFAULT_HELM_TIMEOUT
 
     def test_timeout_value(self):
         """Test that a chart's test timeout value, `test.timeout` overrides the
@@ -311,8 +223,7 @@ class TestHandlerTestCase(base.ArmadaTestCase):
 
         test_handler = test.Test(
             chart=chart,
-            release_name='release',
-            tiller=mock.Mock(),
-            cleanup=True)
+            release_id=helm.HelmReleaseId('release_ns', 'release'),
+            helm=mock.Mock())
 
         assert test_handler.timeout is chart['test']['timeout']

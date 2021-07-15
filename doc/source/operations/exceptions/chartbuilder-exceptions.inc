@@ -19,27 +19,7 @@ Chartbuilder Exceptions
 
 .. currentmodule:: armada.exceptions.chartbuilder_exceptions
 
-.. autoexception:: DependencyException
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-.. autoexception:: FilesLoadException
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 .. autoexception:: HelmChartBuildException
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-.. autoexception:: IgnoredFilesLoadException
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-.. autoexception:: MetadataLoadException
    :members:
    :show-inheritance:
    :undoc-members:

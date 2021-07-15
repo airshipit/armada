@@ -37,10 +37,10 @@ class LockTestCase(testtools.TestCase):
 
     def setUp(self):
         super(LockTestCase, self).setUp()
-        self_link = "/apis/armada.tiller/v1/namespaces/default/locks/"\
-                    "locks.armada.tiller.test"
+        self_link = "/apis/armada.helm/v1/namespaces/default/locks/"\
+                    "locks.armada.helm.test"
         self.resp = {
-            'apiVersion': "armada.tiller/v1",
+            'apiVersion': "armada.helm/v1",
             'data': {
                 'lastUpdated': "2019-01-22T16:20:14Z"
             },

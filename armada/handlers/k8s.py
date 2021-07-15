@@ -287,6 +287,16 @@ class K8s(object):
         return self.apps_v1_api.delete_namespaced_daemon_set(
             name, namespace, body)
 
+    def read_namespaced_secret(self, name, namespace="default", **kwargs):
+        '''
+        :param namespace: namespace of the Pod
+        :param label_selector: filters Pods by label
+
+        This will return a list of objects req namespace
+        '''
+
+        return self.client.read_namespaced_secret(name, namespace, **kwargs)
+
     def wait_for_pod_redeployment(self, old_pod_name, namespace):
         '''
         :param old_pod_name: name of pods

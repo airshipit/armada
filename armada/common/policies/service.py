@@ -47,6 +47,14 @@ armada_policies = [
             'path': '/api/v1.0/tests/',
             'method': 'POST'
         }]),
+    policy.DocumentedRuleDefault(
+        name=base.ARMADA % 'get_release',
+        check_str=base.RULE_ADMIN_VIEWER,
+        description='Get helm releases',
+        operations=[{
+            'path': '/api/v1.0/releases/',
+            'method': 'GET'
+        }]),
 ]
 
 

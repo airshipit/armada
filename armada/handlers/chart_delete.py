@@ -16,23 +16,23 @@ from armada import const
 
 
 class ChartDelete(object):
-    def __init__(self, chart, release_name, tiller, purge=True):
+    def __init__(self, chart, release_id, helm, purge=True):
         """Initialize a chart delete handler.
 
         :param chart: The armada chart document
-        :param release_name: Name of a Helm release
-        :param tiller: Tiller object
+        :param release_id: HelmReleaseId
+        :param helm: Helm object
         :param purge: Whether to purge the release
 
         :type chart: object
         :type release_name: str
-        :type tiller: Tiller object
+        :type helm: Helm object
         :type purge: bool
         """
 
         self.chart = chart
-        self.release_name = release_name
-        self.tiller = tiller
+        self.release_id = release_id
+        self.helm = helm
         self.purge = purge
         self.delete_config = self.chart.get('delete', {})
         # TODO(seaneagan): Consider allowing this to be a percentage of the
@@ -47,5 +47,5 @@ class ChartDelete(object):
     def delete(self):
         """Delete the release associated with the chart"
         """
-        self.tiller.uninstall_release(
-            self.release_name, timeout=self.get_timeout(), purge=self.purge)
+        self.helm.uninstall_release(
+            self.release_id, timeout=self.get_timeout(), purge=self.purge)

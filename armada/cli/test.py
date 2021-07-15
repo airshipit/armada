@@ -21,7 +21,7 @@ from armada import const
 from armada.handlers.lock import lock_and_thread
 from armada.handlers.manifest import Manifest
 from armada.handlers.test import Test
-from armada.handlers.tiller import Tiller
+from armada.handlers.helm import Helm, HelmReleaseId
 from armada.utils.release import release_prefixer
 
 CONF = cfg.CONF
@@ -37,7 +37,6 @@ def test():
 DESC = """
 This command tests deployed charts.
 
-The tiller command uses flags to obtain information from Tiller services.
 The test command will run the release chart tests either via a the manifest or
 by targeting a release.
 
@@ -47,7 +46,7 @@ To test Armada deployed releases:
 
 To test release:
 
-    $ armada test --release blog-1
+    $ armada test --namespace blog --release blog-1
 
 """
 
@@ -56,26 +55,13 @@ SHORT_DESC = "Command tests releases."
 
 @test.command(name='test', help=DESC, short_help=SHORT_DESC)
 @click.option('--file', help="Armada manifest.", type=str)
+@click.option('--namespace', help="Helm release namespace.", type=str)
 @click.option('--release', help="Helm release.", type=str)
-@click.option('--tiller-host', help="Tiller host IP.", default=None)
-@click.option(
-    '--tiller-port', help="Tiller host port.", type=int, default=None)
-@click.option(
-    '--tiller-namespace',
-    '-tn',
-    help="Tiller Namespace.",
-    type=str,
-    default=None)
 @click.option(
     '--target-manifest',
     help=(
         "The target manifest to run. Required for specifying "
         "which manifest to run when multiple are available."),
-    default=None)
-@click.option(
-    '--cleanup',
-    help=("Delete test pods upon completion."),
-    is_flag=True,
     default=None)
 @click.option(
     '--enable-all',
@@ -87,54 +73,42 @@ SHORT_DESC = "Command tests releases."
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def test_charts(
-        ctx, file, release, tiller_host, tiller_port, tiller_namespace,
-        target_manifest, cleanup, enable_all, debug):
+        ctx, file, namespace, release, target_manifest, enable_all, debug):
     CONF.debug = debug
     TestChartManifest(
-        ctx, file, release, tiller_host, tiller_port, tiller_namespace,
-        target_manifest, cleanup, enable_all).safe_invoke()
+        ctx, file, namespace, release, target_manifest,
+        enable_all).safe_invoke()
 
 
 class TestChartManifest(CliAction):
     def __init__(
-            self, ctx, file, release, tiller_host, tiller_port,
-            tiller_namespace, target_manifest, cleanup, enable_all):
+            self, ctx, file, namespace, release, target_manifest, enable_all):
 
         super(TestChartManifest, self).__init__()
         self.ctx = ctx
         self.file = file
+        self.namespace = namespace
         self.release = release
-        self.tiller_host = tiller_host
-        self.tiller_port = tiller_port
-        self.tiller_namespace = tiller_namespace
         self.target_manifest = target_manifest
-        self.cleanup = cleanup
         self.enable_all = enable_all
 
     def invoke(self):
-        with Tiller(tiller_host=self.tiller_host, tiller_port=self.tiller_port,
-                    tiller_namespace=self.tiller_namespace) as tiller:
+        with Helm() as helm:
 
-            self.handle(tiller)
+            self.handle(helm)
 
     @lock_and_thread()
-    def handle(self, tiller):
-        known_release_names = [release[0] for release in tiller.list_charts()]
+    def handle(self, helm):
+        release_ids = helm.list_release_ids()
 
         if self.release:
             if not self.ctx.obj.get('api', False):
-                test_handler = Test(
-                    {}, self.release, tiller, cleanup=self.cleanup)
+                release_id = HelmReleaseId(self.namespace, self.release)
+                test_handler = Test({}, release_id, helm)
                 test_handler.test_release_for_success()
             else:
                 client = self.ctx.obj.get('CLIENT')
-                query = {
-                    'tiller_host': self.tiller_host,
-                    'tiller_port': self.tiller_port,
-                    'tiller_namespace': self.tiller_namespace
-                }
-                resp = client.get_test_release(
-                    release=self.release, query=query)
+                resp = client.get_test_release(release=self.release)
 
                 self.logger.info(resp.get('result'))
                 self.logger.info(resp.get('message'))
@@ -153,33 +127,26 @@ class TestChartManifest(CliAction):
                     for ch in group.get(const.KEYWORD_CHARTS):
                         chart = ch['chart']
 
-                        release_name = release_prefixer(
-                            prefix, chart.get('release'))
-                        if release_name in known_release_names:
+                        release_id = HelmReleaseId(
+                            chart['namespace'],
+                            release_prefixer(prefix, chart['release']))
+                        if release_id in release_ids:
                             test_handler = Test(
                                 chart,
-                                release_name,
-                                tiller,
-                                cleanup=self.cleanup,
+                                release_id,
+                                helm,
                                 enable_all=self.enable_all)
 
                             if test_handler.test_enabled:
                                 test_handler.test_release_for_success()
                         else:
                             self.logger.info(
-                                'Release %s not found - SKIPPING',
-                                release_name)
+                                'Release %s not found - SKIPPING', release_id)
             else:
                 client = self.ctx.obj.get('CLIENT')
-                query = {
-                    'tiller_host': self.tiller_host,
-                    'tiller_port': self.tiller_port,
-                    'tiller_namespace': self.tiller_namespace
-                }
 
                 with open(self.filename, 'r') as f:
-                    resp = client.get_test_manifest(
-                        manifest=f.read(), query=query)
+                    resp = client.get_test_manifest(manifest=f.read())
                     for test in resp.get('tests'):
                         self.logger.info('Test State: %s', test)
                         for item in test.get('tests').get(test):

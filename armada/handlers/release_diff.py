@@ -13,9 +13,6 @@
 # limitations under the License.
 
 from deepdiff import DeepDiff
-import yaml
-
-from armada.exceptions import armada_exceptions
 
 
 class ReleaseDiff(object):
@@ -60,51 +57,10 @@ class ReleaseDiff(object):
         :rtype: dict
         '''
 
-        old_input = self.make_release_input(
-            self.old_chart, self.old_values, 'previously deployed')
-        new_input = self.make_release_input(
-            self.new_chart, self.new_values, 'currently being deployed')
+        old_input = self.make_release_input(self.old_chart, self.old_values)
+        new_input = self.make_release_input(self.new_chart, self.new_values)
 
         return DeepDiff(old_input, new_input, view='tree')
 
-    def make_release_input(self, chart, values, desc):
-        return {'chart': self.make_chart_dict(chart, desc), 'values': values}
-
-    def make_chart_dict(self, chart, desc):
-        try:
-            default_values = yaml.safe_load(chart.values.raw)
-        except yaml.YAMLError:
-            chart_desc = '{} ({})'.format(chart.metadata.name, desc)
-            raise armada_exceptions.InvalidValuesYamlException(chart_desc)
-        files = {f.type_url: f.value for f in chart.files}
-
-        # With armada/Chart/v1, Armada deployed releases with incorrect
-        # template names, omitting the `templates/` prefix, which is fixed in
-        # v2. This aligns these template names, so that the prefixes match, to
-        # avoid unwanted updates to releases when consuming this fix.
-        def fix_tpl_name(tpl_name):
-            CORRECT_PREFIX = 'templates/'
-            if tpl_name.startswith(CORRECT_PREFIX):
-                return tpl_name
-            return CORRECT_PREFIX + tpl_name
-
-        templates = {fix_tpl_name(t.name): t.data for t in chart.templates}
-
-        dependencies = {
-            d.metadata.name: self.make_chart_dict(
-                d, '{}({} dependency)'.format(desc, d.metadata.name))
-            for d in chart.dependencies
-        }
-
-        return {
-            # TODO(seaneagan): Are there use cases to include other
-            # `chart.metadata` (Chart.yaml) fields? If so, could include option
-            # under `upgrade` key in armada chart schema for this. Or perhaps
-            # can even add `upgrade.always` there to handle dynamic things
-            # used in charts like dates, environment variables, etc.
-            'name': chart.metadata.name,
-            'values': default_values,
-            'files': files,
-            'templates': templates,
-            'dependencies': dependencies
-        }
+    def make_release_input(self, chart, values):
+        return {'chart': chart, 'values': values}

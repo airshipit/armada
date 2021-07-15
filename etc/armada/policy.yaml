@@ -26,10 +26,10 @@
 # POST  /api/v1.0/tests/
 #"armada:test_manifest": "rule:admin_required"
 
+# Get helm releases
+# GET  /api/v1.0/releases/
+#"armada:get_release": "rule:admin_viewer"
+
 # Get Tiller status
 # GET  /api/v1.0/status/
 #"tiller:get_status": "rule:admin_viewer"
-
-# Get Tiller release
-# GET  /api/v1.0/releases/
-#"tiller:get_release": "rule:admin_viewer"

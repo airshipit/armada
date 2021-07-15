@@ -27,7 +27,7 @@ from armada.api.controller.test import TestReleasesReleaseNameController
 from armada.api.controller.test import TestReleasesManifestController
 from armada.api.controller.health import Health
 from armada.api.controller.metrics import Metrics
-from armada.api.controller.tiller import Release
+from armada.api.controller.releases import Releases
 from armada.api.controller.tiller import Status
 from armada.api.controller.validation import Validate
 from armada.api.controller.versions import Versions
@@ -62,10 +62,10 @@ def create(enable_middleware=CONF.middleware):
     url_routes_v1 = [
         (HEALTH_PATH, Health()),
         ('apply', Apply()),
-        ('releases', Release()),
+        ('releases', Releases()),
         ('status', Status()),
         ('tests', TestReleasesManifestController()),
-        ('test/{release}', TestReleasesReleaseNameController()),
+        ('test/{namespace}/{release}', TestReleasesReleaseNameController()),
         ('validatedesign', Validate()),
         (METRICS_PATH, Metrics()),
     ]

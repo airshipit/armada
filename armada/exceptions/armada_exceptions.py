@@ -36,10 +36,10 @@ class ProtectedReleaseException(ArmadaException):
     `continue_processing` is False.
     '''
 
-    def __init__(self, release, status):
+    def __init__(self, release_id, status):
         self._message = (
             'Armada encountered protected release {} in {} status'.format(
-                release, status))
+                release_id, status))
         super(ProtectedReleaseException, self).__init__(self._message)
 
 
@@ -92,15 +92,15 @@ class WaitException(ArmadaException):
 class DeploymentLikelyPendingException(ArmadaException):
     '''
     Exception that occurs when it is detected that an existing release
-    operation (e.g. install, update, rollback, delete) is likely still pending.
+    operation (e.g. install, update, delete) is likely still pending.
     '''
 
-    def __init__(self, release, status, last_deployment_age, timeout):
+    def __init__(self, release_id, status, last_deployment_age, timeout):
         self._message = (
             'Existing deployment likely pending '
             'release={}, status={}, '
             '(last deployment age={}s) < (chart wait timeout={}s)'.format(
-                release, status, last_deployment_age, timeout))
+                release_id, status, last_deployment_age, timeout))
         super(DeploymentLikelyPendingException, self).__init__(self._message)
 
 

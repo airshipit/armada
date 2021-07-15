@@ -1,4 +1,4 @@
-# Copyright 2017 AT&T Intellectual Property.  All other rights reserved.
+# Copyright 2021 The Armada Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-policy_data = """
-"admin_required": "role:admin"
-"armada:create_endpoints": "rule:admin_required"
-"armada:validate_manifest": "rule:admin_required"
-"armada:test_release": "rule:admin_required"
-"armada:test_manifest": "rule:admin_required"
-"armada:get_release": "rule:admin_required"
-"tiller:get_status": "rule:admin_required"
-"""
+from armada.exceptions.base_exception import ArmadaBaseException as ex
+
+
+class HelmCommandException(ex):
+    '''
+    Exception that occurs when a helm command fails.
+    '''
+
+    def __init__(self, called_process_error):
+        self.called_process_error = called_process_error
+        message = 'helm command failed: {}'.format(
+            self.called_process_error.stderr)
+        super(HelmCommandException, self).__init__(message)

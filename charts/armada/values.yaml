@@ -200,7 +200,7 @@ conf:
     'armada:test_manifest': 'rule:admin_required'
     'armada:test_release': 'rule:admin_required'
     'armada:validate_manifest': 'rule:admin_viewer'
-    'tiller:get_release': 'rule:admin_viewer'
+    'armada:get_release': 'rule:admin_viewer'
     'tiller:get_status': 'rule:admin_viewer'
   tiller:
     # If set to false then some form of Tiller needs to be provided

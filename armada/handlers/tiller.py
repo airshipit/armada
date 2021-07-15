@@ -31,7 +31,6 @@ from armada import const
 from armada.exceptions import tiller_exceptions as ex
 from armada.handlers.k8s import K8s
 from armada.utils import helm
-from armada.utils.release import get_release_status
 
 TILLER_VERSION = b'2.16.9'
 GRPC_EPSILON = 60
@@ -268,7 +267,7 @@ class Tiller(object):
                     if latest_versions[r.name] == r.version:
                         LOG.debug(
                             'Found release %s, version %s, status: %s', r.name,
-                            r.version, get_release_status(r))
+                            r.version, r.info.status)
                         latest_releases.append(r)
 
                 return latest_releases

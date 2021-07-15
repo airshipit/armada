@@ -21,28 +21,9 @@ class ChartBuilderException(base_exception.ArmadaBaseException):
     message = 'An unknown Armada handler error occurred.'
 
 
-class DependencyException(ChartBuilderException):
-    '''
-    Exception that occurs when dependencies cannot be resolved.
-
-    **Troubleshoot:**
-    *Coming Soon*
-    '''
-
-    def __init__(self, chart_name):
-        self._chart_name = chart_name
-        self._message = 'Failed to resolve dependencies for ' + \
-                        self._chart_name + '.'
-
-        super(DependencyException, self).__init__(self._message)
-
-
 class HelmChartBuildException(ChartBuilderException):
     '''
     Exception that occurs when Helm Chart fails to build.
-
-    **Troubleshoot:**
-    *Coming Soon*
     '''
 
     def __init__(self, chart_name, details):
@@ -56,54 +37,3 @@ class HelmChartBuildException(ChartBuilderException):
                 }))
 
         super(HelmChartBuildException, self).__init__(self._message)
-
-
-class FilesLoadException(ChartBuilderException):
-    '''
-    Exception that occurs while trying to read a file in the chart directory.
-
-    **Troubleshoot:**
-
-    * Ensure that the file can be encoded to utf-8 or else it cannot be parsed.
-    '''
-
-    message = (
-        'A %(clazz)s exception occurred while trying to read '
-        'file: %(file)s. Details:\n%(details)s')
-
-
-class IgnoredFilesLoadException(ChartBuilderException):
-    '''
-    Exception that occurs when there is an error loading files contained in
-    .helmignore.
-
-    **Troubleshoot:**
-    *Coming Soon*
-    '''
-
-    message = 'An error occurred while loading the ignored files in \
-              .helmignore'
-
-
-class MetadataLoadException(ChartBuilderException):
-    '''
-    Exception that occurs when metadata loading fails.
-
-    **Troubleshoot:**
-    *Coming Soon*
-    '''
-
-    message = 'Failed to load metadata from chart yaml file'
-
-
-class UnknownChartSourceException(ChartBuilderException):
-    '''Exception for unknown chart source type.'''
-
-    def __init__(self, chart_name, source_type):
-        self._chart_name = chart_name
-        self._source_type = source_type
-
-        self._message = 'Unknown source type \"' + self._source_type + '\" for \
-                         chart \"' + self._chart_name + '\"'
-
-        super(UnknownChartSourceException, self).__init__(self._message)
