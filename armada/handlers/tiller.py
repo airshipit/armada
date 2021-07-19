@@ -20,7 +20,6 @@ from hapi.services.tiller_pb2 import GetVersionRequest
 from hapi.services.tiller_pb2 import InstallReleaseRequest
 from hapi.services.tiller_pb2 import ListReleasesRequest
 from hapi.services.tiller_pb2_grpc import ReleaseServiceStub
-from hapi.services.tiller_pb2 import RollbackReleaseRequest
 from hapi.services.tiller_pb2 import TestReleaseRequest
 from hapi.services.tiller_pb2 import UninstallReleaseRequest
 from hapi.services.tiller_pb2 import UpdateReleaseRequest
@@ -563,44 +562,6 @@ class Tiller(object):
             LOG.exception('Error while deleting release %s', release)
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Delete')
-
-    def rollback_release(
-            self,
-            release_name,
-            version,
-            wait=False,
-            timeout=None,
-            force=False,
-            recreate_pods=False):
-        '''
-        Rollback a helm release.
-        '''
-
-        timeout = self._check_timeout(wait, timeout)
-
-        LOG.debug(
-            'Helm rollback of release=%s, version=%s, '
-            'wait=%s, timeout=%s', release_name, version, wait, timeout)
-        try:
-            stub = ReleaseServiceStub(self.channel)
-            rollback_request = RollbackReleaseRequest(
-                name=release_name,
-                version=version,
-                wait=wait,
-                timeout=timeout,
-                force=force,
-                recreate=recreate_pods)
-
-            rollback_msg = stub.RollbackRelease(
-                rollback_request,
-                timeout + GRPC_EPSILON,
-                metadata=self.metadata)
-            LOG.debug('RollbackRelease= %s', rollback_msg)
-            return
-
-        except Exception:
-            LOG.exception('Error while rolling back tiller release.')
-            raise ex.RollbackReleaseException(release_name, version)
 
     def _check_timeout(self, wait, timeout):
         if timeout is None or timeout <= 0:

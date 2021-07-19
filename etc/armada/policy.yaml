@@ -26,10 +26,6 @@
 # POST  /api/v1.0/tests/
 #"armada:test_manifest": "rule:admin_required"
 
-# Rollback release
-# POST  /api/v1.0/rollback/{release}
-#"armada:rollback_release": "rule:admin_required"
-
 # Get Tiller status
 # GET  /api/v1.0/status/
 #"tiller:get_status": "rule:admin_viewer"

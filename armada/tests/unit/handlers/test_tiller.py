@@ -383,51 +383,6 @@ class TillerTestCase(base.ArmadaTestCase):
 
     @mock.patch('armada.handlers.tiller.K8s')
     @mock.patch('armada.handlers.tiller.grpc')
-    @mock.patch.object(tiller, 'RollbackReleaseRequest')
-    @mock.patch.object(tiller, 'ReleaseServiceStub')
-    def test_rollback_release(
-            self, mock_release_service_stub, mock_rollback_release_request, _,
-            __):
-        mock_release_service_stub.return_value.RollbackRelease\
-            .return_value = {}
-
-        tiller_obj = tiller.Tiller('host', '8080', None)
-
-        release = 'release'
-        version = 0
-        wait = True
-        timeout = 123
-        recreate_pods = True
-        force = True
-
-        self.assertIsNone(
-            tiller_obj.rollback_release(
-                release,
-                version,
-                wait=wait,
-                timeout=timeout,
-                force=force,
-                recreate_pods=recreate_pods))
-
-        mock_rollback_release_request.assert_called_once_with(
-            name=release,
-            version=version,
-            wait=wait,
-            timeout=timeout,
-            force=force,
-            recreate=recreate_pods)
-
-        mock_release_service_stub.assert_called_once_with(tiller_obj.channel)
-        rollback_release_stub = mock_release_service_stub.return_value. \
-            RollbackRelease
-
-        rollback_release_stub.assert_called_once_with(
-            mock_rollback_release_request.return_value,
-            timeout + tiller.GRPC_EPSILON,
-            metadata=tiller_obj.metadata)
-
-    @mock.patch('armada.handlers.tiller.K8s')
-    @mock.patch('armada.handlers.tiller.grpc')
     @mock.patch('armada.handlers.tiller.Config')
     @mock.patch.object(tiller, 'UpdateReleaseRequest')
     @mock.patch.object(tiller, 'ReleaseServiceStub')

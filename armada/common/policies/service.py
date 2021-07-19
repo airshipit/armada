@@ -47,16 +47,6 @@ armada_policies = [
             'path': '/api/v1.0/tests/',
             'method': 'POST'
         }]),
-    policy.DocumentedRuleDefault(
-        name=base.ARMADA % 'rollback_release',
-        check_str=base.RULE_ADMIN_REQUIRED,
-        description='Rollback release',
-        operations=[
-            {
-                'path': '/api/v1.0/rollback/{release}',
-                'method': 'POST'
-            }
-        ]),
 ]
 
 

@@ -11,7 +11,6 @@ Commands Guide
    :caption: Contents:
 
    apply.rst
-   rollback.rst
    test.rst
    tiller.rst
    validate.rst
