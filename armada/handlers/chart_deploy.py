@@ -47,16 +47,14 @@ class ChartDeploy(object):
     def execute(
             self, ch, cg_test_all_charts, prefix, known_releases, concurrency):
         chart_name = ch['metadata']['name']
-        manifest_name = self.manifest['metadata'][
-            'name'] if self.manifest else ''
+        manifest_name = self.manifest['metadata']['name']
         with metrics.CHART_HANDLE.get_context(concurrency, manifest_name,
                                               chart_name):
             return self._execute(
                 ch, cg_test_all_charts, prefix, known_releases)
 
     def _execute(self, ch, cg_test_all_charts, prefix, known_releases):
-        manifest_name = self.manifest['metadata'][
-            'name'] if self.manifest else ''
+        manifest_name = self.manifest['metadata']['name']
         chart = ch[const.KEYWORD_DATA]
         chart_name = ch['metadata']['name']
         namespace = chart.get('namespace')

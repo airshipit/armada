@@ -25,7 +25,6 @@
         - armada-docker-build-gate-ubuntu_xenial
         - armada-docker-build-gate-opensuse
         - armada-airskiff-deploy
-        - armada-airship2-integration
     gate:
       jobs:
         - openstack-tox-docs
@@ -122,26 +121,6 @@
     vars:
       CLONE_ARMADA: false
       HTK_COMMIT: master
-    irrelevant-files:
-      - ^.*\.rst$
-      - ^doc/.*$
-      - ^examples/.*$
-      - ^releasenotes/.*$
-      - ^swagger/.*$
-
-- job:
-    name: armada-airship2-integration
-    nodeset: armada-single-node
-    description: |
-      Deploy basic airship2 integration example using submitted Armada changes.
-    timeout: 9600
-    voting: false
-    pre-run:
-      - tools/gate/playbooks/git-config.yaml
-    run: tools/gate/playbooks/airship2-integration.yaml
-    post-run: tools/gate/playbooks/debug-report.yaml
-    required-projects:
-      - airship/treasuremap
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$

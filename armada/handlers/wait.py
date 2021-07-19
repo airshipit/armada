@@ -61,12 +61,6 @@ class ChartWait():
         schema_info = get_schema_info(self.chart['schema'])
 
         resources = self.wait_config.get('resources')
-
-        # wait.resources can be set to [] to disable all resource types, so
-        # don't override with defaults
-        if resources is None:
-            resources = self.wait_config.get('resources_list')
-
         if isinstance(resources, list):
             # Explicit resource config list provided.
             resources_list = resources
