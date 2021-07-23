@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
 from oslo_config import cfg
 
-from armada import api
 from armada.common.policies import base as policy_base
 from armada.tests import test_utils
 from armada.tests.unit.api import base
@@ -24,54 +22,28 @@ CONF = cfg.CONF
 
 
 class TillerControllerTest(base.BaseControllerTest):
-    @mock.patch.object(api, 'Tiller')
-    def test_get_tiller_status(self, mock_tiller):
+    def test_get_tiller_status(self):
         """Tests GET /api/v1.0/status endpoint."""
         rules = {'tiller:get_status': '@'}
         self.policy.set_rules(rules)
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
-        m_tiller.tiller_status.return_value = 'fake_status'
-        m_tiller.tiller_version.return_value = 'fake_version'
-
         result = self.app.simulate_get('/api/v1.0/status')
-        expected = {
-            'tiller': {
-                'version': 'fake_version',
-                'state': 'fake_status'
-            }
-        }
+        expected = {'tiller': {'state': True, 'version': "v1.2.3"}}
 
         self.assertEqual(expected, result.json)
         self.assertEqual('application/json', result.headers['content-type'])
-        mock_tiller.assert_called_once()
-        m_tiller.__exit__.assert_called()
 
-    @mock.patch.object(api, 'Tiller')
-    def test_get_tiller_status_with_params(self, mock_tiller):
+    def test_get_tiller_status_with_params(self):
         """Tests GET /api/v1.0/status endpoint with query parameters."""
         rules = {'tiller:get_status': '@'}
         self.policy.set_rules(rules)
 
-        m_tiller = mock_tiller.return_value
-        m_tiller.__enter__.return_value = m_tiller
-        m_tiller.tiller_status.return_value = 'fake_status'
-        m_tiller.tiller_version.return_value = 'fake_version'
-
         result = self.app.simulate_get(
             '/api/v1.0/status', params_csv=False, params={})
-        expected = {
-            'tiller': {
-                'version': 'fake_version',
-                'state': 'fake_status'
-            }
-        }
+        expected = {'tiller': {'state': True, 'version': "v1.2.3"}}
 
         self.assertEqual(expected, result.json)
         self.assertEqual('application/json', result.headers['content-type'])
-        mock_tiller.assert_called_once()
-        m_tiller.__exit__.assert_called()
 
 
 class TillerControllerNegativeRbacTest(base.BaseControllerTest):

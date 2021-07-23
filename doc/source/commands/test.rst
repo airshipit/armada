@@ -11,7 +11,6 @@ Commands
 
       This command test deployed charts
 
-      The tiller command uses flags to obtain information from tiller services.
       The test command will run the release chart tests either via a
       manifest or by targeting a release.
 
@@ -28,9 +27,6 @@ Commands
       --enable-all                  Run disabled chart tests
       --file TEXT                   armada manifest
       --release TEXT                helm release
-      --tiller-host TEXT            Tiller Host IP
-      --tiller-port INTEGER         Tiller Host Port
-      -tn, --tiller-namespace TEXT  Tiller Namespace
       --target-manifest TEXT        The target manifest to run. Required for
                                     specifying which manifest to run when multiple
                                     are available.

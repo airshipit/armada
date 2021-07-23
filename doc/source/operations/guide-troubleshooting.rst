@@ -1,19 +1,3 @@
-Armada - Troubleshooting
-========================
-
-Debugging Pods
---------------
-
-Before starting to work in armada we need to check that the tiller pod is active and running.
-
-.. code:: bash
-
-    kubectl get pods -n kube-system | grep tiller
-
-.. code:: bash
-
-    armada tiller --status
-
 Checking Logs
 -------------
 

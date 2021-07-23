@@ -34,14 +34,12 @@ images:
     ks_service: 'docker.io/openstackhelm/heat:newton'
     ks_user: 'docker.io/openstackhelm/heat:newton'
     image_repo_sync: docker.io/docker:17.07.0
-    tiller: gcr.io/kubernetes-helm/tiller:v2.16.9
   pull_policy: "IfNotPresent"
   local_registry:
     active: false
     exclude:
       - dep_check
       - image_repo_sync
-      - tiller
 
 network:
   api:
@@ -174,8 +172,6 @@ secrets:
 conf:
   armada:
     DEFAULT: {}
-      # When .conf.tiller.enabled is true `tiller_host` and `tiller_port` will
-      # be overridden by 127.0.0.1 and `.conf.tiller.port` respectively
     armada_api:
       bind_port: 8000
     keystone_authtoken:
@@ -202,30 +198,6 @@ conf:
     'armada:validate_manifest': 'rule:admin_viewer'
     'armada:get_release': 'rule:admin_viewer'
     'tiller:get_status': 'rule:admin_viewer'
-  tiller:
-    # If set to false then some form of Tiller needs to be provided
-    enabled: true
-    # To have Tiller bind to all interfaces, allowing direct connections from
-    # the Helm client to pod_ip:port, set 'listen_on_any: true'.
-    # The default setting 'listen_on_any: false' binds Tiller to 127.0.0.1.
-    # The Armada container talks directly to Tiller via 127.0.0.1, so the
-    # default value is appropriate for normal operation.
-    listen_on_any: false
-    port: 24134
-    probe_port: 24135
-    verbosity: 5
-    trace: false
-    storage: null
-    # Only postgres is supported so far
-    sql_dialect: postgres
-    sql_connection: null
-    namespace: kube-system
-    # Limit the maximum number of revisions saved per release. 0 for no limit.
-    history_max: 0
-    # Note: Defaulting to the (default) kubernetes grace period, as anything
-    # greater than that will have no effect.
-    prestop_sleep: 30
-
 monitoring:
   prometheus:
     armada:
@@ -239,7 +211,6 @@ pod:
     armada-api:
       init: runtime/default
       armada-api: runtime/default
-      tiller: runtime/default
     armada-api-test:
       armada-api-test: runtime/default
   probes:
@@ -255,23 +226,6 @@ pod:
           params:
             initialDelaySeconds: 15
             periodSeconds: 10
-      tiller:
-        readiness:
-          enabled: true
-          params:
-            failureThreshold: 3
-            initialDelaySeconds: 1
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-        liveness:
-          enabled: true
-          params:
-            failureThreshold: 3
-            initialDelaySeconds: 1
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
   security_context:
     armada:
       pod:
@@ -281,10 +235,6 @@ pod:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         armada_api:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-        tiller:
-          runAsUser: 65534
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
     api_test:
@@ -326,15 +276,6 @@ pod:
       armada_api:
         volumes: []
         volumeMounts: []
-      tiller:
-        volumes:
-          - name: kubernetes-client-cache
-            emptyDir: {}
-        volumeMounts:
-          - name: kubernetes-client-cache
-            # Should be the `$HOME/.kube` of the `runAsUser` above
-            # as this is where tiller's kubernetes client roots its cache dir.
-            mountPath: /tmp/.kube
   affinity:
     anti:
       type:
@@ -360,13 +301,6 @@ pod:
   resources:
     enabled: false
     api:
-      limits:
-        memory: "128Mi"
-        cpu: "100m"
-      requests:
-        memory: "128Mi"
-        cpu: "100m"
-    tiller:
       limits:
         memory: "128Mi"
         cpu: "100m"

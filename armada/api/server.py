@@ -63,6 +63,8 @@ def create(enable_middleware=CONF.middleware):
         (HEALTH_PATH, Health()),
         ('apply', Apply()),
         ('releases', Releases()),
+        # TODO: Remove this in follow on release after Shipyard has
+        # been updated to no longer depend on it.
         ('status', Status()),
         ('tests', TestReleasesManifestController()),
         ('test/{namespace}/{release}', TestReleasesReleaseNameController()),

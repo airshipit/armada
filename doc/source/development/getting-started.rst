@@ -55,13 +55,12 @@ Manual Installation
 Pre-requisites
 ^^^^^^^^^^^^^^
 
-Armada has many pre-requisites because it relies on `Helm`_, which itself
-has pre-requisites. The guide below consolidates the installation of all
-pre-requisites. For help troubleshooting individual resources, reference
-their installation guides.
+The guide below consolidates the installation of all pre-requisites.
+For help troubleshooting individual resources, reference their
+installation guides.
 
-Armada requires a Kubernetes cluster to be deployed, along with `kubectl`_,
-`Helm`_ client, and `Tiller`_ (the Helm server).
+Armada requires a Kubernetes cluster to be deployed, along with `kubectl`_
+and `Helm`_.
 
 #. Install Kubernetes (k8s) and deploy a k8s cluster.
 
@@ -79,14 +78,6 @@ Armada requires a Kubernetes cluster to be deployed, along with `kubectl`_,
      $ kubectl
 
 #. Install and configure the `Helm`_ client.
-
-#. Install and configure `Tiller`_ (Helm server).
-
-#. Verify that Tiller is installed and running correctly by running:
-
-::
-
-  $ kubectl get pods -n kube-system
 
 .. _k8s-cluster-management:
 
@@ -159,14 +150,13 @@ Armada API Server Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Armada API server is not required in order to use the Armada CLI,
-which in this sense is standalone. The Armada CLI communicates with the Tiller
-server and, as such, no API server needs to be instantiated in order for
-Armada to communicate with Tiller. The Armada API server and CLI interface
+which in this sense is standalone. The Armada CLI communicates with the Helm
+CLI. The Armada API server and CLI interface
 have the exact same functionality. However, the Armada API server offers the
 following additional functionality:
 
   * Role-Based Access Control, allowing Armada to provide authorization around
-    specific Armada (and by extension) Tiller functionality.
+    specific Armada functionality.
   * `Keystone`_ authentication and project scoping, providing an additional
     layer of security.
 
@@ -318,6 +308,5 @@ included beneath each bullet.
 
 .. _Bandit: https://opendev.org/openstack/bandit
 .. _kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/
-.. _Helm: https://docs.helm.sh/using_helm/#installing-helm
 .. _Keystone: https://opendev.org/openstack/keystone
-.. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
+.. _Helm: https://docs.helm.sh

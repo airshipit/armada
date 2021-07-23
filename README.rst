@@ -13,7 +13,7 @@ Overview
 --------
 
 The Armada Python library and command line tool provide a way to
-synchronize a Helm (Tiller) target with an operator's intended state,
+synchronize a Helm target with an operator's intended state,
 consisting of several charts, dependencies, and overrides using a single file
 or directory with a collection of files. This allows operators to define many
 charts, potentially with different namespaces for those releases, and their
@@ -39,13 +39,13 @@ Components
 
 Armada consists of two separate but complementary components:
 
-#. CLI component (**mandatory**) which interfaces directly with `Tiller`_.
+#. CLI component (**mandatory**) which interfaces directly with `Helm`_.
 #. API component (**optional**) which services user requests through a wsgi
-   server (which in turn communicates with the `Tiller`_ server) and provides
+   server (which in turn communicates with the `Helm`_ CLI) and provides
    the following additional functionality:
 
    * Role-Based Access Control.
-   * Limiting projects to specific `Tiller`_ functionality by leveraging
+   * Limiting projects to specific functionality by leveraging
      project-scoping provided by `Keystone`_.
 
 Installation
@@ -96,7 +96,7 @@ Integration Points
 
 Armada CLI component has the following integration points:
 
-  * `Tiller`_ manages Armada chart installations.
+  * `Helm`_ manages Armada chart installations.
   * `Deckhand`_ is one of the supported control document sources for Armada.
   * `Prometheus`_ exporter is provided for metric data related to application
     of charts and collections of charts. See `metrics`_.
@@ -115,7 +115,7 @@ Further Reading
 .. _Armada Quickstart: https://docs.airshipit.org/armada/operations/guide-use-armada.html
 .. _metrics: https://docs.airshipit.org/armada/operations/metrics.html#metrics
 .. _kubectl: https://kubernetes.io/docs/user-guide/kubectl/kubectl_config/
-.. _Tiller: https://docs.helm.sh/using_helm/#easy-in-cluster-installation
+.. _Helm: https://docs.helm.sh
 .. _Deckhand: https://opendev.org/airship/deckhand
 .. _Prometheus: https://prometheus.io
 .. _Keystone: https://github.com/openstack/keystone

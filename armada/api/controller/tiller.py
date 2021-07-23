@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import json
 
 import falcon
@@ -20,7 +19,6 @@ from oslo_log import log as logging
 
 from armada import api
 from armada.common import policy
-
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
@@ -32,27 +30,15 @@ class Status(api.BaseResource):
         get tiller status
         '''
         try:
-            with self.get_tiller(req, resp) as tiller:
-                message = self.handle(tiller)
-                resp.status = falcon.HTTP_200
-                resp.text = json.dumps(message)
-                resp.content_type = 'application/json'
-
+            message = self.handle()
+            resp.status = falcon.HTTP_200
+            resp.text = json.dumps(message)
+            resp.content_type = 'application/json'
         except Exception as e:
             err_message = 'Failed to get Tiller Status: {}'.format(e)
             self.error(req.context, err_message)
             self.return_error(resp, falcon.HTTP_500, message=err_message)
 
-    def handle(self, tiller):
-        LOG.debug(
-            'Tiller (Status) at: %s:%s, namespace=%s, '
-            'timeout=%s', tiller.tiller_host, tiller.tiller_port,
-            tiller.tiller_namespace, tiller.timeout)
-
-        message = {
-            'tiller': {
-                'state': tiller.tiller_status(),
-                'version': tiller.tiller_version()
-            }
-        }
+    def handle(self):
+        message = {'tiller': {'state': True, 'version': "v1.2.3"}}
         return message

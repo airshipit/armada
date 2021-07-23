@@ -12,5 +12,4 @@ Commands Guide
 
    apply.rst
    test.rst
-   tiller.rst
    validate.rst

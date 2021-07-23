@@ -441,7 +441,6 @@ Armada - Deploy Behavior
 
 1. Armada will perform set of pre-flight checks to before applying the manifest
    - validate input manifest
-   - check tiller service is Running
    - check chart source locations are valid
 
 2. Deploying Armada Manifest

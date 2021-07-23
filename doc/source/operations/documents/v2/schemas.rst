@@ -26,7 +26,7 @@ Charts
 Charts consist of the smallest building blocks in Armada. A ``Chart`` is
 comparable to a Helm chart. Charts consist of all the labels, dependencies,
 install and upgrade information, hooks and additional information needed to
-convey to Tiller.
+convey to Helm.
 
 Chart Groups
 ------------

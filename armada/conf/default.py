@@ -65,26 +65,6 @@ The Keystone project domain name used for authentication.
             """Optional path to an SSH private key used for
 authenticating against a Git source repository. The path must be an absolute
 path to the private key that includes the name of the key itself.""")),
-    cfg.StrOpt(
-        'tiller_pod_labels',
-        default='app=helm,name=tiller',
-        help=utils.fmt('Labels for the Tiller pod.')),
-    cfg.StrOpt(
-        'tiller_namespace',
-        default='kube-system',
-        help=utils.fmt('Namespace for the Tiller pod.')),
-    cfg.StrOpt(
-        'tiller_host',
-        default=None,
-        help=utils.fmt('IP/hostname of the Tiller pod.')),
-    cfg.IntOpt(
-        'tiller_port',
-        default=44134,
-        help=utils.fmt('Port for the Tiller pod.')),
-    cfg.ListOpt(
-        'tiller_release_roles',
-        default=['admin'],
-        help=utils.fmt('IDs of approved API access roles.')),
     cfg.IntOpt(
         'lock_acquire_timeout',
         default=60,

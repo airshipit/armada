@@ -25,5 +25,4 @@ Armada Exceptions
 .. include:: manifest-exceptions.inc
 .. include:: override-exceptions.inc
 .. include:: source-exceptions.inc
-.. include:: tiller-exceptions.inc
 .. include:: validate-exceptions.inc

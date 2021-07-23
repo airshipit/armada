@@ -14,9 +14,9 @@
 
 from oslo_log import log as logging
 
-from armada import const
 from armada.conf import get_current_chart
 from armada.exceptions import armada_exceptions as ex
+from armada.handlers import helm
 from armada.handlers import schema
 from armada.utils.release import label_selectors
 
@@ -78,7 +78,7 @@ class PreUpdateActions():
             resource_labels,
             namespace,
             wait=False,
-            timeout=const.DEFAULT_TILLER_TIMEOUT):
+            timeout=helm.DEFAULT_HELM_TIMEOUT):
         '''
         Delete resources matching provided resource type, labels, and
         namespace.
@@ -159,7 +159,7 @@ class PreUpdateActions():
             chart,
             disable_hooks,
             values,
-            timeout=const.DEFAULT_TILLER_TIMEOUT):
+            timeout=helm.DEFAULT_HELM_TIMEOUT):
         '''
         update statefulsets (daemon, stateful)
         '''

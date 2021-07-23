@@ -96,10 +96,10 @@ Breaking changes
 4. ``wait.native.enabled`` is now disabled by default. With the above changes,
    this is no longer useful as a backup mechanism. Having both enabled leads to
    ambiguity in which wait would fail in each case. More importantly, this must
-   be disabled in order to use the ``min_ready`` functionality, otherwise tiller
+   be disabled in order to use the ``min_ready`` functionality, otherwise helm
    will wait for 100% anyway. So this prevents accidentally leaving it enabled
-   in that case. Also when the tiller native wait times out, this caused the
-   release to be marked FAILED by tiller, which caused it to be purged and
+   in that case. Also when the helm native wait times out, this caused the
+   release to be marked FAILED by helm, which caused it to be purged and
    re-installed (unless protected), even though the wait criteria may have
    eventually succeeded, which is already validated by armada on a retry.
 

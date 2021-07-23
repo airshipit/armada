@@ -73,11 +73,11 @@ SHORT_DESC = "Command installs manifest charts."
 @click.option('--api', help="Contacts service endpoint.", is_flag=True)
 @click.option(
     '--disable-update-post',
-    help="Disable post-update Tiller operations.",
+    help="Disable post-update Helm operations.",
     is_flag=True)
 @click.option(
     '--disable-update-pre',
-    help="Disable pre-update Tiller operations.",
+    help="Disable pre-update Helm operations.",
     is_flag=True)
 @click.option(
     '--enable-chart-cleanup', help="Clean up unmanaged charts.", is_flag=True)
@@ -117,7 +117,7 @@ SHORT_DESC = "Command installs manifest charts."
 @click.option(
     '--wait',
     help=(
-        "Force Tiller to wait until all charts are deployed, "
+        "Force Helm to wait until all charts are deployed, "
         "rather than using each charts specified wait policy. "
         "This is equivalent to sequenced chartgroups."),
     is_flag=True)

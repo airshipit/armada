@@ -25,5 +25,4 @@ Usage
 **helm <Name> <action> [options]**
 ::
 
-    helm armada tiller --status
     helm armada apply ~/.helm/plugins/armada/examples/simple.yaml

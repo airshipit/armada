@@ -1,13 +1,9 @@
-#
 #"admin_required": "role:admin or role:admin_ucp"
 
-#
 #"service_or_admin": "rule:admin_required or rule:service_role"
 
-#
 #"service_role": "role:service"
 
-#
 #"admin_viewer": "role:admin_ucp_viewer or rule:service_or_admin"
 
 # Install manifest charts
@@ -33,3 +29,4 @@
 # Get Tiller status
 # GET  /api/v1.0/status/
 #"tiller:get_status": "rule:admin_viewer"
+

@@ -20,26 +20,11 @@ httpGet:
   port: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
 {{- end }}
 
-{{- define "tillerReadinessProbeTemplate" }}
-httpGet:
-  path: /readiness
-  port: {{ .Values.conf.tiller.probe_port }}
-  scheme: HTTP
-{{- end }}
-
-{{- define "tillerLivenessProbeTemplate" }}
-httpGet:
-  path: /liveness
-  port: {{ .Values.conf.tiller.probe_port }}
-  scheme: HTTP
-{{- end }}
-
 {{- if .Values.manifests.deployment_api }}
 {{- $envAll := . }}
 {{- $labels :=  tuple $envAll "armada" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" -}}
 {{- $mounts_armada_api := .Values.pod.mounts.armada_api.armada_api }}
 {{- $mounts_armada_api_init := .Values.pod.mounts.armada_api.init_container }}
-{{- $mounts_armada_api_tiller := .Values.pod.mounts.armada_api.tiller }}
 {{- $prometheus_annotations := $envAll.Values.monitoring.prometheus.armada }}
 {{- $serviceAccountName := "armada-api" }}
 {{ tuple $envAll "api" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
@@ -108,7 +93,7 @@ spec:
 {{ $labels | indent 8 }}
       annotations:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
-{{ dict "envAll" $envAll "podName" "armada-api" "containerNames" (list "init" "armada-api" "tiller") | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 8 }}
+{{ dict "envAll" $envAll "podName" "armada-api" "containerNames" (list "init" "armada-api") | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 8 }}
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
         configmap-etc-hash: {{ tuple "configmap-etc.yaml" . | include "helm-toolkit.utils.hash" }}
 {{ tuple $prometheus_annotations | include "helm-toolkit.snippets.prometheus_pod_annotations" | indent 8 }}
@@ -158,54 +143,6 @@ spec:
               subPath: policy.yaml
               readOnly: true
 {{ if $mounts_armada_api.volumeMounts }}{{ toYaml $mounts_armada_api.volumeMounts | indent 12 }}{{ end }}
-{{- if .Values.conf.tiller.enabled }}
-        - name: tiller
-{{ tuple $envAll "tiller" | include "helm-toolkit.snippets.image" | indent 10 }}
-{{ tuple $envAll $envAll.Values.pod.resources.tiller | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
-{{ dict "envAll" $envAll "application" "armada" "container" "tiller" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
-          env:
-            - name: TILLER_NAMESPACE
-              value: {{ .Values.conf.tiller.namespace | quote }}
-            - name: TILLER_HISTORY_MAX
-              value: {{ .Values.conf.tiller.history_max | quote }}
-          command:
-            - /tiller
-{{- if .Values.conf.tiller.storage }}
-            - --storage={{ .Values.conf.tiller.storage }}
-{{- if and (eq .Values.conf.tiller.storage "sql") (.Values.conf.tiller.sql_dialect) (.Values.conf.tiller.sql_connection) }}
-            - --sql-dialect={{ .Values.conf.tiller.sql_dialect }}
-            - --sql-connection-string={{ .Values.conf.tiller.sql_connection }}
-{{- end }}
-{{- end }}
-            - -listen
-            - "{{ if not .Values.conf.tiller.listen_on_any }}127.0.0.1{{ end }}:{{ .Values.conf.tiller.port }}"
-            - -probe-listen
-            - ":{{ .Values.conf.tiller.probe_port }}"
-            - -logtostderr
-            - -v
-            - {{ .Values.conf.tiller.verbosity | quote }}
-{{- if .Values.conf.tiller.trace }}
-            - -trace
-{{- end }}
-          lifecycle:
-            preStop:
-              exec:
-                command:
-                  # Delay tiller termination so that it has a chance to finish
-                  # deploying releases including marking them with
-                  # DEPLOYED/FAILED status, otherwise they can get stuck in
-                  # PENDING_*** status.
-                  - sleep
-                  - "{{ .Values.conf.tiller.prestop_sleep }}"
-          ports:
-            - name: tiller
-              containerPort: {{ .Values.conf.tiller.port }}
-              protocol: TCP
-{{ dict "envAll" $envAll "component" "armada" "container" "tiller" "type" "readiness" "probeTemplate" (include "tillerReadinessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
-{{ dict "envAll" $envAll "component" "armada" "container" "tiller" "type" "liveness" "probeTemplate" (include "tillerLivenessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | trim | indent 10 }}
-          volumeMounts:
-{{ if $mounts_armada_api_tiller.volumeMounts }}{{ toYaml $mounts_armada_api_tiller.volumeMounts | indent 12 }}{{ end }}
-{{- end }}
       volumes:
         - name: pod-tmp
           emptyDir: {}
@@ -220,7 +157,4 @@ spec:
             name: armada-etc
             defaultMode: 0444
 {{ if $mounts_armada_api.volumes }}{{ toYaml $mounts_armada_api.volumes | indent 8 }}{{ end }}
-{{- if .Values.conf.tiller.enabled }}
-{{ if $mounts_armada_api_tiller.volumes }}{{ toYaml $mounts_armada_api_tiller.volumes | indent 8 }}{{ end }}
-{{- end }}
 {{- end }}

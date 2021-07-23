@@ -8,7 +8,7 @@ Prerequisites
 
 Kubernetes Cluster
 
-`Tiller Service <https://github.com/kubernetes/helm>`_
+`Helm <https://docs.helm.sh>`_
 
 .. todo:: point this to v2 docs once they're stable
 
@@ -74,32 +74,20 @@ b. Helm Install
 
     helm install <registry>/armada --name armada --namespace armada
 
-3. Check that tiller is Available
-
-.. code:: bash
-
-    docker exec armada armada tiller --status
-
-4. If tiller is up then we can start deploying our armada yamls
+3. Deploy armada yamls
 
 .. code:: bash
 
     docker exec armada armada apply /examples/openstack-helm.yaml [ --debug ]
 
-5. Upgrading charts: modify the armada yaml or chart source code and run ``armada
+4. Upgrading charts: modify the armada yaml or chart source code and run ``armada
    apply`` above
 
 .. code:: bash
 
     docker exec armada armada apply /examples/openstack-helm.yaml [ --debug ]
 
-6. To check deployed releases:
-
-.. code:: bash
-
-   docker exec armada armada tiller --releases
-
-7. Testing Releases:
+5. Testing Releases:
 
 .. code:: bash
 
@@ -233,10 +221,7 @@ like openstack-keystone.
 
     armada apply --bearer-token [ TOKEN ] --values [ path_to_yaml ] [ FILE ]
 
-    armada tiller --bearer-token [ TOKEN ] --status
-
 .. note::
     The bearer token option is available for the following commands
 
     armada apply,
-    armada tiller

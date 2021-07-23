@@ -23,7 +23,6 @@ from oslo_utils import excutils
 import yaml
 
 from armada.handlers.helm import Helm
-from armada.handlers.tiller import Tiller
 
 CONF = cfg.CONF
 
@@ -117,9 +116,6 @@ class BaseResource(object):
 
     def error(self, ctx, msg):
         self.log_error(ctx, log.ERROR, msg)
-
-    def get_tiller(self, req, resp):
-        return Tiller()
 
     def get_helm(self, req, resp):
         return Helm()

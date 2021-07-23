@@ -52,7 +52,7 @@
 - job:
     name: armada-chart-build-gate
     description: |
-      Builds Armada and Tiller charts using pinned Helm toolkit.
+      Builds charts using pinned Helm toolkit.
     timeout: 900
     run: tools/gate/playbooks/build-charts.yaml
     nodeset: armada-single-node
@@ -60,7 +60,7 @@
 - job:
     name: armada-chart-build-latest-htk
     description: |
-      Builds Armada and Tiller charts using latest Helm toolkit.
+      Builds charts using latest Helm toolkit.
     timeout: 900
     voting: false
     run: tools/gate/playbooks/build-charts.yaml

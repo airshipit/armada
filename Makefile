@@ -120,10 +120,6 @@ ifeq ($(PUSH_IMAGE), true)
 	docker push $(IMAGE)
 endif
 
-# make tools
-protoc:
-	@tools/helm-hapi.sh
-
 clean:
 	rm -rf build
 	rm -rf doc/build

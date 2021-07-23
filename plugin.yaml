@@ -6,7 +6,6 @@ description: |-
   multiple Helm charts with dependencies by centralizing all configurations
   in a single Armada yaml and providing lifecycle hooks for all Helm releases
   usage:
-    $ helm armada tiller --status
     $ helm armada apply /examples/openstack-helm.yaml
 ignoreFlags: false
 useTunnel: false
