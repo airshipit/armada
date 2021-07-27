@@ -24,7 +24,7 @@ kind: Pod
 metadata:
   name: armada-api-test
   annotations:
-    "helm.sh/hook": "test-success"
+    "helm.sh/hook": "test"
     {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" }}
 {{ dict "envAll" $envAll "podName" "armada-api-test" "containerNames" (list "armada-api-test") | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 4 }}
   labels:
