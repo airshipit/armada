@@ -94,13 +94,11 @@ ENV/
 # Rope project settings
 .ropeproject
 
-# Helm internals
-*.lock
-*/*.lock
-*.tgz
-**/*.tgz
-**/_partials.tpl
-**/_globals.tpl
+# Chart artifacts
+/charts/*.tgz
+/charts/*/charts
+/charts/*/requirements.lock
+/charts/deps/*/
 
 # OSX
 .DS_STORE

@@ -27,7 +27,7 @@ PUSH_IMAGE        ?= false
 LABEL             ?= org.airshipit.build=community
 COMMIT            ?= $(shell git rev-parse HEAD)
 PYTHON            = python3
-CHARTS            := $(patsubst charts/%/.,%,$(wildcard charts/*/.))
+CHARTS            := $(filter-out deps, $(patsubst charts/%/.,%,$(wildcard charts/*/.)))
 DISTRO            ?= ubuntu_bionic
 IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}
 UBUNTU_BASE_IMAGE ?=
@@ -40,8 +40,6 @@ GIT_COMMIT = $(shell git rev-parse HEAD)
 GIT_SHA    = $(shell git rev-parse --short HEAD)
 GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 GIT_DIRTY  = $(shell test -n "`git status --porcelain`" && echo "dirty" || echo "clean")
-
-HELM_PIDFILE ?= $(abspath ./.helm-pid)
 
 ifdef VERSION
 	DOCKER_VERSION = $(VERSION)
@@ -167,12 +165,12 @@ charts: $(CHARTS)
 
 helm-init: $(addprefix helm-init-,$(CHARTS))
 
-helm-init-%: helm-serve
+helm-init-%: helm-toolkit
 	@echo Initializing chart $*
-	cd charts;if [ -s $*/requirements.yaml ]; then echo "Initializing $*";$(HELM) dep up $*; fi
+	cd charts;if [ -s $*/requirements.yaml ]; then echo "Initializing $*";$(HELM) dep up --skip-refresh $*; fi
 
-helm-serve: helm-install
-	./tools/helm_tk.sh $(HELM) $(HELM_PIDFILE)
+helm-toolkit: helm-install
+	./tools/helm_tk.sh $(HELM)
 
 helm-lint: $(addprefix helm-lint-,$(CHARTS))
 
@@ -196,5 +194,5 @@ helm-install:
 .PHONY: $(CHARTS) all bootstrap bootstrap-all build build_armada \
   build_docs charts check-docker check-tox clean docs dry-run \
   dry-run-% format helm-init helm-init-% helm-install helm-lint \
-  helm-lint-% helm-serve images lint protoc run_armada run_images \
+  helm-lint-% helm-toolkit images lint protoc run_armada run_images \
   test-all test-bandit test-coverage test-pep8 tests test-unit
