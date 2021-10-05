@@ -55,15 +55,8 @@ class ChartBuilder(object):
                 # NOTE: Ideally we would only delete the subcharts being
                 # overridden, and leave the others in place, but we delete all
                 # for backward compatibility with the Helm 2 based Armada.
-                (rmtree(d) for d in charts_path.iterdir() if d.is_dir())
-            else:
-                if charts_path.exists():
-                    # NOTE: Ideally we would throw an error if `charts` is a
-                    # non-directory, but we don't for backward compatibility
-                    # with the Helm 2 based Armada.
-                    charts_path.unlink()
-
-                charts_path.mkdir()
+                rmtree(charts_dir)
+            charts_path.mkdir()
 
             # Add symlinks to dependencies into `charts` dir.
             for chart_dep in dependencies:
