@@ -73,7 +73,8 @@ class Helm(object):
 
     def list_release_ids(self):
         return [
-            HelmReleaseId(r.namespace, r.name) for r in self.list_releases()
+            HelmReleaseId(r['namespace'], r['name'])
+            for r in self.list_releases()
         ]
 
     def install_release(
