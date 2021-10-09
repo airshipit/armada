@@ -113,6 +113,18 @@ spec:
 {{ tuple $envAll "api" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ tuple $envAll $envAll.Values.pod.resources.api | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
 {{ dict "envAll" $envAll "application" "armada" "container" "armada_api" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
+          {{- if .Values.pod.lifecycle.prestop_sleep }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  # Delay armada termination so that it has a chance to finish
+                  # a helm upgrade of the armada chart itself so that the armada
+                  # helm release gets marked DEPLOYED/FAILED, rather than
+                  # PENDING_UPGRADE.
+                  - sleep
+                  - "{{ .Values.pod.lifecycle.prestop_sleep }}"
+          {{- end }}
           {{- if .Values.pod.env.armada_api }}
           env:
             {{- range .Values.pod.env.armada_api }}

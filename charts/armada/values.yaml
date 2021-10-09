@@ -298,6 +298,7 @@ pod:
     termination_grace_period:
       api:
         timeout: 30
+    prestop_sleep: 20
   resources:
     enabled: false
     api:
