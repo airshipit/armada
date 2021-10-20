@@ -26,6 +26,7 @@ from hapi.services.tiller_pb2 import UninstallReleaseRequest
 from hapi.services.tiller_pb2 import UpdateReleaseRequest
 from oslo_config import cfg
 from oslo_log import log as logging
+from kubernetes.client.rest import ApiException
 import yaml
 
 from armada import const
@@ -314,17 +315,17 @@ class Tiller(object):
             for action in actions.get('update', []):
                 name = action.get('name')
                 LOG.info('Updating %s ', name)
-                action_type = action.get('type')
+                resource_type = action.get('type')
                 labels = action.get('labels')
 
                 self.rolling_upgrade_pod_deployment(
-                    name, release_name, namespace, labels, action_type, chart,
-                    disable_hooks, values, timeout)
+                    name, release_name, namespace, labels, resource_type,
+                    chart, disable_hooks, values, timeout)
         except Exception:
             LOG.exception(
                 "Pre-action failure: could not perform rolling upgrade for "
                 "%(res_type)s %(res_name)s.", {
-                    'res_type': action_type,
+                    'res_type': resource_type,
                     'res_name': name
                 })
             raise ex.PreUpdateJobDeleteException(name, namespace)
@@ -332,16 +333,16 @@ class Tiller(object):
         try:
             for action in actions.get('delete', []):
                 name = action.get('name')
-                action_type = action.get('type')
+                resource_type = action.get('type')
                 labels = action.get('labels', None)
 
                 self.delete_resources(
-                    action_type, labels, namespace, timeout=timeout)
+                    resource_type, labels, namespace, timeout=timeout)
         except Exception:
             LOG.exception(
                 "Pre-action failure: could not delete %(res_type)s "
                 "%(res_name)s.", {
-                    'res_type': action_type,
+                    'res_type': resource_type,
                     'res_name': name
                 })
             raise ex.PreUpdateJobDeleteException(name, namespace)
@@ -617,13 +618,80 @@ class Tiller(object):
             status = self.get_release_status(release)
             raise ex.ReleaseException(release, status, 'Delete')
 
+    def _delete_jobs(self, jobs, resource_labels, namespace, timeout):
+        for jb in jobs.items:
+            try:
+                jb_name = jb.metadata.name
+                LOG.info(
+                    "Deleting job: %s in namespace: %s", jb_name, namespace)
+                self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
+            except ApiException as err:
+                if err.status != 404:
+                    raise ApiException
+                LOG.warn(
+                    "No jobs found with labels=%s namespace=%s",
+                    resource_labels, namespace)
+
+    def _delete_cronjobs(
+            self,
+            cronjobs,
+            resource_labels,
+            namespace,
+            timeout,
+            implied_cronjob=False):
+        for jb in cronjobs.items:
+            try:
+                jb_name = jb.metadata.name
+                # TODO: Remove when v1 doc support is removed.
+                if implied_cronjob:
+                    LOG.warn(
+                        "Deleting cronjobs via `type: job` is "
+                        "deprecated, use `type: cronjob` instead")
+
+                LOG.info(
+                    "Deleting cronjob %s in namespace: %s", jb_name, namespace)
+                self.k8s.delete_cron_job_action(
+                    jb_name, namespace, timeout=timeout)
+            except ApiException as err:
+                if err.status != 404:
+                    raise ApiException
+                LOG.warn(
+                    "No cronjobs found with labels=%s namespace=%s",
+                    resource_labels, namespace)
+
+    def _delete_pods(
+            self, release_pods, resource_labels, namespace, timeout,
+            wait=False):
+        for pod in release_pods.items:
+            try:
+                pod_name = pod.metadata.name
+                LOG.info(
+                    "Deleting pod %s in namespace: %s", pod_name, namespace)
+                self.k8s.delete_pod_action(
+                    pod_name, namespace, timeout=timeout)
+                if wait:
+                    self.k8s.wait_for_pod_redeployment(pod_name, namespace)
+            except ApiException as err:
+                if err.status != 404:
+                    raise ApiException
+                LOG.warn(
+                    "No pods found with labels=%s namespace=%s",
+                    resource_labels, namespace)
+
+    def _job_implies_cronjob(self, resource_type):
+        chart = get_current_chart()
+        schema_info = schema.get_schema_info(chart['schema'])
+        job_implies_cronjob = schema_info.version < 2
+        return resource_type == 'job' and job_implies_cronjob
+
     def delete_resources(
             self,
             resource_type,
             resource_labels,
             namespace,
             wait=False,
-            timeout=const.DEFAULT_TILLER_TIMEOUT):
+            timeout=const.DEFAULT_TILLER_TIMEOUT,
+            implied_job_check=True):
         '''
         Delete resources matching provided resource type, labels, and
         namespace.
@@ -643,50 +711,32 @@ class Tiller(object):
 
         handled = False
         if resource_type == 'job':
-            get_jobs = self.k8s.get_namespace_job(
+            jobs = self.k8s.get_namespace_job(
                 namespace, label_selector=label_selector)
-            for jb in get_jobs.items:
-                jb_name = jb.metadata.name
-
-                LOG.info(
-                    "Deleting job: %s in namespace: %s", jb_name, namespace)
-                self.k8s.delete_job_action(jb_name, namespace, timeout=timeout)
+            self._delete_jobs(jobs, resource_labels, namespace, timeout)
             handled = True
 
         # TODO: Remove when v1 doc support is removed.
-        chart = get_current_chart()
-        schema_info = schema.get_schema_info(chart['schema'])
-        job_implies_cronjob = schema_info.version < 2
-        implied_cronjob = resource_type == 'job' and job_implies_cronjob
+        implied_cronjob = False
+        if implied_job_check:
+            implied_cronjob = self._job_implies_cronjob(resource_type)
 
         if resource_type == 'cronjob' or implied_cronjob:
-            get_jobs = self.k8s.get_namespace_cron_job(
+            cronjobs = self.k8s.get_namespace_cron_job(
                 namespace, label_selector=label_selector)
-            for jb in get_jobs.items:
-                jb_name = jb.metadata.name
-
-                # TODO: Remove when v1 doc support is removed.
-                if implied_cronjob:
-                    LOG.warn(
-                        "Deleting cronjobs via `type: job` is "
-                        "deprecated, use `type: cronjob` instead")
-
-                LOG.info(
-                    "Deleting cronjob %s in namespace: %s", jb_name, namespace)
-                self.k8s.delete_cron_job_action(jb_name, namespace)
+            self._delete_cronjobs(
+                cronjobs,
+                resource_labels,
+                namespace,
+                timeout,
+                implied_cronjob=implied_cronjob)
             handled = True
 
         if resource_type == 'pod':
             release_pods = self.k8s.get_namespace_pod(
                 namespace, label_selector=label_selector)
-            for pod in release_pods.items:
-                pod_name = pod.metadata.name
-
-                LOG.info(
-                    "Deleting pod %s in namespace: %s", pod_name, namespace)
-                self.k8s.delete_pod_action(pod_name, namespace)
-                if wait:
-                    self.k8s.wait_for_pod_redeployment(pod_name, namespace)
+            self._delete_pods(
+                release_pods, resource_labels, namespace, timeout, wait=wait)
             handled = True
 
         if not handled:
@@ -700,7 +750,7 @@ class Tiller(object):
             release_name,
             namespace,
             resource_labels,
-            action_type,
+            resource_type,
             chart,
             disable_hooks,
             values,
@@ -709,9 +759,9 @@ class Tiller(object):
         update statefulsets (daemon, stateful)
         '''
 
-        if action_type == 'daemonset':
+        if resource_type == 'daemonset':
 
-            LOG.info('Updating: %s', action_type)
+            LOG.info('Updating: %s', resource_type)
 
             label_selector = ''
 
@@ -726,7 +776,7 @@ class Tiller(object):
                 ds_labels = ds.metadata.labels
                 if ds_name == name:
                     LOG.info(
-                        "Deleting %s : %s in %s", action_type, ds_name,
+                        "Deleting %s : %s in %s", resource_type, ds_name,
                         namespace)
                     self.k8s.delete_daemon_action(ds_name, namespace)
 
@@ -750,7 +800,8 @@ class Tiller(object):
                         timeout=timeout)
 
         else:
-            LOG.error("Unable to exectue name: % type: %s", name, action_type)
+            LOG.error(
+                "Unable to execute name: % type: %s", name, resource_type)
 
     def rollback_release(
             self,
