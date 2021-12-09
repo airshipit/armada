@@ -141,7 +141,6 @@ class ChartDeploy(object):
             else:
                 action = metrics.ChartDeployAction.UPGRADE
                 LOG.info("Found updates to chart release inputs")
-                result['diff'] = {chart['release']: str(diff)}
 
                 def upgrade():
                     # do actual update
