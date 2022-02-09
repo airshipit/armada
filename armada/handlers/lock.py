@@ -281,40 +281,32 @@ class LockConfig:
         return lock
 
     def create_definition(self):
-        names = client.V1beta1CustomResourceDefinitionNames(
+        names = client.V1CustomResourceDefinitionNames(
             kind="Resource", plural=LOCK_PLURAL, singular=LOCK_SINGULAR)
         metadata = client.V1ObjectMeta(
             name="{}.{}".format(LOCK_PLURAL, LOCK_GROUP),
             resource_version=LOCK_VERSION)
-        status = client.V1beta1CustomResourceDefinitionStatus(
-            accepted_names=names,
-            conditions=[],
-            stored_versions=[LOCK_VERSION])
-        spec = client.V1beta1CustomResourceDefinitionSpec(
+        spec = client.V1CustomResourceDefinitionSpec(
             group=LOCK_GROUP,
             names=names,
             scope="Namespaced",
-            version=LOCK_VERSION)
-        crd = client.V1beta1CustomResourceDefinition(
-            spec=spec,
-            status=status,
-            metadata=metadata,
-            kind="CustomResourceDefinition")
+            versions=[
+                {
+                    "name": LOCK_VERSION,
+                    "schema": {
+                        "openAPIV3Schema": {
+                            "type": "object",
+                            "x-kubernetes-preserve-unknown-fields": True
+                        }
+                    },
+                    "served": True,
+                    "storage": True,
+                }
+            ])
+        crd = client.V1CustomResourceDefinition(
+            spec=spec, metadata=metadata, kind="CustomResourceDefinition")
         try:
             self.k8s.create_custom_resource_definition(crd)
-        except ValueError as err:
-            # Because of an issue with the Kubernetes code, the API server
-            # may return `null` for the required field `conditions` in
-            # kubernetes.client.V1beta1CustomResourceDefinitionStatus
-            # This causes validation to fail which will raise the subsequent
-            # ValueError even though the CRD was created successfully
-            # https://github.com/kubernetes-client/gen/issues/52
-            # TODO if this is fixed upstream this should be removed
-            known_msg = "Invalid value for `conditions`, must not be `None`"
-            known_err = ValueError(known_msg)
-            if err.args != known_err.args:
-                raise
-            LOG.debug("Encountered known issue while creating CRD, continuing")
         except ApiException as err:
             # If a 409 is received then the definition already exists
             if err.status != 409:

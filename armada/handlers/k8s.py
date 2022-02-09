@@ -57,8 +57,7 @@ class K8s(object):
         self.batch_api = client.BatchV1Api(api_client)
         self.batch_v1beta1_api = client.BatchV1beta1Api(api_client)
         self.custom_objects = client.CustomObjectsApi(api_client)
-        self.api_extensions = client.ApiextensionsV1beta1Api(api_client)
-        self.extension_api = client.ExtensionsV1beta1Api(api_client)
+        self.api_extensions = client.ApiextensionsV1Api(api_client)
         self.apps_v1_api = client.AppsV1Api(api_client)
 
     def delete_job_action(
@@ -369,10 +368,10 @@ class K8s(object):
 
         :param crd: custom resource definition to create
 
-        :type crd: kubernetes.client.V1beta1CustomResourceDefinition
+        :type crd: kubernetes.client.V1CustomResourceDefinition
 
         :return: new custom resource definition
-        :rtype: kubernetes.client.V1beta1CustomResourceDefinition
+        :rtype: kubernetes.client.V1CustomResourceDefinition
         """
         return self.api_extensions.create_custom_resource_definition(crd)
 
