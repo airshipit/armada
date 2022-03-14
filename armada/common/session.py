@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import socket
+
 from oslo_config import cfg
 from oslo_log import log as logging
 import requests
+from urllib3.poolmanager import PoolManager
+from urllib3.connection import HTTPConnection
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -60,6 +64,7 @@ class ArmadaSession(object):
                 self.scheme, self.host, self.port)
         else:
             self.base_url = "{}://{}/api/".format(self.scheme, self.host)
+        self._session.mount(self.base_url, TcpKeepaliveAdapter())
 
         self.default_timeout = ArmadaSession._calc_timeout_tuple(
             (20, 3600), timeout)
@@ -177,3 +182,19 @@ class ArmadaSession(object):
                 " integer. Proceeding with values of (%s, %s)",
                 connect_timeout, read_timeout)
         return (connect_timeout, read_timeout)
+
+
+class TcpKeepaliveAdapter(requests.adapters.HTTPAdapter):
+    """"Transport adapter" that enables TCP keepalives."""
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        options = HTTPConnection.default_socket_options + [
+            (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+            (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 120),
+            (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 30),
+        ]
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            socket_options=options)
