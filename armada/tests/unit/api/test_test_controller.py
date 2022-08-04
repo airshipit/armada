@@ -236,8 +236,8 @@ class TestReleasesReleaseNameControllerNegativeRbacTest(base.BaseControllerTest
                                                         ):
     @test_utils.attr(type=['negative'])
     def test_test_release_insufficient_permissions(self):
-        """Tests the GET /api/v1.0/test/{namespace}/{release} endpoint returns 403
-        following failed authorization.
+        """Tests the GET /api/v1.0/test/{namespace}/{release} endpoint returns
+        403 following failed authorization.
         """
         rules = {'armada:test_release': policy_base.RULE_ADMIN_REQUIRED}
         self.policy.set_rules(rules)

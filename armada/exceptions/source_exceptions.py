@@ -145,7 +145,7 @@ class ChartSourceException(SourceException):
         self._chart_name = chart_name
         self._source_type = source_type
 
-        self._message = 'Unknown source type \"' + self._source_type + '\" for \
-                        chart \"' + self._chart_name + '\"'
+        self._message = 'Unknown source type \"' + self._source_type +\
+                        '\" for chart \"' + self._chart_name + '\"'
 
         super(ChartSourceException, self).__init__(self._message)

@@ -5,7 +5,7 @@ jsonschema>=3.0.1,<4
 keystoneauth1>=3.18.0
 keystonemiddleware==5.3.0
 kombu<4.7,>=4.6.10
-kubernetes<24,>=23.0.0; python_version >= '3.6'
+kubernetes~=24.2.0; python_version >= '3.6'
 Paste>=2.0.3
 PasteDeploy>=1.5.2
 pylibyaml~=0.1
