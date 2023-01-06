@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
-import collections
+import collections.abc
 import copy
 import math
 import re

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import collections
+import collections.abc
 import json
 
 import yaml
@@ -54,7 +54,7 @@ class Override(object):
 
     def update(self, d, u):
         for k, v in u.items():
-            if isinstance(v, collections.Mapping):
+            if isinstance(v, collections.abc.Mapping):
                 r = self.update(d.get(k, {}), v)
                 d[k] = r
             elif isinstance(v, str) and isinstance(d.get(k), (list, tuple)):
@@ -90,9 +90,9 @@ class Override(object):
         def convert(data):
             if isinstance(data, str):
                 return str(data)
-            elif isinstance(data, collections.Mapping):
+            elif isinstance(data, collections.abc.Mapping):
                 return dict(map(convert, data.items()))
-            elif isinstance(data, collections.Iterable):
+            elif isinstance(data, collections.abc.Iterable):
                 return type(data)(map(convert, data))
             else:
                 return data
@@ -113,7 +113,7 @@ class Override(object):
             t = t.setdefault(part, {})
 
         string = json.dumps(tree).replace('null', '"{}"'.format(new_value))
-        data_obj = convert(json.loads(string, encoding='utf-8'))
+        data_obj = convert(json.loads(string))
 
         return data_obj
 

@@ -55,7 +55,6 @@ class K8s(object):
 
         self.client = client.CoreV1Api(api_client)
         self.batch_api = client.BatchV1Api(api_client)
-        self.batch_v1beta1_api = client.BatchV1beta1Api(api_client)
         self.custom_objects = client.CustomObjectsApi(api_client)
         self.api_extensions = client.ApiextensionsV1Api(api_client)
         self.apps_v1_api = client.AppsV1Api(api_client)
@@ -96,9 +95,9 @@ class K8s(object):
         :param timeout: The timeout to wait for the delete to complete
         '''
         self._delete_item_action(
-            self.batch_v1beta1_api.list_namespaced_cron_job,
-            self.batch_v1beta1_api.delete_namespaced_cron_job, "cron job",
-            name, namespace, propagation_policy, timeout)
+            self.batch_api.list_namespaced_cron_job,
+            self.batch_api.delete_namespaced_cron_job, "cron job", name,
+            namespace, propagation_policy, timeout)
 
     def delete_pod_action(
             self,
@@ -225,8 +224,7 @@ class K8s(object):
         '''
 
         try:
-            return self.batch_v1beta1_api.list_namespaced_cron_job(
-                namespace, **kwargs)
+            return self.batch_api.list_namespaced_cron_job(namespace, **kwargs)
         except ApiException as e:
             LOG.error(
                 "Exception getting cron jobs: namespace=%s, label=%s: %s",

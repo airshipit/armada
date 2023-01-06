@@ -1,11 +1,11 @@
 amqp<2.7,>=2.6.0
-deepdiff==3.3.0
+deepdiff>=3.3.0
 gitpython
 jsonschema>=3.0.1,<4
 keystoneauth1>=3.18.0
-keystonemiddleware==5.3.0
+keystonemiddleware>=5.3.0
 kombu<4.7,>=4.6.10
-kubernetes~=24.2.0; python_version >= '3.6'
+kubernetes~=25.3.0; python_version >= '3.6'
 Paste>=2.0.3
 PasteDeploy>=1.5.2
 pylibyaml~=0.1
@@ -32,5 +32,5 @@ oslo.log>=3.45.2 # Apache-2.0
 oslo.messaging!=5.25.0,>=5.24.2 # Apache-2.0
 oslo.middleware>=3.27.0 # Apache-2.0
 oslo.policy>=1.23.0 # Apache-2.0
-oslo.serialization==2.29.2 # Apache-2.0
+oslo.serialization>=2.29.2 # Apache-2.0
 oslo.utils>=3.42.1 # Apache-2.0
