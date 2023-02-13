@@ -110,7 +110,7 @@ class GitTestCase(base.ArmadaTestCase):
             source.download_tarball(url)
 
         mock_temp.mkstemp.assert_called_once()
-        mock_requests.get.assert_called_once_with(url, verify=False)
+        mock_requests.get.assert_called_once_with(url, timeout=5, verify=False)
         mock_open.assert_called_once_with('/tmp/armada', 'wb')
         mock_open().write.assert_called_once_with(
             mock_requests.get(url).content)
@@ -121,7 +121,8 @@ class GitTestCase(base.ArmadaTestCase):
     def test_tarball_extract(self, mock_tarfile, mock_path, mock_temp):
         mock_path.exists.return_value = True
         mock_temp.mkdtemp.return_value = '/tmp/armada'
-        mock_opened_file = mock.Mock()
+        mock_opened_file = mock.MagicMock()
+        mock_opened_file.__iter__.return_value = ['file']
         mock_tarfile.open.return_value = mock_opened_file
 
         path = '/tmp/mariadb-0.1.0.tgz'
@@ -130,7 +131,7 @@ class GitTestCase(base.ArmadaTestCase):
         mock_path.exists.assert_called_once()
         mock_temp.mkdtemp.assert_called_once()
         mock_tarfile.open.assert_called_once_with(path)
-        mock_opened_file.extractall.assert_called_once_with('/tmp/armada')
+        mock_opened_file.extract.assert_called_once_with('file', '/tmp/armada')
 
     @test_utils.attr(type=['negative'])
     @mock.patch('armada.utils.source.os.path')
@@ -144,7 +145,7 @@ class GitTestCase(base.ArmadaTestCase):
             path)
 
         mock_tarfile.open.assert_not_called()
-        mock_tarfile.extractall.assert_not_called()
+        mock_tarfile.extract.assert_not_called()
 
     @testtools.skipUnless(
         base.is_connected(), 'git clone requires network connectivity.')

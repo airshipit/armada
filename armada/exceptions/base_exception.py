@@ -14,6 +14,7 @@
 
 import json
 import traceback
+from contextlib import suppress
 
 import falcon
 from oslo_config import cfg
@@ -251,10 +252,13 @@ class ArmadaBaseException(Exception):
 
     def __init__(self, message=None, **kwargs):
         self.message = message or self.message
-        try:  # nosec
+        # replacing try-except-pass block with suppress
+        with suppress(Exception):
             self.message = self.message % kwargs
-        except Exception:
-            pass
+        # try:  # nosec
+        #     self.message = self.message % kwargs
+        # except Exception:
+        #     pass
         super(ArmadaBaseException, self).__init__(self.message)
 
 

@@ -13,6 +13,17 @@
 # limitations under the License.
 
 - hosts: primary
+  vars:
+    env:
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      NO_PROXY: ""
+      DISTRO: "{{ distro }}"
+  become: true
+
+  roles:
+    - clear-firewall
+
   tasks:
     # Stop systemd-resolved service before starting docker.
     - name: stop systemd-resolved service

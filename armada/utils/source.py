@@ -134,7 +134,8 @@ def download_tarball(tarball_url, verify=False, proxy_server=None):
                 'ftp': proxy_server
             }
         tarball_filename = tempfile.mkstemp(prefix='armada')[1]
-        response = requests.get(tarball_url, verify=verify, **kwargs)
+        response = requests.get(
+            tarball_url, timeout=5, verify=verify, **kwargs)
 
         with open(tarball_filename, 'wb') as f:
             f.write(response.content)
@@ -155,7 +156,8 @@ def extract_tarball(tarball_path):
 
     try:
         file = tarfile.open(tarball_path)
-        file.extractall(temp_dir)
+        for member in file:
+            file.extract(member, temp_dir)
     except Exception:
         raise source_exceptions.TarballExtractException(tarball_path)
     return temp_dir

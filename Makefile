@@ -28,7 +28,7 @@ LABEL             ?= org.airshipit.build=community
 COMMIT            ?= $(shell git rev-parse HEAD)
 PYTHON            = python3
 CHARTS            := $(filter-out deps, $(patsubst charts/%/.,%,$(wildcard charts/*/.)))
-DISTRO            ?= ubuntu_bionic
+DISTRO            ?= ubuntu_focal
 IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}
 UBUNTU_BASE_IMAGE ?=
 
@@ -135,7 +135,7 @@ test-all: check-tox helm_lint
 	tox
 
 test-unit: check-tox
-	tox -e py35
+	tox -e py38
 
 test-coverage: check-tox
 	tox -e cover

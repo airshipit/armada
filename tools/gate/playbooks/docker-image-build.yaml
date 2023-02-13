@@ -72,7 +72,11 @@
             name: "{{ item }}"
             allow_unauthenticated: True
           with_items:
+            - apparmor
             - docker-ce
+            - docker-ce-cli
+            - docker-buildx-plugin
+            - containerd.io
             - python3-pip
             - python3-setuptools
         - pip:

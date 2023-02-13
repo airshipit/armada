@@ -1,4 +1,4 @@
-ARG FROM=ubuntu:16.04
+ARG FROM=ubuntu:20.04
 FROM ${FROM}
 
 LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode' \
@@ -70,7 +70,7 @@ RUN set -ex \
     && make install \
     && cd .. \
     && rm -fr libyaml \
-    && python3 -m pip install -U 'pip<21.0' \
+    && python3 -m pip install -U pip \
     && pip3 install -r requirements.txt --no-cache-dir \
     && curl -fSSL -O ${HELM_ARTIFACT_URL} \
     && tar -xvf $(basename ${HELM_ARTIFACT_URL}) \

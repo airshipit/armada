@@ -13,30 +13,28 @@
 - project:
     templates:
       - openstack-cover-jobs
-      - openstack-python36-jobs
+      - openstack-python38-jobs
     check:
       jobs:
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
-        - armada-docker-build-gate-ubuntu_bionic
-        - armada-docker-build-gate-ubuntu_xenial
-        - armada-docker-build-gate-opensuse
+        # - armada-docker-build-gate-ubuntu_bionic
+        - armada-docker-build-gate-ubuntu_focal
         - armada-airskiff-deploy
     gate:
       jobs:
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
-        - armada-docker-build-gate-ubuntu_bionic
-        - armada-docker-build-gate-ubuntu_xenial
-        - armada-docker-build-gate-opensuse
+        # - armada-docker-build-gate-ubuntu_bionic
+        - armada-docker-build-gate-ubuntu_focal
+        - armada-airskiff-deploy
     post:
       jobs:
-        - armada-docker-publish-ubuntu_bionic
-        - armada-docker-publish-ubuntu_xenial
-        - armada-docker-publish-opensuse
+        - armada-docker-build-gate-ubuntu_focal
+        - armada-docker-publish-ubuntu_focal
         - armada-upload-git-mirror
     promote:
       jobs:
@@ -48,13 +46,19 @@
       - name: primary
         label: ubuntu-bionic
 
+- nodeset:
+    name: armada-single-node-focal
+    nodes:
+      - name: primary
+        label: ubuntu-focal
+
 - job:
     name: armada-chart-build-gate
     description: |
       Builds charts using pinned Helm toolkit.
     timeout: 900
     run: tools/gate/playbooks/build-charts.yaml
-    nodeset: armada-single-node
+    nodeset: armada-single-node-focal
 
 - job:
     name: armada-chart-build-latest-htk
@@ -63,49 +67,37 @@
     timeout: 900
     voting: false
     run: tools/gate/playbooks/build-charts.yaml
-    nodeset: armada-single-node
+    nodeset: armada-single-node-focal
     vars:
       HTK_COMMIT: master
 
-- job:
-    name: armada-docker-build-gate-ubuntu_bionic
-    timeout: 1800
-    run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node
-    vars:
-      publish: false
-      distro: ubuntu_bionic
-      tags:
-        dynamic:
-          patch_set: true
+# - job:
+#     name: armada-docker-build-gate-ubuntu_bionic
+#     timeout: 1800
+#     run: tools/gate/playbooks/docker-image-build.yaml
+#     nodeset: armada-single-node
+#     vars:
+#       publish: false
+#       distro: ubuntu_bionic
+#       tags:
+#         dynamic:
+#           patch_set: true
 
 - job:
-    name: armada-docker-build-gate-ubuntu_xenial
+    name: armada-docker-build-gate-ubuntu_focal
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node
+    nodeset: armada-single-node-focal
     vars:
       publish: false
-      distro: ubuntu_xenial
-      tags:
-        dynamic:
-          patch_set: true
-
-- job:
-    name: armada-docker-build-gate-opensuse
-    timeout: 1800
-    run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node
-    vars:
-      publish: false
-      distro: opensuse_15
+      distro: ubuntu_focal
       tags:
         dynamic:
           patch_set: true
 
 - job:
     name: armada-airskiff-deploy
-    nodeset: armada-single-node
+    nodeset: armada-single-node-focal
     description: |
       Deploy Memcached using Airskiff and submitted Armada changes.
     timeout: 9600
@@ -127,50 +119,33 @@
       - ^releasenotes/.*$
       - ^swagger/.*$
 
-- job:
-    name: armada-docker-publish-ubuntu_bionic
-    timeout: 1800
-    run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node
-    secrets:
-      - airship_armada_quay_creds
-    vars:
-      publish: true
-      distro: ubuntu_bionic
-      tags:
-        dynamic:
-          branch: true
-          commit: true
-        static:
-          - latest
+# - job:
+#     name: armada-docker-publish-ubuntu_bionic
+#     timeout: 1800
+#     run: tools/gate/playbooks/docker-image-build.yaml
+#     nodeset: armada-single-node
+#     secrets:
+#       - airship_armada_quay_creds
+#     vars:
+#       publish: true
+#       distro: ubuntu_bionic
+#       tags:
+#         dynamic:
+#           branch: true
+#           commit: true
+#         static:
+#           - latest
 
 - job:
-    name: armada-docker-publish-ubuntu_xenial
+    name: armada-docker-publish-ubuntu_focal
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node
+    nodeset: armada-single-node-focal
     secrets:
       - airship_armada_quay_creds
     vars:
       publish: true
-      distro: ubuntu_xenial
-      tags:
-        dynamic:
-          branch: true
-          commit: true
-        static:
-          - latest
-
-- job:
-    name: armada-docker-publish-opensuse
-    timeout: 1800
-    run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node
-    secrets:
-      - airship_armada_quay_creds
-    vars:
-      publish: true
-      distro: opensuse_15
+      distro: ubuntu_focal
       tags:
         dynamic:
           branch: true
