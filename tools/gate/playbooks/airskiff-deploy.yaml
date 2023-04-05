@@ -13,41 +13,19 @@
 # limitations under the License.
 
 - hosts: primary
-  vars:
-    env:
-      HTTP_PROXY: ""
-      HTTPS_PROXY: ""
-      NO_PROXY: ""
-      DISTRO: "{{ distro }}"
-  become: true
-
   roles:
+    - bindep
     - clear-firewall
+    - ensure-docker
+    - ensure-python
+    - ensure-pip
+    - disable-systemd-resolved
 
   tasks:
-    # Stop systemd-resolved service before starting docker.
-    - name: stop systemd-resolved service
-      systemd:
-        state: stopped
-        enabled: no
-        masked: yes
-        daemon_reload: yes
-        name: systemd-resolved
-      become: yes
-
-    - name: ensure pip3 is installed
-      apt:
-        name: "{{ item }}"
-      with_items:
-        - python3-pip
-        - python3-setuptools
-      when: ansible_os_family == 'Debian'
-      become: true
-
     - name: Clone Required Repositories
       shell: |
         export CLONE_ARMADA={{ CLONE_ARMADA }}
-        export OSH_INFRA_COMMIT={{ HTK_COMMIT }}
+        export OSH_INFRA_COMMIT=master
         ./tools/deployment/airskiff/developer/000-clone-dependencies.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
@@ -71,9 +49,15 @@
         chdir: "{{ zuul.project.src_dir }}"
       become: yes
 
+    - name: Setup clients
+      shell: |
+        ./tools/deployment/airskiff/developer/020-setup-client.sh
+      args:
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+
     - name: Deploy Airship components using Armada
       shell: |
-        mkdir ~/.kube
+        mkdir -p ~/.kube
         cp -rp /home/zuul/.kube/config ~/.kube/config
         ./tools/deployment/airskiff/developer/030-armada-bootstrap.sh
       args:

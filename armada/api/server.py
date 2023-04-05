@@ -45,7 +45,7 @@ def create(enable_middleware=CONF.middleware):
     """
 
     if enable_middleware:
-        api = falcon.API(
+        api = falcon.App(
             request_type=ArmadaRequest,
             middleware=[
                 AuthMiddleware(),
@@ -53,7 +53,7 @@ def create(enable_middleware=CONF.middleware):
                 LoggingMiddleware(),
             ])
     else:
-        api = falcon.API(request_type=ArmadaRequest)
+        api = falcon.App(request_type=ArmadaRequest)
 
     logging.set_defaults(default_log_levels=CONF.default_log_levels)
     logging.setup(CONF, 'armada')

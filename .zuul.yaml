@@ -20,7 +20,6 @@
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
-        # - armada-docker-build-gate-ubuntu_bionic
         - armada-docker-build-gate-ubuntu_focal
         - armada-airskiff-deploy
     gate:
@@ -28,7 +27,6 @@
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
-        # - armada-docker-build-gate-ubuntu_bionic
         - armada-docker-build-gate-ubuntu_focal
         - armada-airskiff-deploy
     post:
@@ -65,23 +63,11 @@
     description: |
       Builds charts using latest Helm toolkit.
     timeout: 900
-    voting: false
+    voting: true
     run: tools/gate/playbooks/build-charts.yaml
     nodeset: armada-single-node-focal
     vars:
       HTK_COMMIT: master
-
-# - job:
-#     name: armada-docker-build-gate-ubuntu_bionic
-#     timeout: 1800
-#     run: tools/gate/playbooks/docker-image-build.yaml
-#     nodeset: armada-single-node
-#     vars:
-#       publish: false
-#       distro: ubuntu_bionic
-#       tags:
-#         dynamic:
-#           patch_set: true
 
 - job:
     name: armada-docker-build-gate-ubuntu_focal
@@ -101,7 +87,7 @@
     description: |
       Deploy Memcached using Airskiff and submitted Armada changes.
     timeout: 9600
-    voting: false
+    voting: true
     pre-run:
       - tools/gate/playbooks/airskiff-reduce-site.yaml
       - tools/gate/playbooks/git-config.yaml
@@ -111,7 +97,6 @@
       - airship/treasuremap
     vars:
       CLONE_ARMADA: false
-      HTK_COMMIT: master
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$
@@ -119,22 +104,6 @@
       - ^releasenotes/.*$
       - ^swagger/.*$
 
-# - job:
-#     name: armada-docker-publish-ubuntu_bionic
-#     timeout: 1800
-#     run: tools/gate/playbooks/docker-image-build.yaml
-#     nodeset: armada-single-node
-#     secrets:
-#       - airship_armada_quay_creds
-#     vars:
-#       publish: true
-#       distro: ubuntu_bionic
-#       tags:
-#         dynamic:
-#           branch: true
-#           commit: true
-#         static:
-#           - latest
 
 - job:
     name: armada-docker-publish-ubuntu_focal

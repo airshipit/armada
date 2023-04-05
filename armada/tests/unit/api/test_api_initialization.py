@@ -23,4 +23,4 @@ class TestApi(test_base.BaseControllerTest):
     def test_init_application(self):
         server = importlib.import_module('armada.api.server')
         api = server.create()
-        self.assertIsInstance(api, falcon.API)
+        self.assertIsInstance(api, falcon.App)

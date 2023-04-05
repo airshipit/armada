@@ -1,0 +1,8 @@
+[console_scripts]
+armada = armada.shell:main
+
+[oslo.config.opts]
+armada.conf = armada.conf.opts:list_opts
+
+[oslo.policy.policies]
+armada = armada.common.policies:list_rules

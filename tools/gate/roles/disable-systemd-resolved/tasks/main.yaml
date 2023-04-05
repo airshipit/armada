@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright 2017 AT&T Intellectual Property.  All other rights reserved.
+# Copyright 2020 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,19 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-set -eux
-
-HTK_REPO=${HTK_REPO:-"https://opendev.org/openstack/openstack-helm-infra.git"}
-HTK_STABLE_COMMIT=${HTK_COMMIT:-"7b8d459d14a751021265cd29dbe9920ceac71f3a"}
-
-TMP_DIR=$(mktemp -d)
-
-{
-    HTK_REPO_DIR=$TMP_DIR/htk
-    git clone "$HTK_REPO" "$HTK_REPO_DIR"
-    (cd "$HTK_REPO_DIR" && git reset --hard "${HTK_STABLE_COMMIT}")
-    cp -r "${HTK_REPO_DIR}/helm-toolkit" charts/deps/
-}
-
-rm -rf "${TMP_DIR}"
+- include: disable-systemd-resolved.yaml

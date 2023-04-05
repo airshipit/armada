@@ -28,7 +28,7 @@ package. It is assumed that:
 
 """
 
-import collections.abc
+import collections
 import importlib
 import os
 import pkgutil
@@ -38,7 +38,7 @@ IGNORED_MODULES = ('opts', 'constants', 'utils')
 
 
 def list_opts():
-    opts = collections.abc.defaultdict(list)
+    opts = collections.defaultdict(list)
     module_names = _list_module_names()
     imported_modules = _import_modules(module_names)
     _append_config_options(imported_modules, opts)
