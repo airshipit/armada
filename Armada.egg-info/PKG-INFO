@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Armada
-Version: 1.1.0.dev687
+Version: 1.1.0.dev688
 Summary: Tool for managing multiple Helm charts with dependencies by centralizing all configurations in a single Armada YAML and providing life-cycle hooks for all Helm releases.
 Home-page: https://airshipit.org
 Author: The Airship Authors
@@ -14,6 +14,7 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.10
 License-File: LICENSE
+License-File: AUTHORS
 
 Armada
 ======

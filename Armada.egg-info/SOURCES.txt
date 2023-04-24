@@ -5,10 +5,13 @@
 .stestr.conf
 .style.yapf
 .zuul.yaml
+AUTHORS
 CONTRIBUTING.rst
+ChangeLog
 LICENSE
 Makefile
 README.rst
+bindep.txt
 controller.sh
 entrypoint.sh
 plugin.yaml
@@ -233,5 +236,7 @@ tools/gate/playbooks/build-charts.yaml
 tools/gate/playbooks/debug-report.yaml
 tools/gate/playbooks/docker-image-build.yaml
 tools/gate/playbooks/git-config.yaml
+tools/gate/playbooks/roles
 tools/gate/playbooks/vars.yaml
-tools/gate/playbooks/files/docker-systemd.conf
+tools/gate/roles/disable-systemd-resolved/tasks/disable-systemd-resolved.yaml
+tools/gate/roles/disable-systemd-resolved/tasks/main.yaml

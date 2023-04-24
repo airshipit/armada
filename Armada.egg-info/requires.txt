@@ -3,6 +3,7 @@ configparser
 deepdiff<=5.8.1
 docutils
 falcon
+gitpython
 importlib_metadata
 jsonschema<=3.2.0
 keystoneauth1<=5.1.1
@@ -16,10 +17,10 @@ oslo.policy<=3.10.1
 oslo.utils<=4.12.3
 prometheus-client==0.8.0
 pylibyaml==0.1.0
-python_dateutil==2.8.2
+python-dateutil==2.8.1
 PyYAML<=5.4.1
 reno
-requests==2.27.0
+requests==2.23.0
 retry
 setuptools<=45.2.0
 six

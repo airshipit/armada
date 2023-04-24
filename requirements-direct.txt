@@ -1,10 +1,11 @@
 click
 configparser
 deepdiff<=5.8.1
-docutils
+docutils<=0.17
 falcon
 gitpython
-importlib_metadata
+importlib-metadata~=2.0
+Jinja2<=3.0.3
 jsonschema<=3.2.0
 keystoneauth1<=5.1.1
 kubernetes==26.1.0
@@ -17,14 +18,14 @@ oslo.policy<=3.10.1
 oslo.utils<=4.12.3
 prometheus-client==0.8.0
 pylibyaml==0.1.0
-python_dateutil==2.8.2
+python-dateutil==2.8.1
 PyYAML<=5.4.1
 reno
-requests==2.27.0
+requests==2.23.0
 retry
 setuptools<=45.2.0
 six
-Sphinx
+Sphinx==3.3.1
 sphinx_rtd_theme==0.5.0
 urllib3 >= 1.21.1, <= 1.25.11
 uWSGI==2.0.21
