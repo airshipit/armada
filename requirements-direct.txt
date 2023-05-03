@@ -18,6 +18,8 @@ oslo.policy<=3.10.1
 oslo.middleware<=4.4.0
 keystonemiddleware<=10.2.0
 oslo.utils<=4.12.3
+Paste>=2.0.3
+PasteDeploy>=1.5.2
 prometheus-client==0.8.0
 pylibyaml==0.1.0
 python-dateutil==2.8.1

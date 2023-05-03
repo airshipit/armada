@@ -44,6 +44,8 @@ oslo.policy==3.10.1
 oslo.serialization==5.1.1
 oslo.utils==4.12.3
 packaging==23.1
+Paste==3.5.3
+PasteDeploy==3.0.1
 pbr==5.11.1
 pip==23.0.1
 prometheus-client==0.8.0

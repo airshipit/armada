@@ -55,6 +55,13 @@
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
+    - name: Use Armada focal image as bionic for tests
+      shell: |
+        set -x
+        docker tag  quay.io/airshipit/armada:latest-ubuntu_focal quay.io/airshipit/armada:latest-ubuntu_bionic
+      args:
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+
     - name: Deploy Airship components using Armada
       shell: |
         mkdir -p ~/.kube
