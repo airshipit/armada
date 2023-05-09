@@ -97,6 +97,7 @@
       - airship/treasuremap
     vars:
       CLONE_ARMADA: false
+      OSH_INFRA_COMMIT: 97ce6d7d8e9a090c748800d69a57bbd9af698b60
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$

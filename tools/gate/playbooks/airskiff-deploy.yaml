@@ -1,4 +1,4 @@
-# Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
+# Copyright 2019, AT&T Intellectual Property
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
 
 - hosts: primary
   roles:
-    - bindep
     - clear-firewall
-    - ensure-docker
+    - bindep
+    - disable-systemd-resolved
     - ensure-python
     - ensure-pip
-    - disable-systemd-resolved
+    - ensure-docker
 
   tasks:
+
     - name: Clone Required Repositories
       shell: |
         export CLONE_ARMADA={{ CLONE_ARMADA }}
-        export OSH_INFRA_COMMIT=master
+        export OSH_INFRA_COMMIT={{ OSH_INFRA_COMMIT }}
         ./tools/deployment/airskiff/developer/000-clone-dependencies.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
@@ -49,18 +50,13 @@
         chdir: "{{ zuul.project.src_dir }}"
       become: yes
 
-    - name: Setup clients
+    - name: Build all charts locally
       shell: |
-        ./tools/deployment/airskiff/developer/020-setup-client.sh
+        set -ex
+        ./tools/deployment/airskiff/developer/015-make-all-charts.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
-
-    - name: Use Armada focal image as bionic for tests
-      shell: |
-        set -x
-        docker tag  quay.io/airshipit/armada:latest-ubuntu_focal quay.io/airshipit/armada:latest-ubuntu_bionic
-      args:
-        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+      become: yes
 
     - name: Deploy Airship components using Armada
       shell: |
@@ -71,7 +67,7 @@
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
-    - name: Deploy OpenStack using Airship
+    - name: Deploy Memcached using Airship
       shell: |
         ./tools/deployment/airskiff/developer/100-deploy-osh.sh
       args:
