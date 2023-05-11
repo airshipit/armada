@@ -19,6 +19,7 @@ from oslo_log import log as logging
 
 from armada import api
 from armada.common import policy
+
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 

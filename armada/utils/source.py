@@ -135,7 +135,7 @@ def download_tarball(tarball_url, verify=False, proxy_server=None):
             }
         tarball_filename = tempfile.mkstemp(prefix='armada')[1]
         response = requests.get(
-            tarball_url, timeout=5, verify=verify, **kwargs)
+            tarball_url, timeout=None, verify=verify, **kwargs)
 
         with open(tarball_filename, 'wb') as f:
             f.write(response.content)
