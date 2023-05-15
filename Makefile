@@ -33,7 +33,7 @@ IMAGE             := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TA
 UBUNTU_BASE_IMAGE ?=
 
 # Helm binary download url
-HELM_ARTIFACT_URL ?= https://get.helm.sh/helm-v3.9.4-linux-amd64.tar.gz
+HELM_ARTIFACT_URL ?= https://get.helm.sh/helm-v3.11.1-linux-amd64.tar.gz
 
 # VERSION INFO
 GIT_COMMIT = $(shell git rev-parse HEAD)
