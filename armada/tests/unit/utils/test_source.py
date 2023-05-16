@@ -110,7 +110,8 @@ class GitTestCase(base.ArmadaTestCase):
             source.download_tarball(url)
 
         mock_temp.mkstemp.assert_called_once()
-        mock_requests.get.assert_called_once_with(url, timeout=5, verify=False)
+        mock_requests.get.assert_called_once_with(
+            url, timeout=None, verify=False)
         mock_open.assert_called_once_with('/tmp/armada', 'wb')
         mock_open().write.assert_called_once_with(
             mock_requests.get(url).content)
