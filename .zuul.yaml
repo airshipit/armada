@@ -14,25 +14,32 @@
     templates:
       - openstack-cover-jobs
       - openstack-python38-jobs
+      - openstack-python36-jobs
     check:
       jobs:
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
+        - armada-docker-build-gate-ubuntu_bionic
         - armada-docker-build-gate-ubuntu_focal
-        - armada-airskiff-deploy
+        - armada-airskiff-deploy-focal
+        - armada-airskiff-deploy-bionic
     gate:
       jobs:
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
+        - armada-docker-build-gate-ubuntu_bionic
         - armada-docker-build-gate-ubuntu_focal
-        - armada-airskiff-deploy
+        - armada-airskiff-deploy-focal
+        - armada-airskiff-deploy-bionic
     post:
       jobs:
+        - armada-docker-build-gate-ubuntu_bionic
         - armada-docker-build-gate-ubuntu_focal
         - armada-docker-publish-ubuntu_focal
+        - armada-docker-publish-ubuntu_bionic
         - armada-upload-git-mirror
     promote:
       jobs:
@@ -70,6 +77,19 @@
       HTK_COMMIT: master
 
 - job:
+    name: armada-docker-build-gate-ubuntu_bionic
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: armada-single-node
+    vars:
+      publish: false
+      distro: ubuntu_bionic
+      tags:
+        dynamic:
+          patch_set: true
+
+
+- job:
     name: armada-docker-build-gate-ubuntu_focal
     timeout: 1800
     run: tools/gate/playbooks/docker-image-build.yaml
@@ -82,7 +102,7 @@
           patch_set: true
 
 - job:
-    name: armada-airskiff-deploy
+    name: armada-airskiff-deploy-focal
     nodeset: armada-single-node-focal
     description: |
       Deploy Memcached using Airskiff and submitted Armada changes.
@@ -97,13 +117,41 @@
       - airship/treasuremap
     vars:
       CLONE_ARMADA: false
-      OSH_INFRA_COMMIT: 97ce6d7d8e9a090c748800d69a57bbd9af698b60
+      OSH_INFRA_COMMIT: 8e96a91ffae745b952c053923aa177e615b49b74
+      ARMADA_IMAGE_DISTRO: ubuntu_focal
     irrelevant-files:
       - ^.*\.rst$
       - ^doc/.*$
       - ^examples/.*$
       - ^releasenotes/.*$
       - ^swagger/.*$
+
+
+- job:
+    name: armada-airskiff-deploy-bionic
+    nodeset: armada-single-node-focal
+    description: |
+      Deploy Memcached using Airskiff and submitted Armada changes.
+    timeout: 9600
+    voting: true
+    pre-run:
+      - tools/gate/playbooks/airskiff-reduce-site.yaml
+      - tools/gate/playbooks/git-config.yaml
+    run: tools/gate/playbooks/airskiff-deploy.yaml
+    post-run: tools/gate/playbooks/debug-report.yaml
+    required-projects:
+      - airship/treasuremap
+    vars:
+      CLONE_ARMADA: false
+      OSH_INFRA_COMMIT: 8e96a91ffae745b952c053923aa177e615b49b74
+      ARMADA_IMAGE_DISTRO: ubuntu_bionic
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^examples/.*$
+      - ^releasenotes/.*$
+      - ^swagger/.*$
+
 
 
 - job:
@@ -116,6 +164,23 @@
     vars:
       publish: true
       distro: ubuntu_focal
+      tags:
+        dynamic:
+          branch: true
+          commit: true
+        static:
+          - latest
+
+- job:
+    name: armada-docker-publish-ubuntu_bionic
+    timeout: 1800
+    run: tools/gate/playbooks/docker-image-build.yaml
+    nodeset: armada-single-node
+    secrets:
+      - airship_armada_quay_creds
+    vars:
+      publish: true
+      distro: ubuntu_bionic
       tags:
         dynamic:
           branch: true

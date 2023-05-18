@@ -45,7 +45,14 @@
 
     - name: Build Armada with submitted changes
       shell: |
+        set -ex
+        export DISTRO={{ ARMADA_IMAGE_DISTRO }}
         make images
+        if test "${DISTRO}" = 'ubuntu_bionic'
+        then
+          # this trick is needed to use bionic image instead of focal in airskiff deployment test
+          docker tag quay.io/airshipit/armada:latest-ubuntu_bionic quay.io/airshipit/armada:latest-ubuntu_focal
+        fi
       args:
         chdir: "{{ zuul.project.src_dir }}"
       become: yes

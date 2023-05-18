@@ -78,7 +78,7 @@ check-tox:
 		exit 2; \
 	fi
 
-images: check-docker build_armada
+images: check-docker build_armada run_armada
 
 docs: clean build_docs
 

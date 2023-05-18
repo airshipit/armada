@@ -19,6 +19,7 @@ RUN set -ex && \
     apt-get -y install \
     ca-certificates \
     curl \
+    git \
     netbase \
     python3-dev \
     python3-setuptools \
@@ -41,7 +42,7 @@ RUN useradd -u 1000 -g users -d $(pwd) armada
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["server"]
 
-COPY requirements-frozen.txt ./
+COPY requirements-frozen-bionic.txt ./requirements.txt
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
@@ -60,7 +61,7 @@ RUN set -ex \
     ' \
     && apt-get -qq update \
     # Keep git separate so it's not removed below
-    && apt-get install -y $buildDeps git --no-install-recommends \
+    && apt-get install -y $buildDeps --no-install-recommends \
     && git clone https://github.com/yaml/libyaml.git \
     && cd libyaml \
     && git checkout $LIBYAML_VERSION \
@@ -71,7 +72,7 @@ RUN set -ex \
     && cd .. \
     && rm -fr libyaml \
     && python3 -m pip install -U pip \
-    && pip3 install -r requirements-frozen.txt --no-cache-dir \
+    && pip3 install -r requirements.txt --no-cache-dir \
     && curl -fSSL -O ${HELM_ARTIFACT_URL} \
     && tar -xvf $(basename ${HELM_ARTIFACT_URL}) \
     && mv linux-amd64/helm /usr/local/bin \
@@ -90,6 +91,8 @@ COPY . ./
 
 # Setting the version explicitly for PBR
 ENV PBR_VERSION 0.8.0
+ENV PATH=$PATH:/usr/bin/git
+ENV GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git
 
 RUN \
     mv etc/armada /etc/ && \
