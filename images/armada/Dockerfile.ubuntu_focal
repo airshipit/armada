@@ -88,12 +88,12 @@ RUN set -ex \
         /usr/share/doc-base
 
 COPY . ./
+COPY etc/armada /etc/armada
 
 # Setting the version explicitly for PBR
 ENV PBR_VERSION 0.8.0
 
 RUN \
-    mv etc/armada /etc/ && \
     chown -R armada:users . && \
     python3 setup.py install
 

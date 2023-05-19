@@ -88,6 +88,7 @@ RUN set -ex \
         /usr/share/doc-base
 
 COPY . ./
+COPY etc/armada /etc/armada
 
 # Setting the version explicitly for PBR
 ENV PBR_VERSION 0.8.0
@@ -95,7 +96,6 @@ ENV PATH=$PATH:/usr/bin/git
 ENV GIT_PYTHON_GIT_EXECUTABLE=/usr/bin/git
 
 RUN \
-    mv etc/armada /etc/ && \
     chown -R armada:users . && \
     python3 setup.py install
 

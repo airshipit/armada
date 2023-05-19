@@ -1,6 +1,5 @@
 #!/bin/bash
-#
-# Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
+# Copyright 2017 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,49 +12,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-IMAGE=$1
-
+#
 set -x
 
-# Create container
-function create {
-	docker run \
-	  -v $(pwd)/etc:/etc \
-		-d \
-		--name armada-api-test \
-		-p 127.0.0.1:8000:8000 \
-		${IMAGE} \
-		server
-}
+IMAGE=$1
+USE_PROXY=${USE_PROXY:-false}
+CONTAINER_NAME=armada_test_$(date +%Y%m%d%H%M%s%s)
 
-# Verify container was successfully created
-# If not successful, print out logs
-function health_check {
-	GOOD="HTTP/1.1 204 No Content"
-	if curl\
-		-m 5 \
-		-v \
-		--silent \
-		127.0.0.1:8000/api/v1.0/health \
-		--stderr - \
-		| grep "$GOOD"
-	then
-		echo "Health Check Success"
-		exit 0
-	else
-		echo "Failed Health Check"
-		docker logs armada-api-test
-		exit 1
-	fi
-}
+docker create \
+    -p 8000:8000 \
+    --name ${CONTAINER_NAME} ${IMAGE}
 
-# Remove container
-function cleanup {
-	docker rm -fv armada-api-test
-}
+docker start ${CONTAINER_NAME} &
+sleep 5
 
-trap cleanup EXIT
+# If the image build pipeline is running in a pod/docker (docker-in-docker),
+# we'll need to exec into the nested container's network namespace to acces the
+# armada api.
+GOOD="HTTP/1.1 204 No Content"
+RESULT="$(curl -i 'http://127.0.0.1:8000/api/v1.0/health' --noproxy '*' | tr '\r' '\n' | head -1)"
+if [[ "${RESULT}" != "${GOOD}" ]]; then
+  if docker exec -t ${CONTAINER_NAME} /bin/bash -c "curl -i 'http://127.0.0.1:8000/api/v1.0/health' --noproxy '*' | tr '\r' '\n' | head -1 "; then
+    RESULT="${GOOD}"
+  fi
+fi
 
-create
-health_check
+docker stop ${CONTAINER_NAME}
+docker logs ${CONTAINER_NAME}
+docker rm ${CONTAINER_NAME}
+
+if [[ ${RESULT} == ${GOOD} ]]; then
+    exit 0
+else
+    exit 1
+fi
