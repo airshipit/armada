@@ -15,7 +15,7 @@ dogpile.cache==1.2.0
 dulwich==0.20.50
 falcon==3.1.1
 gitdb==4.0.9
-GitPython==3.1.18
+GitPython==3.1.30
 google-auth==2.18.1
 idna==2.10
 imagesize==1.4.1
