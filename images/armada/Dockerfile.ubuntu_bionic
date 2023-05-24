@@ -88,7 +88,6 @@ RUN set -ex \
         /usr/share/doc-base
 
 COPY . ./
-COPY etc/armada /etc/armada
 
 # Setting the version explicitly for PBR
 ENV PBR_VERSION 0.8.0

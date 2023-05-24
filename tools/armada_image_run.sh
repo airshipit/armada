@@ -16,33 +16,58 @@
 set -x
 
 IMAGE=$1
-USE_PROXY=${USE_PROXY:-false}
-CONTAINER_NAME=armada_test_$(date +%Y%m%d%H%M%s%s)
+ARMADA_CONTAINER_NAME=armada_test_$(date +%Y%m%d%H%M%s%s)
 
-docker create \
-    -p 8000:8000 \
-    --name ${CONTAINER_NAME} ${IMAGE}
+function generate_conf {
+    tox -e genconfig > /dev/null
+    tox -e genpolicy > /dev/null
+    ETCDIR=$(mktemp -d)/armada
+    mkdir -p ${ETCDIR} > /dev/null
+    cp etc/armada/api-paste.ini ${ETCDIR}/api-paste.ini
+    cp etc/armada/policy.yaml.sample ${ETCDIR}/policy.yaml
+    echo ${ETCDIR}
+}
 
-docker start ${CONTAINER_NAME} &
-sleep 5
+function test_armada {
+    TMPETC=$1
+    docker run \
+      -d --name "${ARMADA_CONTAINER_NAME}" --net host \
+      -v ${TMPETC}:/etc/armada \
+      ${IMAGE}
 
-# If the image build pipeline is running in a pod/docker (docker-in-docker),
-# we'll need to exec into the nested container's network namespace to acces the
-# armada api.
-GOOD="HTTP/1.1 204 No Content"
-RESULT="$(curl -i 'http://127.0.0.1:8000/api/v1.0/health' --noproxy '*' | tr '\r' '\n' | head -1)"
-if [[ "${RESULT}" != "${GOOD}" ]]; then
-  if docker exec -t ${CONTAINER_NAME} /bin/bash -c "curl -i 'http://127.0.0.1:8000/api/v1.0/health' --noproxy '*' | tr '\r' '\n' | head -1 "; then
-    RESULT="${GOOD}"
-  fi
-fi
+    sleep 10
 
-docker stop ${CONTAINER_NAME}
-docker logs ${CONTAINER_NAME}
-docker rm ${CONTAINER_NAME}
+    RESULT=$(curl --noproxy '*' -i 'http://127.0.0.1:8000/api/v1.0/health' | tr '\r' '\n' | head -1)
+    GOOD="HTTP/1.1 204 No Content"
+    if [[ "${RESULT}" != "${GOOD}" ]]; then
+      if docker exec -t ${CONTAINER_NAME} /bin/bash -c "curl -i 'http://127.0.0.1:8000/api/v1.0/health' --noproxy '*' | tr '\r' '\n' | head -1 "; then
+        RESULT="${GOOD}"
+      fi
+    fi
 
-if [[ ${RESULT} == ${GOOD} ]]; then
-    exit 0
-else
-    exit 1
-fi
+    if [[ ${RESULT} == ${GOOD} ]]
+    then
+      RC=0
+    else
+      RC=1
+    fi
+
+    docker logs "${ARMADA_CONTAINER_NAME}"
+    return $RC
+}
+
+function cleanup {
+    TMPDIR=$1
+    docker stop "${ARMADA_CONTAINER_NAME}"
+    docker rm "${ARMADA_CONTAINER_NAME}"
+   rm -rf $TMPDIR
+}
+
+TMPETC=$(generate_conf)
+
+test_armada $TMPETC
+RC=$?
+
+cleanup $TMPETC
+
+exit $RC

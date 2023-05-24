@@ -62,6 +62,9 @@
     timeout: 900
     run: tools/gate/playbooks/build-charts.yaml
     nodeset: armada-single-node-focal
+    vars:
+      HTK_COMMIT: a7cd689280cdbc0acd04a7a1b745941260e8700b
+
 
 - job:
     name: armada-chart-build-latest-htk
