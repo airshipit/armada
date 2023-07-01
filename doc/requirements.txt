@@ -2,12 +2,9 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 docutils<=0.17
-Jinja2<=3.0.3
-MarkupSafe<2.1.0, >=0.9.2
 plantuml
-pylibyaml==0.1.0
 reno
-sphinx-rtd-theme==0.5.0
-Sphinx==3.3.1
-sphinxcontrib-apidoc==0.3.0  # BSD
-sphinxcontrib-plantuml==0.25
+sphinx-rtd-theme
+Sphinx
+sphinxcontrib-apidoc
+sphinxcontrib-plantuml

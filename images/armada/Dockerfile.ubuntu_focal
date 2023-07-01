@@ -94,6 +94,8 @@ ENV PBR_VERSION 0.8.0
 
 RUN \
     chown -R armada:users . && \
-    python3 setup.py install
+    pip3 install -e . --verbose --use-pep517 \
+    && echo "/armada" \
+        > /usr/local/lib/python3.8/dist-packages/deckhand.pth
 
 USER armada

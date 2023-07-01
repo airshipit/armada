@@ -115,13 +115,15 @@ class ActionWithTimeoutMetrics(ActionMetrics):
 
         timeout.observe(timeout_value)
 
-        def observe_timeout_usage(duration):
-            # Avoid division by 0
-            if timeout_value:
-                val = duration / timeout_value
-                timeout_usage.observe(val)
+        class observe_timeout_usage:
+            def calculate_timeout_usage(duration):
+                # Avoid division by 0
+                if timeout_value:
+                    val = duration / timeout_value
+                    timeout_usage.observe(val)
 
-        timer = context_managers.Timer(observe_timeout_usage)
+        timer = context_managers.Timer(
+            observe_timeout_usage, 'calculate_timeout_usage')
         context = super().get_context(*args, **kwargs)
         context.enter_context(timer)
         return context

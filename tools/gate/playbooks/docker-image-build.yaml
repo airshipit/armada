@@ -19,7 +19,6 @@
     - ensure-python
     - ensure-pip
 
-
   tasks:
     - include_vars: vars.yaml
 
@@ -69,6 +68,8 @@
     - name: Run images
       when: not publish
       shell: |
+        set -ex
+        sudo -E -H pip3 install tox==3.28.0
         make run_images
       args:
         chdir: "{{ zuul.project.src_dir }}"

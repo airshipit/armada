@@ -273,7 +273,7 @@ class OverrideTestCase(testtools.TestCase):
             ovr = Override(documents)
             ovr.update_documents(merging_values)
             ovr_doc = ovr.find_manifest_document(doc_path)
-            expect_doc = list(yaml.load_all(e.read()))[0]
+            expect_doc = list(yaml.safe_load_all(e.read()))[0]
 
             self.assertEqual(ovr_doc, expect_doc)
 
@@ -290,7 +290,7 @@ class OverrideTestCase(testtools.TestCase):
             ovr = Override(documents, override)
             ovr.update_manifests()
             ovr_doc = ovr.find_manifest_document(doc_path)
-            target_docs = list(yaml.load_all(e.read()))
+            target_docs = list(yaml.safe_load_all(e.read()))
             expected_doc = [
                 x for x in target_docs
                 if x.get('schema') == 'armada/Manifest/v1'
