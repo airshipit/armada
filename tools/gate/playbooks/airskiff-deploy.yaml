@@ -43,18 +43,46 @@
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
 
+    - name: Setup openstack client
+      shell: |
+                ./tools/deployment/airskiff/developer/020-setup-client.sh
+      args:
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+      become: yes
+
     - name: Build Armada with submitted changes
       shell: |
         set -ex
         export DISTRO={{ ARMADA_IMAGE_DISTRO }}
         make images
-        if test "${DISTRO}" = 'ubuntu_bionic'
-        then
-          # this trick is needed to use bionic image instead of focal in airskiff deployment test
-          docker tag quay.io/airshipit/armada:latest-ubuntu_bionic quay.io/airshipit/armada:latest-ubuntu_focal
-        fi
+        docker system prune --force
       args:
         chdir: "{{ zuul.project.src_dir }}"
+      become: yes
+
+
+    - name: Use locally built images in manifests
+      shell: |
+        set -ex
+        export DISTRO={{ ARMADA_IMAGE_DISTRO }}
+        docker rm registry --force || true
+        docker run -d -p 5000:5000 --restart=always --name registry registry:2
+        if test "${DISTRO}" = 'ubuntu_bionic'
+        then
+          docker tag quay.io/airshipit/armada:latest-ubuntu_bionic localhost:5000/armada:latest-ubuntu_bionic
+          docker push localhost:5000/armada:latest-ubuntu_bionic
+          sed -i "s#quay.io/airshipit/armada:latest-ubuntu_focal#localhost:5000/armada:latest-ubuntu_bionic#g" ./site/airskiff/software/config/versions.yaml
+          sed -i "s#quay.io/airshipit/armada:latest-ubuntu_focal#localhost:5000/armada:latest-ubuntu_bionic#g" ./tools/deployment/airskiff/developer/030-armada-bootstrap.sh
+          sed -i "s#quay.io/airshipit/armada:latest-ubuntu_focal#localhost:5000/armada:latest-ubuntu_bionic#g" ./global/software/config/versions.yaml
+        else
+          docker tag quay.io/airshipit/armada:latest-ubuntu_focal localhost:5000/armada:latest-ubuntu_focal
+          docker push localhost:5000/armada:latest-ubuntu_focal
+          sed -i "s#quay.io/airshipit/armada:latest-ubuntu_focal#localhost:5000/armada:latest-ubuntu_focal#g" ./site/airskiff/software/config/versions.yaml
+          sed -i "s#quay.io/airshipit/armada:latest-ubuntu_focal#localhost:5000/armada:latest-ubuntu_focal#g" ./tools/deployment/airskiff/developer/030-armada-bootstrap.sh
+          sed -i "s#quay.io/airshipit/armada:latest-ubuntu_focal#localhost:5000/armada:latest-ubuntu_focal#g" ./global/software/config/versions.yaml
+        fi
+      args:
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
     - name: Build all charts locally
@@ -65,10 +93,27 @@
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
+
+    - name: Start artifactory
+      shell: |
+        set -ex
+        # start http server with artifacts
+        docker rm artifacts --force || true
+        docker run --name artifacts -p 8282:80 -v $(pwd)/../artifacts:/usr/share/nginx/html -d nginx
+        sleep 10
+        curl --verbose -I http://control-plane.minikube.internal:8282/memcached.tgz
+      args:
+        chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
+      become: yes
+
     - name: Deploy Airship components using Armada
       shell: |
+        set -x
         mkdir -p ~/.kube
         cp -rp /home/zuul/.kube/config ~/.kube/config
+
+        pip3 install packaging
+
         ./tools/deployment/airskiff/developer/030-armada-bootstrap.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
@@ -76,14 +121,14 @@
 
     - name: Deploy Memcached using Airship
       shell: |
-        ./tools/deployment/airskiff/developer/100-deploy-osh.sh
+                ./tools/deployment/airskiff/developer/100-deploy-osh.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes
 
     - name: Wait for deployment completion
       shell: |
-        ./tools/gate/wait-for-shipyard.sh
+                ./tools/gate/wait-for-shipyard.sh
       args:
         chdir: "{{ zuul.projects['opendev.org/airship/treasuremap'].src_dir }}"
       become: yes

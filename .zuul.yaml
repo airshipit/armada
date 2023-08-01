@@ -118,7 +118,7 @@
       - airship/treasuremap
     vars:
       CLONE_ARMADA: false
-      OSH_INFRA_COMMIT: 8e96a91ffae745b952c053923aa177e615b49b74
+      OSH_INFRA_COMMIT: 97ce6d7d8e9a090c748800d69a57bbd9af698b60
       ARMADA_IMAGE_DISTRO: ubuntu_focal
     irrelevant-files:
       - ^.*\.rst$
