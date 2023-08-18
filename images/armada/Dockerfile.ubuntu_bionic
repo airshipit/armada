@@ -15,7 +15,7 @@ ENV LC_ALL=C.UTF-8
 EXPOSE 8000
 
 RUN set -ex && \
-    apt-get -qq update && \
+    apt-get update && apt-get upgrade -y && \
     apt-get -y install \
     ca-certificates \
     curl \

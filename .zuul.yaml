@@ -79,7 +79,7 @@
 
 - job:
     name: armada-docker-build-gate-ubuntu_bionic
-    timeout: 1800
+    timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     vars:
@@ -92,7 +92,7 @@
 
 - job:
     name: armada-docker-build-gate-ubuntu_focal
-    timeout: 1800
+    timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node-focal
     vars:
@@ -157,7 +157,7 @@
 
 - job:
     name: armada-docker-publish-ubuntu_focal
-    timeout: 1800
+    timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node-focal
     secrets:
@@ -174,7 +174,7 @@
 
 - job:
     name: armada-docker-publish-ubuntu_bionic
-    timeout: 1800
+    timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
     secrets:

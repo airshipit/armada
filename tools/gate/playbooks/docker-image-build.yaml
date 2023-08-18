@@ -18,7 +18,7 @@
     - ensure-docker
     - ensure-python
     - ensure-pip
-    - ensure-tox
+
 
   tasks:
     - include_vars: vars.yaml
@@ -57,6 +57,13 @@
             executable: pip3
       become: True
 
+    - name: Install tox python module for ansible docker login
+      block:
+        - pip:
+            name: tox
+            version: 3.28.0
+            executable: pip3
+      become: True
 
 
     - name: Run images
