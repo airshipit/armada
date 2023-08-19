@@ -170,7 +170,7 @@
           branch: true
           commit: true
         static:
-          - latest
+          - deprecated
 
 - job:
     name: armada-docker-publish-ubuntu_bionic
@@ -187,7 +187,7 @@
           branch: true
           commit: true
         static:
-          - latest
+          - deprecated
 
 - secret:
     name: airship_armada_quay_creds
