@@ -21,8 +21,6 @@
 
 
   tasks:
-    - include_vars: vars.yaml
-
     - name: Debug tag generation inputs
       block:
         - debug:

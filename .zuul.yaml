@@ -160,6 +160,7 @@
     timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node-focal
+    branches: airflow_1.10.5
     secrets:
       - airship_armada_quay_creds
     vars:
@@ -169,14 +170,14 @@
         dynamic:
           branch: true
           commit: true
-        static:
-          - deprecated
+
 
 - job:
     name: armada-docker-publish-ubuntu_bionic
     timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node
+    branches: airflow_1.10.5
     secrets:
       - airship_armada_quay_creds
     vars:
@@ -186,8 +187,7 @@
         dynamic:
           branch: true
           commit: true
-        static:
-          - deprecated
+
 
 - secret:
     name: airship_armada_quay_creds

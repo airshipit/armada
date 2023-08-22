@@ -18,6 +18,7 @@ import logging
 import os
 import sys
 
+# logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 LOG_FORMAT = '%(asctime)s %(levelname)-8s %(name)s:%(filename)s:%(lineno)3d:%(funcName)s %(message)s'  # noqa
@@ -51,7 +52,7 @@ def read_config(stream, env):
 
 def build_tags(config):
     tags = config.get('tags', {}).get('static', [])
-    LOG.debug('Dynamic tags: %s', tags)
+    LOG.debug('Static tags: %s', tags)
     tags.extend(build_dynamic_tags(config))
     LOG.info('All tags: %s', tags)
     return tags
@@ -94,6 +95,13 @@ def _build_ps_tag(config):
 def _valid_dg(config, dynamic_tag, context_name=None):
     if context_name is None:
         context_name = dynamic_tag
+
+    LOG.debug('dynamic_tag: %s', dynamic_tag)
+    LOG.debug('dynamic_tags: %s', config.get('tags', {}).get('dynamic', {}))
+    LOG.debug('dynamic_tag_value: %s', config.get('context', {}))
+    LOG.debug('context: %s', dynamic_tag)
+    LOG.debug('context_name: %s', context_name)
+    LOG.debug('context_name_value: %s', config.get('context', {}).get(context_name))
 
     if config.get('tags', {}).get('dynamic', {}).get(dynamic_tag):
         if config.get('context', {}).get(context_name):
