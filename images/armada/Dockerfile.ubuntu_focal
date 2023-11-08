@@ -1,4 +1,6 @@
 ARG FROM=ubuntu:20.04
+ARG ARMADA_GO=quay.io/airshipit/armada-go:8b6a87059acf6600a84b5f1314f2a69f434032b0-ubuntu_focal
+FROM ${ARMADA_GO} AS armada_go
 FROM ${FROM}
 
 LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode' \
@@ -88,6 +90,7 @@ RUN set -ex \
         /usr/share/doc-base
 
 COPY . ./
+COPY --from=armada_go /usr/local/bin/armada /usr/local/bin/armada-go
 
 # Setting the version explicitly for PBR
 ENV PBR_VERSION 0.8.0

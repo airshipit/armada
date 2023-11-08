@@ -17,9 +17,11 @@ import collections
 import copy
 import math
 import re
+import subprocess  # nosec
 import time
 
 from kubernetes import watch
+from oslo_config import cfg
 from oslo_log import log as logging
 from retry import retry
 import urllib3.exceptions
@@ -33,6 +35,7 @@ from armada.utils.helm import is_test_pod
 from armada.utils.release import label_selectors
 
 LOG = logging.getLogger(__name__)
+CONF = cfg.CONF
 
 ROLLING_UPDATE_STRATEGY_TYPE = 'RollingUpdate'
 ASYNC_UPDATE_NOT_ALLOWED_MSG = 'Async update not allowed: '
@@ -380,6 +383,33 @@ class ResourceWait(ABC):
         ready = {}
         modified = set()
         found_resources = False
+
+        if CONF.go_wait:
+            command = [
+                'armada-go', 'wait', '--resource-type',
+                "{}s".format(self.resource_type), '--namespace',
+                self.chart_wait.release_id.namespace, '--label-selector',
+                self.label_selector, '--timeout', "{}s".format(timeout)
+            ]
+            if hasattr(self, "min_ready"):
+                _, _, m_ready = self.min_ready
+                command.extend(['--min-ready', "{}".format(m_ready)])
+            LOG.info('Running command=%s', command)
+            try:
+                with subprocess.Popen(  # nosec
+                        command, stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT, bufsize=1,
+                        universal_newlines=True) as sp:
+                    for line in sp.stdout:
+                        LOG.info(line.rstrip())
+                    sp.wait()
+                    if sp.returncode != 0:
+                        raise subprocess.CalledProcessError(
+                            sp.returncode, command, output=sp.stdout)
+                return False, [], [], False
+            except subprocess.CalledProcessError as e:
+                LOG.info("armada-go wait exception: %s", e)
+                raise armada_exceptions.WaitException(e)
 
         kwargs = {
             'namespace': self.chart_wait.release_id.namespace,

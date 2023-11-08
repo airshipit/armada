@@ -128,13 +128,20 @@ SHORT_DESC = "Command installs manifest charts."
         "which manifest to run when multiple are available."),
     default=None)
 @click.option('--bearer-token', help="User Bearer token", default=None)
+@click.option(
+    '--enable-operator', help="Use operator for applying charts", is_flag=True)
+@click.option(
+    '--go-wait', help="Use operator for applying charts", is_flag=True)
 @click.option('--debug', help="Enable debug logging.", is_flag=True)
 @click.pass_context
 def apply_create(
         ctx, locations, api, disable_update_post, disable_update_pre,
         enable_chart_cleanup, metrics_output, use_doc_ref, set, timeout,
-        values, wait, target_manifest, bearer_token, debug):
+        values, wait, target_manifest, bearer_token, enable_operator, go_wait,
+        debug):
     CONF.debug = debug
+    CONF.enable_operator = enable_operator
+    CONF.go_wait = go_wait
     ApplyManifest(
         ctx, locations, api, disable_update_post, disable_update_pre,
         enable_chart_cleanup, metrics_output, use_doc_ref, set, timeout,

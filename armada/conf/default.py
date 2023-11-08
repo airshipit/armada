@@ -94,6 +94,18 @@ path to the private key that includes the name of the key itself.""")),
             """Time in seconds of how much time needs to pass since
         the last update of an existing lock before armada forcibly removes it
         and tries to acquire its own lock""")),
+    cfg.BoolOpt(
+        'enable_operator',
+        default=False,
+        help=utils.fmt(
+            """Determines whether the operator has to be enabled
+        to apply charts instead of armada-api itself""")),
+    cfg.BoolOpt(
+        'go_wait',
+        default=False,
+        help=utils.fmt(
+            """Determines whether the wait process has to be done
+        via armada-go using client-go library""")),
 ]
 
 

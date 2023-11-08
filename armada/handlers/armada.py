@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import subprocess  # nosec
+import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from oslo_config import cfg
 from oslo_log import log as logging
+import yaml
 
 from armada import const
 from armada.conf import set_current_chart
@@ -74,6 +77,7 @@ class Armada(object):
         '''
 
         self.enable_chart_cleanup = enable_chart_cleanup
+        self.enable_operator = CONF.enable_operator
         self.force_wait = force_wait
         self.helm = helm
         try:
@@ -83,6 +87,7 @@ class Armada(object):
         except (validate_exceptions.InvalidManifestException,
                 override_exceptions.InvalidOverrideValueException):
             raise
+        self.target_manifest = target_manifest
         self.manifest = Manifest(
             self.documents, target_manifest=target_manifest).get_manifest()
         self.chart_download = ChartDownload()
@@ -109,7 +114,48 @@ class Armada(object):
         '''
         manifest_name = self.manifest['metadata']['name']
         with metrics.APPLY.get_context(manifest_name):
-            return self._sync()
+            if self.enable_operator:
+                return self._sync_with_operator()
+            else:
+                return self._sync()
+
+    def _sync_with_operator(self):
+        # TODO: add actual msg
+        msg = {
+            'install': [],
+            'upgrade': [],
+            'diff': [],
+            'purge': [],
+            'protected': []
+        }
+
+        tfile = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+        yaml.safe_dump_all(self.documents, tfile)
+        tfile.flush()
+        tfile.close()
+
+        command = ['armada-go', 'apply']
+        if self.target_manifest != "":
+            command.extend(
+                ['--target-manifest', "{}".format(self.target_manifest)])
+        command.append("{}".format(tfile.name))
+        LOG.info('Running command=%s', command)
+        try:
+            with subprocess.Popen(  # nosec
+                    command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    bufsize=1, universal_newlines=True) as sp:
+                for line in sp.stdout:
+                    LOG.info(line.rstrip())
+                sp.wait()
+                if sp.returncode != 0:
+                    raise subprocess.CalledProcessError(
+                        sp.returncode, command, output=sp.stdout)
+        except subprocess.CalledProcessError as e:
+            LOG.info("armada-go apply exception: %s", e)
+            raise armada_exceptions.ArmadaException(e)
+
+        LOG.info('Done applying manifest.')
+        return msg
 
     def _sync(self):
         msg = {

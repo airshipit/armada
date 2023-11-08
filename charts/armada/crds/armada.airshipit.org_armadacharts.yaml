@@ -1,0 +1,257 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: armadacharts.armada.airshipit.org
+spec:
+  group: armada.airshipit.org
+  names:
+    kind: ArmadaChart
+    listKind: ArmadaChartList
+    plural: armadacharts
+    singular: armadachart
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.helmStatus
+      name: Helm Status
+      type: string
+    - jsonPath: .status.waitCompleted
+      name: Wait Done
+      type: boolean
+    - jsonPath: .status.tested
+      name: Tested
+      type: boolean
+    - jsonPath: .status.conditions[?(@.type=="Ready")].message
+      name: Message
+      priority: 10
+      type: string
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: ArmadaChart is the Schema for the armadacharts API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          data:
+            description: ArmadaChartSpec defines the specification of ArmadaChart
+            properties:
+              chart_name:
+                description: ChartName is name of ArmadaChart
+                type: string
+              namespace:
+                description: Namespace is a namespace for ArmadaChart
+                type: string
+              release:
+                description: Release is a name of corresponding Helm Release of ArmadaChart
+                type: string
+              source:
+                description: Source is a source location of Helm Chart *.tgz
+                properties:
+                  location:
+                    type: string
+                  subpath:
+                    type: string
+                  type:
+                    type: string
+                type: object
+              test:
+                description: Test holds the test parameters for this Helm release.
+                properties:
+                  enabled:
+                    description: Enabled is an example field of ArmadaChart. Edit
+                      armadachart_types.go to remove/update
+                    type: boolean
+                type: object
+              upgrade:
+                description: Upgrade holds the upgrade options for this Helm release.
+                properties:
+                  pre:
+                    properties:
+                      delete:
+                        items:
+                          description: ArmadaChartDeleteResource defines the delete
+                            options of ArmadaChart
+                          properties:
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            type:
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                type: object
+              values:
+                description: Values holds the values for this Helm release.
+                x-kubernetes-preserve-unknown-fields: true
+              wait:
+                description: Wait holds the wait options  for this Helm release.
+                properties:
+                  labels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  native:
+                    description: ArmadaChartWaitNative defines the wait options of
+                      ArmadaChart
+                    properties:
+                      enabled:
+                        type: boolean
+                    type: object
+                  resources:
+                    items:
+                      description: ArmadaChartWaitResource defines the wait options
+                        of ArmadaChart
+                      properties:
+                        labels:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        min_ready:
+                          type: string
+                        type:
+                          type: string
+                      type: object
+                    type: array
+                  timeout:
+                    description: Timeout is the time to wait for full reconciliation
+                      of Helm release.
+                    type: integer
+                type: object
+            type: object
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          status:
+            description: ArmadaChartStatus defines the observed state of ArmadaChart
+            properties:
+              conditions:
+                description: Conditions holds the conditions for the ArmadaChart.
+                items:
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource. --- This struct is intended for direct
+                    use as an array at the field path .status.conditions.  For example,
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
+                    \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
+                    // +listType=map // +listMapKey=type Conditions []metav1.Condition
+                    `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
+                    protobuf:\"bytes,1,rep,name=conditions\"` \n // other fields }"
+                  properties:
+                    lastTransitionTime:
+                      description: lastTransitionTime is the last time the condition
+                        transitioned from one status to another. This should be when
+                        the underlying condition changed.  If that is not known, then
+                        using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: message is a human readable message indicating
+                        details about the transition. This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: observedGeneration represents the .metadata.generation
+                        that the condition was set based upon. For instance, if .metadata.generation
+                        is currently 12, but the .status.conditions[x].observedGeneration
+                        is 9, the condition is out of date with respect to the current
+                        state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: reason contains a programmatic identifier indicating
+                        the reason for the condition's last transition. Producers
+                        of specific condition types may define expected values and
+                        meanings for this field, and whether the values are considered
+                        a guaranteed API. The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                        --- Many .condition.type values are consistent across resources
+                        like Available, but because arbitrary conditions can be useful
+                        (see .node.status.conditions), the ability to deconflict is
+                        important. The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              failures:
+                description: Failures is the reconciliation failure count against
+                  the latest desired state. It is reset after a successful reconciliation.
+                format: int64
+                type: integer
+              helmStatus:
+                description: HelmStatus describes the status of helm release
+                type: string
+              installFailures:
+                description: InstallFailures is the install failure count against
+                  the latest desired state. It is reset after a successful reconciliation.
+                format: int64
+                type: integer
+              lastAttemptedChartSource:
+                description: LastAppliedChartSource is the URL of chart of the last
+                  reconciliation attempt
+                type: string
+              lastAttemptedValuesChecksum:
+                description: LastAppliedValuesChecksum is the SHA1 checksum of the
+                  values of the last reconciliation attempt.
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the last observed generation.
+                format: int64
+                type: integer
+              tested:
+                description: Tested is the bool value whether the Helm Release was
+                  successfully tested or not.
+                type: boolean
+              upgradeFailures:
+                description: UpgradeFailures is the upgrade failure count against
+                  the latest desired state. It is reset after a successful reconciliation.
+                format: int64
+                type: integer
+              waitCompleted:
+                description: WaitCompleted is the bool value whether the Helm Release
+                  resources were waited for or not.
+                type: boolean
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -109,6 +109,45 @@ spec:
 {{ tuple $envAll "api" $mounts_armada_api_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
 {{ dict "envAll" $envAll "application" "armada" "container" "armada_api_init" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
       containers:
+{{- if .Values.conf.armada.DEFAULT.enable_operator }}
+        - name: manager
+{{ tuple $envAll "operator" | include "helm-toolkit.snippets.image" | indent 10 }}
+{{ tuple $envAll $envAll.Values.pod.resources.api | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
+          command:
+            - /manager
+          args:
+            - '--health-probe-bind-address=:8081'
+            - '--metrics-bind-address=127.0.0.1:8080'
+            - '--leader-elect'
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+{{- end }}
         - name: armada-api
 {{ tuple $envAll "api" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ tuple $envAll $envAll.Values.pod.resources.api | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
