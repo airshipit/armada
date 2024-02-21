@@ -18,7 +18,7 @@ import tarfile
 import tempfile
 
 from git import exc as git_exc
-from git import Git
+# from git import Git
 from git import Repo
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -89,14 +89,18 @@ def git_clone(repo_url, ref='master', proxy_server=None, auth_method=None):
                 repo_url,
                 temp_dir,
                 env=env_vars,
-                config='http.proxy=%s' % proxy_server)
+                config='http.proxy=%s' % proxy_server,
+                allow_unsafe_options=True)
         else:
             LOG.debug('Cloning [%s]', repo_url)
-            repo = Repo.clone_from(repo_url, temp_dir, env=env_vars)
+            repo = Repo.clone_from(
+                repo_url, temp_dir, env=env_vars, allow_unsafe_options=True)
 
-        repo.remotes.origin.fetch(ref)
-        g = Git(repo.working_dir)
-        g.checkout('FETCH_HEAD')
+        # Fetch with --config option
+        repo.remotes.origin.fetch(ref, allow_unsafe_options=True)
+        # g = Git(repo.working_dir)
+        # Checkout FETCH_HEAD
+        repo.git.checkout('FETCH_HEAD')
     except git_exc.GitCommandError as e:
         LOG.exception('Encountered GitCommandError during clone.')
         if ssh_cmd and ssh_cmd in e.stderr:

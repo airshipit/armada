@@ -61,7 +61,7 @@
     run: tools/gate/playbooks/build-charts.yaml
     nodeset: armada-single-node-focal
     vars:
-      HTK_COMMIT: ae91cf3fc3f288b6d92ace4a3a405606a653638f
+      HTK_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
 
 
 - job:
@@ -105,8 +105,8 @@
       CLONE_ARMADA: false
       ARMADA_IMAGE_DISTRO: ubuntu_focal
       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.13.2-linux-amd64.tar.gz
-      HTK_COMMIT: 1c83e3a9aef8c0b40360a88125f8b11b540dd3a7
-      OSH_INFRA_COMMIT: 1c83e3a9aef8c0b40360a88125f8b11b540dd3a7
+      HTK_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
+      OSH_INFRA_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
       OSH_COMMIT: 2d9457e34ca4200ed631466bd87569b0214c92e7
     irrelevant-files:
       - ^.*\.rst$
@@ -131,7 +131,7 @@
           commit: true
         static:
           - latest
-          - airflow_2.6.2
+          - airflow_2.8.1
 
 
 - secret:
