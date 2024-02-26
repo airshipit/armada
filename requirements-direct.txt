@@ -3,18 +3,8 @@ deepdiff
 falcon
 GitPython
 jsonschema
-keystoneauth1==4.3.1
-keystonemiddleware==9.3.0
 kubernetes
 mock
-oslo.config==8.6.0
-oslo.context==4.0.0
-oslo.log==4.8.0
-oslo.policy==3.10.1
-oslo.middleware==4.4.0
-oslo.serialization==4.1.0
-oslo.utils==4.12.3
-oslo.db==11.2.0
 paste
 PasteDeploy
 packaging
@@ -30,3 +20,21 @@ retry
 testtools
 urllib3
 uWSGI
+
+# Openstack Antelope 2023.1
+# https://releases.openstack.org/antelope/index.html
+python-keystoneclient==5.1.0
+
+keystoneauth1==5.1.2
+keystonemiddleware==10.2.0
+
+oslo.cache==3.3.1
+oslo.config==9.1.1
+oslo.context==5.1.1
+oslo.db==12.3.1
+oslo.i18n==6.0.0
+oslo.log==5.2.0
+oslo.middleware==5.1.1
+oslo.policy==4.1.1
+oslo.serialization==5.1.1
+oslo.utils==6.1.0
