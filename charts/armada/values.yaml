@@ -35,6 +35,7 @@ images:
     ks_service: 'docker.io/openstackhelm/heat:newton'
     ks_user: 'docker.io/openstackhelm/heat:newton'
     image_repo_sync: docker.io/docker:17.07.0
+    test: 'quay.io/airshipit/armada:latest-ubuntu_focal'
   pull_policy: "IfNotPresent"
   local_registry:
     active: false

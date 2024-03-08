@@ -39,7 +39,7 @@ spec:
       env:
         - name: 'ARMADA_URL'
           value: {{ tuple "armada" "internal" "api" . | include "helm-toolkit.endpoints.host_and_port_endpoint_uri_lookup" | quote }}
-      image: {{ .Values.images.tags.api }}
+      image: {{ .Values.images.tags.test }}
       imagePullPolicy: {{ .Values.images.pull_policy }}
 {{ tuple . .Values.pod.resources.test.api | include "helm-toolkit.snippets.kubernetes_resources" | indent 6 }}
 {{ dict "envAll" $envAll "application" "api_test" "container" "armada_api_test" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 6 }}
