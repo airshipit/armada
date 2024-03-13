@@ -1,5 +1,5 @@
 ARG FROM=ubuntu:20.04
-ARG ARMADA_GO=quay.io/airshipit/armada-go:8b6a87059acf6600a84b5f1314f2a69f434032b0-ubuntu_focal
+ARG ARMADA_GO=quay.io/airshipit/armada-go:latest-ubuntu_focal
 FROM ${ARMADA_GO} AS armada_go
 FROM ${FROM}
 
@@ -99,6 +99,6 @@ RUN \
     chown -R armada:users . && \
     pip3 install -e . --verbose --use-pep517 \
     && echo "/armada" \
-        > /usr/local/lib/python3.8/dist-packages/deckhand.pth
+        > /usr/local/lib/python3.8/dist-packages/armada.pth
 
 USER armada
