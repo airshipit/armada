@@ -82,7 +82,7 @@ testresources==2.0.1
 testscenarios==0.5.0
 testtools==2.7.1
 typing_extensions==4.9.0
-urllib3==1.26.18
+urllib3==1.26.19
 uWSGI==2.0.24
 WebOb==1.8.7
 websocket-client==1.7.0
