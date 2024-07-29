@@ -79,6 +79,8 @@ spec:
                 properties:
                   pre:
                     properties:
+                      cleanup:
+                        type: boolean
                       delete:
                         items:
                           description: ArmadaChartDeleteResource defines the delete
