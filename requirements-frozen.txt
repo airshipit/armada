@@ -84,7 +84,7 @@ testtools==2.7.1
 typing_extensions==4.9.0
 urllib3==1.26.18
 uWSGI==2.0.24
-WebOb==1.8.7
+WebOb==1.8.8
 websocket-client==1.7.0
 wheel==0.41.2
 wrapt==1.16.0
