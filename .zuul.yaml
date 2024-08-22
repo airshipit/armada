@@ -154,7 +154,7 @@
     parent: armada-base
     vars:
       site: airskiff
-      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz
+      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz
       HTK_COMMIT: 05f2f45971abcf483189358d663e2b46c3fc2fe8
       OSH_INFRA_COMMIT: 05f2f45971abcf483189358d663e2b46c3fc2fe8
       OSH_COMMIT: 049e679939fbd3b0c659dd0977911b8dc3b5a015
@@ -195,7 +195,7 @@
 #     vars:
 #       CLONE_ARMADA: false
 #       ARMADA_IMAGE_DISTRO: ubuntu_focal
-#       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz
+#       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz
 #       HTK_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
 #       OSH_INFRA_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
 #       OSH_COMMIT: 2d9457e34ca4200ed631466bd87569b0214c92e7

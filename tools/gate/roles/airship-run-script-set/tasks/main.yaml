@@ -35,7 +35,7 @@
         FEATURE_GATES: "{{ osh_params.feature_gates | default('') }}"
         RUN_HELM_TESTS: "{{ run_helm_tests | default('yes') }}"
         PL_SITE: "{{ site | default('airskiff') }}"
-        HELM_ARTIFACT_URL: "{{ HELM_ARTIFACT_URL | default('https://get.helm.sh/helm-v3.14.2-linux-amd64.tar.gz') }}"
+        HELM_ARTIFACT_URL: "{{ HELM_ARTIFACT_URL | default('https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz') }}"
         HTK_COMMIT: "{{ HTK_COMMIT | default('cfff60ec10a6c386f38db79bb9f59a552c2b032f') }}"
         OSH_INFRA_COMMIT: "{{ OSH_INFRA_COMMIT | default('cfff60ec10a6c386f38db79bb9f59a552c2b032f') }}"
         OSH_COMMIT: "{{ OSH_COMMIT | default('2d9457e34ca4200ed631466bd87569b0214c92e7') }}"
