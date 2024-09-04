@@ -13,27 +13,28 @@
 - project:
     templates:
       - openstack-cover-jobs
-      - openstack-python38-jobs
 
     check:
       jobs:
+        - openstack-tox-py310
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
-        - armada-docker-build-gate-ubuntu_focal
-        - armada-airskiff-deployment-focal-kubeadm
+        - armada-docker-build-gate-ubuntu_jammy
+        - armada-airskiff-deployment-jammy-kubeadm
 
     gate:
       jobs:
+        - openstack-tox-py310
         - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
-        - armada-docker-build-gate-ubuntu_focal
+        - armada-docker-build-gate-ubuntu_jammy
 
     post:
       jobs:
-        - armada-docker-publish-ubuntu_focal
+        - armada-docker-publish-ubuntu_jammy
         - armada-upload-git-mirror
 
     promote:
@@ -47,10 +48,10 @@
         label: ubuntu-bionic
 
 - nodeset:
-    name: armada-single-node-focal
+    name: armada-single-node-jammy
     nodes:
       - name: primary
-        label: ubuntu-focal
+        label: ubuntu-jammy
 
 - job:
     name: armada-chart-build-gate
@@ -58,9 +59,9 @@
       Builds charts using pinned Helm toolkit.
     timeout: 900
     run: tools/gate/playbooks/build-charts.yaml
-    nodeset: armada-single-node-focal
+    nodeset: armada-single-node-jammy
     vars:
-      HTK_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
+      HTK_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
 
 
 - job:
@@ -70,18 +71,18 @@
     timeout: 900
     voting: true
     run: tools/gate/playbooks/build-charts.yaml
-    nodeset: armada-single-node-focal
+    nodeset: armada-single-node-jammy
     vars:
       HTK_COMMIT: master
 
 - job:
-    name: armada-docker-build-gate-ubuntu_focal
+    name: armada-docker-build-gate-ubuntu_jammy
     timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node-focal
+    nodeset: armada-single-node-jammy
     vars:
       publish: false
-      distro: ubuntu_focal
+      distro: ubuntu_jammy
       tags:
         dynamic:
           patch_set: true
@@ -107,6 +108,7 @@
       - ^swagger/.*$
     timeout: 10800
     pre-run:
+      - tools/gate/playbooks/checkout-treasuremap-ref.yaml
       - tools/gate/playbooks/prepare-hosts.yaml
       - tools/gate/playbooks/mount-volumes.yaml
       - tools/gate/playbooks/deploy-env.yaml
@@ -115,6 +117,7 @@
     post-run:
       - tools/gate/playbooks/osh-infra-collect-logs.yaml
     vars:
+      treasuremap_ref: refs/changes/43/927643/4
       extra_volume:
         size: 80G
         type: Linux
@@ -131,15 +134,16 @@
       loopback_device: /dev/loop100
       loopback_image: "/opt/ext_vol/openstack-helm/ceph-loop.img"
       ceph_osd_data_device: /dev/loop100
-      kube_version_repo: "v1.29"
-      kube_version: "1.29.5-1.1"
+      kube_version_repo: "v1.30"
+      kube_version: "1.30.3-1.1"
       calico_setup: true
-      calico_version: "v3.27.0"
+      calico_version: "v3.27.4"
       cilium_setup: false
-      cilium_version: "1.15.6"
-      helm_version: "v3.6.3"
-      yq_version: "v4.6.0"
-      crictl_version: "v1.26.1"
+      cilium_version: "1.16.0"
+      flannel_setup: false
+      flannel_version: v0.25.4
+      helm_version: "v3.15.4"
+      crictl_version: "v1.30.1"
       zuul_osh_relative_path: ../../openstack/openstack-helm
       zuul_osh_infra_relative_path: ../../openstack/openstack-helm-infra
       zuul_treasuremap_relative_path: ../../airship/treasuremap
@@ -147,19 +151,20 @@
       run_helm_tests: "no"
 
 - job:
-    name: armada-airskiff-deployment-focal-kubeadm
-    nodeset: treasuremap-airskiff-1node-ubuntu_focal
+    name: armada-airskiff-deployment-jammy-kubeadm
+    nodeset: treasuremap-airskiff-1node-ubuntu_jammy
     description: |
       Deploy Memcached using Airskiff and submitted Armada changes.
     parent: armada-base
     vars:
       site: airskiff
       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz
-      HTK_COMMIT: 05f2f45971abcf483189358d663e2b46c3fc2fe8
-      OSH_INFRA_COMMIT: 05f2f45971abcf483189358d663e2b46c3fc2fe8
-      OSH_COMMIT: 049e679939fbd3b0c659dd0977911b8dc3b5a015
+      HTK_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
+      OSH_INFRA_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
+      OSH_COMMIT: 540df5cb0dbdaed63c202e2d6f2b7891062f8203
+      TREASUREMAP_COMMIT: refs/changes/43/927643/4
       CLONE_ARMADA: false
-      DISTRO: ubuntu_focal
+      DISTRO: ubuntu_jammy
       DOCKER_REGISTRY: localhost:5000
       MAKE_ARMADA_IMAGES: true
       gate_scripts_relative_path: ../../airship/treasuremap
@@ -178,51 +183,24 @@
         - ./tools/gate/wait-for-shipyard.sh
     irrelevant-files: *irrelevant-files
 
-# - job:
-#     name: armada-airskiff-deploy-focal
-#     nodeset: armada-single-node-focal
-#     description: |
-#       Deploy Memcached using Airskiff and submitted Armada changes.
-#     timeout: 9600
-#     voting: true
-#     pre-run:
-#       - tools/gate/playbooks/airskiff-reduce-site.yaml
-#       - tools/gate/playbooks/git-config.yaml
-#     run: tools/gate/playbooks/airskiff-deploy.yaml
-#     post-run: tools/gate/playbooks/debug-report.yaml
-#     required-projects:
-#       - airship/treasuremap
-#     vars:
-#       CLONE_ARMADA: false
-#       ARMADA_IMAGE_DISTRO: ubuntu_focal
-#       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz
-#       HTK_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
-#       OSH_INFRA_COMMIT: cfff60ec10a6c386f38db79bb9f59a552c2b032f
-#       OSH_COMMIT: 2d9457e34ca4200ed631466bd87569b0214c92e7
-#     irrelevant-files:
-#       - ^.*\.rst$
-#       - ^doc/.*$
-#       - ^examples/.*$
-#       - ^releasenotes/.*$
-#       - ^swagger/.*$
 
 - job:
-    name: armada-docker-publish-ubuntu_focal
+    name: armada-docker-publish-ubuntu_jammy
     timeout: 3600
     run: tools/gate/playbooks/docker-image-build.yaml
-    nodeset: armada-single-node-focal
+    nodeset: armada-single-node-jammy
     secrets:
       - airship_armada_quay_creds
     vars:
       publish: true
-      distro: ubuntu_focal
+      distro: ubuntu_jammy
       tags:
         dynamic:
           branch: true
           commit: true
         static:
           - latest
-          - airflow_2.8.2
+          - airflow_2.10.0
 
 
 - secret:
