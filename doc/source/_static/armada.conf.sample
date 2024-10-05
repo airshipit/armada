@@ -52,6 +52,14 @@
 # Minimum value: 0
 #lock_expiration = 600
 
+# Determines whether the operator has to be enabled         to apply charts
+# instead of armada-api itself (boolean value)
+#enable_operator = false
+
+# Determines whether the wait process has to be done         via armada-go
+# using client-go library (boolean value)
+#go_wait = false
+
 #
 # From oslo.log
 #
@@ -321,7 +329,7 @@
 # Domain name containing project (string value)
 #project_domain_name = <None>
 
-# Trust ID (string value)
+# ID of the trust to use as a trustee use (string value)
 #trust_id = <None>
 
 # Optional domain ID to use with v3 and v2 parameters. It will be used for both
@@ -531,6 +539,9 @@
 # Whether the application is behind a proxy or not. This determines if the
 # middleware should parse the headers or not. (boolean value)
 #enable_proxy_headers_parsing = false
+
+# HTTP basic auth password file. (string value)
+#http_basic_auth_user_file = /etc/htpasswd
 
 
 [oslo_policy]

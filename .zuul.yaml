@@ -13,11 +13,14 @@
 - project:
     templates:
       - openstack-cover-jobs
-
+      - docs-on-readthedocs
+    vars:
+      rtd_webhook_id: '47578'
+      rtd_project_name: 'airship-armada'
     check:
       jobs:
         - openstack-tox-py310
-        - openstack-tox-docs
+        # - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-chart-build-latest-htk
@@ -27,7 +30,7 @@
     gate:
       jobs:
         - openstack-tox-py310
-        - openstack-tox-docs
+        # - openstack-tox-docs
         - openstack-tox-pep8
         - armada-chart-build-gate
         - armada-docker-build-gate-ubuntu_jammy
@@ -117,7 +120,7 @@
     post-run:
       - tools/gate/playbooks/osh-infra-collect-logs.yaml
     vars:
-      treasuremap_ref: refs/changes/43/927643/4
+      treasuremap_ref: v1.9
       extra_volume:
         size: 80G
         type: Linux
@@ -162,7 +165,6 @@
       HTK_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
       OSH_INFRA_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
       OSH_COMMIT: 540df5cb0dbdaed63c202e2d6f2b7891062f8203
-      TREASUREMAP_COMMIT: refs/changes/43/927643/4
       CLONE_ARMADA: false
       DISTRO: ubuntu_jammy
       DOCKER_REGISTRY: localhost:5000
@@ -200,7 +202,7 @@
           commit: true
         static:
           - latest
-          - airflow_2.10.0
+          - airflow_2.10.2
 
 
 - secret:
