@@ -101,6 +101,7 @@
             username: "{{ airship_armada_quay_creds.username }}"
             password: "{{ airship_armada_quay_creds.password }}"
             registry_url: "https://quay.io/api/v1/"
+            api_version: "1.43"
 
         - make:
             chdir: "{{ zuul.project.src_dir }}"

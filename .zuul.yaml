@@ -90,7 +90,6 @@
         dynamic:
           patch_set: true
 
-
 - job:
     name: armada-base
     abstract: true
