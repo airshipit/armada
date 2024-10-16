@@ -94,6 +94,8 @@ spec:
                               type: string
                           type: object
                         type: array
+                      update_crd:
+                        type: boolean
                     type: object
                 type: object
               values:
