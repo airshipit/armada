@@ -19,7 +19,6 @@ class HelmCommandException(ex):
     '''
     Exception that occurs when a helm command fails.
     '''
-
     def __init__(self, called_process_error):
         self.called_process_error = called_process_error
         message = 'helm command failed: {}'.format(

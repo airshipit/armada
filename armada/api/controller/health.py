@@ -20,7 +20,6 @@ class Health(api.BaseResource):
     """
     Return empty response/body to show that Armada is healthy.
     """
-
     def on_get(self, req, resp):
         """
         It really does nothing right now. It may do more later.

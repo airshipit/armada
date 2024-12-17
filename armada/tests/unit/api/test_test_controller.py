@@ -157,10 +157,14 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
                     'An error occurred while building chart group: '
                     'Could not build ChartGroup named '
                     '"keystone-infra-services".'),
-                'error': True,
-                'kind': 'ValidationMessage',
-                'level': 'Error',
-                'name': 'ARM001',
+                'error':
+                True,
+                'kind':
+                'ValidationMessage',
+                'level':
+                'Error',
+                'name':
+                'ARM001',
                 'documents': []
             }, resp_body['details']['messageList'])
         self.assertEqual(
@@ -196,13 +200,16 @@ class TestReleasesManifestControllerNegativeTest(base.BaseControllerTest):
         self.assertEqual(
             [
                 {
-                    'message': (
-                        'An error occurred while generating the manifest: foo.'
-                    ),
-                    'error': True,
-                    'kind': 'ValidationMessage',
-                    'level': 'Error',
-                    'name': 'ARM001',
+                    'message':
+                    ('An error occurred while generating the manifest: foo.'),
+                    'error':
+                    True,
+                    'kind':
+                    'ValidationMessage',
+                    'level':
+                    'Error',
+                    'name':
+                    'ARM001',
                     'documents': []
                 }
             ], resp_body['details']['messageList'])

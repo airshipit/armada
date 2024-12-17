@@ -35,7 +35,6 @@ class TestReleasesReleaseNameController(api.BaseResource):
     '''
     Test Helm releases via release name.
     '''
-
     @policy.enforce('armada:test_release')
     def on_get(self, req, resp, namespace, release):
         try:
@@ -71,7 +70,6 @@ class TestReleasesManifestController(api.BaseResource):
     '''
     Test Helm releases via a Manifest.
     '''
-
     def _format_validation_response(self, req, resp, result, details):
         resp.content_type = 'application/json'
         resp_body = {

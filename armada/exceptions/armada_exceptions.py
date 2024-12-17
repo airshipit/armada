@@ -23,7 +23,6 @@ class ArmadaException(base_exception.ArmadaBaseException):
 
 class ArmadaTimeoutException(ArmadaException):
     '''Exception that occurs when Armada times out while processing.'''
-
     def __init__(self, reason):
         self._message = 'Armada timed out waiting on: %s' % (reason)
         super(ArmadaTimeoutException, self).__init__(self._message)
@@ -35,7 +34,6 @@ class ProtectedReleaseException(ArmadaException):
     than DEPLOYED that is designated `protected` in the Chart and
     `continue_processing` is False.
     '''
-
     def __init__(self, release_id, status):
         self._message = (
             'Armada encountered protected release {} in {} status'.format(
@@ -48,7 +46,6 @@ class InvalidValuesYamlException(ArmadaException):
     Exception that occurs when Armada encounters invalid values.yaml content in
     a helm chart.
     '''
-
     def __init__(self, chart_description):
         self._message = (
             'Armada encountered invalid values.yaml in helm chart: %s'
@@ -61,7 +58,6 @@ class InvalidOverrideValuesYamlException(ArmadaException):
     Exception that occurs when Armada encounters invalid override yaml in
     helm chart.
     '''
-
     def __init__(self, chart_description):
         self._message = (
             'Armada encountered invalid values.yaml in helm chart: %s'
@@ -73,7 +69,6 @@ class ChartDeployException(ArmadaException):
     '''
     Exception that occurs while deploying charts.
     '''
-
     def __init__(self, chart_names):
         self._message = ('Exception deploying charts: %s' % chart_names)
         super(ChartDeployException, self).__init__(self._message)
@@ -83,7 +78,6 @@ class WaitException(ArmadaException):
     '''
     Exception that occurs while waiting for resources to become ready.
     '''
-
     def __init__(self, message):
         self._message = message
         super(WaitException, self).__init__(message)
@@ -94,7 +88,6 @@ class DeploymentLikelyPendingException(ArmadaException):
     Exception that occurs when it is detected that an existing release
     operation (e.g. install, update, delete) is likely still pending.
     '''
-
     def __init__(self, release_id, status, last_deployment_age, timeout):
         self._message = (
             'Existing deployment likely pending '
@@ -111,7 +104,6 @@ class PreUpdateJobDeleteException(ArmadaException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, name, namespace):
 
         message = 'Failed to delete k8s job {} in {}'.format(name, namespace)

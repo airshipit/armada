@@ -348,7 +348,6 @@ class ArmadaHandlerTestCase(base.ArmadaTestCase):
             expected_last_test_result=None,
             diff={'some_key': {'some diff'}}):
         """Test install functionality from the sync() method."""
-
         @mock.patch.object(armada.Armada, 'post_flight_ops')
         @mock.patch.object(armada, 'ChartDownload')
         @mock.patch('armada.handlers.chart_deploy.ChartBuilder.from_chart_doc')
@@ -650,7 +649,7 @@ class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
         """Test armada handling with invalid manifest."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
         error_re = ('.*Documents must include at least one of each of .*')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ManifestException, error_re, armada.Armada, yaml_documents[:1],
             mock.MagicMock())
 
@@ -658,10 +657,11 @@ class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
     def test_armada_override_exception(self, MockChartDownload):
         """Test Armada checks with invalid chart override."""
         yaml_documents = list(yaml.safe_load_all(TEST_YAML))
-        override = ('chart:example-chart-2:name=' 'overridden', )
+        override = ('chart:example-chart-2:name='
+                    'overridden', )
 
         error_re = ('is not a valid override statement')
-        with self.assertRaisesRegexp(InvalidOverrideValueException, error_re):
+        with self.assertRaisesRegex(InvalidOverrideValueException, error_re):
             armada.Armada(yaml_documents, mock.MagicMock(), set_ovr=override)
 
     @mock.patch.object(armada, 'ChartDownload')
@@ -675,5 +675,5 @@ class ArmadaNegativeHandlerTestCase(base.ArmadaTestCase):
         del example_document['data']['release']
 
         error_re = ('Invalid document .*')
-        with self.assertRaisesRegexp(InvalidManifestException, error_re):
+        with self.assertRaisesRegex(InvalidManifestException, error_re):
             armada.Armada(yaml_documents, mock.MagicMock(), set_ovr=None)

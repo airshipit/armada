@@ -21,20 +21,29 @@ testtools
 urllib3
 uWSGI
 
-# Openstack Antelope 2023.1
-# https://releases.openstack.org/antelope/index.html
-python-keystoneclient==5.1.0
+# Openstack Caracal 2024.1
+# https://releases.openstack.org/caracal/index.html
+barbican==18.0.0
 
-keystoneauth1==5.1.2
-keystonemiddleware==10.2.0
+python-barbicanclient==5.7.0
+python-keystoneclient==5.4.0
 
-oslo.cache==3.3.1
-oslo.config==9.1.1
-oslo.context==5.1.1
-oslo.db==12.3.1
-oslo.i18n==6.0.0
-oslo.log==5.2.0
-oslo.middleware==5.1.1
-oslo.policy==4.1.1
-oslo.serialization==5.1.1
-oslo.utils==6.1.0
+keystoneauth1==5.6.0
+keystonemiddleware==10.6.0
+
+oslo.cache==3.7.0
+oslo.concurrency==6.0.0
+oslo.config==9.4.0
+oslo.context==5.5.0
+oslo.db==15.0.0
+oslo.i18n==6.3.0
+oslo.log==5.5.1
+oslo.messaging==14.7.2
+oslo.metrics==0.8.0
+oslo.middleware==6.1.0
+oslo.policy==4.3.0
+oslo.serialization==5.4.1
+oslo.service==3.4.1
+oslo.upgradecheck==2.3.0
+oslo.utils==7.1.0
+oslo.versionedobjects==3.3.0

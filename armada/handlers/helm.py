@@ -40,7 +40,6 @@ class Helm(object):
     '''
     Helm CLI handler
     '''
-
     def __init__(self, bearer_token=None):
         self.bearer_token = bearer_token
 
@@ -57,8 +56,11 @@ class Helm(object):
         LOG.info('Running command=%s', command)
         try:
             result = subprocess.run(  # nosec
-                command, check=True, universal_newlines=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                command,
+                check=True,
+                universal_newlines=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 timeout=timeout)
         except subprocess.CalledProcessError as e:
             raise HelmCommandException(e)

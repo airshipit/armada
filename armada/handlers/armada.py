@@ -42,7 +42,6 @@ class Armada(object):
     This is the main Armada class handling the Armada
     workflows
     '''
-
     def __init__(
             self,
             documents,

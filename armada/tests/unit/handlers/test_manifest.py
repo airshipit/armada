@@ -345,7 +345,7 @@ class ManifestNegativeTestCase(testtools.TestCase):
         documents.append(documents[-1])  # Copy the last manifest.
 
         error_re = r'Multiple manifests are not supported.*'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exceptions.ManifestException, error_re, manifest.Manifest,
             documents)
 
@@ -356,7 +356,7 @@ class ManifestNegativeTestCase(testtools.TestCase):
         documents.append(documents[-1])  # Copy the last manifest.
 
         error_re = r'Multiple manifests are not supported.*'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exceptions.ManifestException,
             error_re,
             manifest.Manifest,
@@ -367,7 +367,7 @@ class ManifestNegativeTestCase(testtools.TestCase):
         error_re = (
             '.*Documents must include at least one of each of .* and '
             'only one .*')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exceptions.ManifestException, error_re, manifest.Manifest,
             documents)
 
@@ -391,7 +391,7 @@ class ManifestNegativeTestCase(testtools.TestCase):
         armada_manifest = manifest.Manifest(self.documents)
         error_re = r'.*Could not find %s named "%s"' % (
             schema.TYPE_CHART, 'invalid')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exceptions.BuildChartException, error_re,
             armada_manifest.find_chart_document, 'invalid')
 
@@ -399,7 +399,7 @@ class ManifestNegativeTestCase(testtools.TestCase):
         armada_manifest = manifest.Manifest(self.documents)
         error_re = r'.*Could not find %s named "%s"' % (
             schema.TYPE_CHARTGROUP, 'invalid')
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exceptions.BuildChartGroupException, error_re,
             armada_manifest.find_chart_group_document, 'invalid')
 

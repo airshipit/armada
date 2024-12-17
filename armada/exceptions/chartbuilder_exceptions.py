@@ -25,7 +25,6 @@ class HelmChartBuildException(ChartBuilderException):
     '''
     Exception that occurs when Helm Chart fails to build.
     '''
-
     def __init__(self, chart_name, details):
         self._chart_name = chart_name
         self._message = (

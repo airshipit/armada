@@ -6,5 +6,5 @@ blank_line_before_nested_class_or_def = false
 blank_line_before_module_docstring = true
 split_before_logical_operator = true
 split_before_first_argument = true
-allow_split_before_dict_value = false
+allow_split_before_dict_value = true
 split_before_arithmetic_operator = true

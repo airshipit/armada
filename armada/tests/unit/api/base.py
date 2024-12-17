@@ -25,7 +25,6 @@ from armada.tests.unit import fixtures
 
 class BaseControllerTest(test_base.ArmadaTestCase):
     """Base class for unit testing falcon controllers."""
-
     def setUp(self):
         super(BaseControllerTest, self).setUp()
         # Override the default configuration file lookup with references to

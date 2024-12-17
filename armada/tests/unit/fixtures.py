@@ -41,7 +41,6 @@ class ConfPatcher(fixtures.Fixture):
     it's teardown.
 
     """
-
     def __init__(self, **kwargs):
         """Constructor
 
@@ -69,7 +68,6 @@ class RealPolicyFixture(fixtures.Fixture):
     like to load and enforce the shipped default policy in tests.
 
     """
-
     def __init__(self, verify=True, *args, **kwargs):
         """Constructor for ``RealPolicyFixture``.
 

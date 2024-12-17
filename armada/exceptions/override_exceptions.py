@@ -28,7 +28,6 @@ class InvalidOverrideTypeException(OverrideException):
     Exception that occurs when an invalid override type is used with the
     set flag.
     '''
-
     def __init__(self, override_type):
         self._message = 'Override type "{}" is invalid'.format(override_type)
 
@@ -42,7 +41,6 @@ class InvalidOverrideFileException(OverrideException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, filename):
         self._message = '{} is not a valid override file.'.format(filename)
 
@@ -56,7 +54,6 @@ class InvalidOverrideValueException(OverrideException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, override_command):
         self._message = '{} is not a valid override statement.'.format(
             override_command)
@@ -71,7 +68,6 @@ class UnknownDocumentOverrideException(OverrideException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, doc_type, doc_name):
         self._message = 'Unable to find {1} document schema: {0} '.format(
             doc_type, doc_name)

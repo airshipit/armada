@@ -158,7 +158,7 @@ def default_error_serializer(req, resp, exception):
         info_list=None)
 
 
-def default_exception_handler(ex, req, resp, params):
+def default_exception_handler(req, resp, ex, params):
     """
     Catch-all exception handler for standardized output.
     If this is a standard falcon HTTPError, rethrow it for handling
@@ -186,13 +186,13 @@ class ArmadaAPIException(falcon.HTTPError):
     status = falcon.HTTP_500
 
     def __init__(
-            self,
-            title=None,
-            description=None,
-            error_list=None,
-            info_list=None,
-            status=None,
-            retry=False,
+        self,
+        title=None,
+        description=None,
+        error_list=None,
+        info_list=None,
+        status=None,
+        retry=False,
     ):
         """
         :param description: The internal error description
@@ -206,34 +206,30 @@ class ArmadaAPIException(falcon.HTTPError):
         :param retry: Optional retry directive for the consumer
         """
 
-        if title is None:
-            self.title = self.__class__.title
-        else:
-            self.title = title
+        # Use default title and status if none provided
+        status = status or self.__class__.status
+        title = title or self.__class__.title
 
-        if status is None:
-            self.status = self.__class__.status
-        else:
-            self.status = status
+        # Call falcon.HTTPError's constructor
+        super().__init__(status, title=title)
 
+        # Store custom fields as instance attributes
         self.description = description
         self.error_list = massage_error_list(error_list, description)
         self.info_list = info_list
         self.retry = retry
-        super().__init__(
-            self.status, self.title,
-            self._gen_ex_message(self.title, self.description))
 
     @staticmethod
     def _gen_ex_message(title, description):
+        """Generate an exception message."""
         ttl = title or 'Exception'
         dsc = description or 'No additional description'
-        return '{} : {}'.format(ttl, dsc)
+        return f'{ttl} : {dsc}'
 
     @staticmethod
-    def handle(ex, req, resp, params):
+    def handle(req, resp, ex, params):
         """
-        The handler used for app errors and child classes
+        The handler used for app errors and child classes.
         """
         format_error_resp(
             req,
@@ -249,7 +245,6 @@ class ArmadaAPIException(falcon.HTTPError):
 
 class ArmadaBaseException(Exception):
     '''Base class for Armada exception and error handling.'''
-
     def __init__(self, message=None, **kwargs):
         self.message = message or self.message
         # replacing try-except-pass block with suppress

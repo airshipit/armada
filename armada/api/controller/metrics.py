@@ -22,7 +22,6 @@ from armada.handlers import metrics
 class Metrics(api.BaseResource):
     '''Controller for exporting prometheus metrics.
     '''
-
     def on_get(self, req, resp):
         encoder, content_type = prometheus_client.exposition.choose_encoder(
             req.get_header('Accept'))

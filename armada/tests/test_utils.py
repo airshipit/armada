@@ -96,7 +96,6 @@ def attr(**kwargs):
     This decorator applies the testtools.testcase.attr if it is in the list of
     attributes to testtools we want to apply.
     """
-
     def decorator(f):
         if 'type' in kwargs and isinstance(kwargs['type'], str):
             f = testtools.testcase.attr(kwargs['type'])(f)
@@ -112,7 +111,6 @@ class AttrDict(dict):
     """Allows defining objects with attributes without defining a class
 
     """
-
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self

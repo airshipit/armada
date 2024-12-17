@@ -30,7 +30,6 @@ class Apply(api.BaseResource):
     """Controller for installing and updating charts defined in an Armada
     manifest file.
     """
-
     @policy.enforce('armada:create_endpoints')
     def on_post(self, req, resp):
         # Load data from request and get options

@@ -25,7 +25,11 @@ LOG = logging.getLogger(__name__)
 
 class Test(object):
     def __init__(
-            self, chart, release_id, helm, cg_test_charts=None,
+            self,
+            chart,
+            release_id,
+            helm,
+            cg_test_charts=None,
             enable_all=False):
         """Initialize a test handler to run Helm tests corresponding to a
         release.
@@ -62,7 +66,7 @@ class Test(object):
             self.test_enabled = True
 
         # TODO: Remove when v1 doc support is removed.
-        if (type(test_values) == bool):
+        if (type(test_values) is bool):
             LOG.warn(
                 'Boolean value for chart `test` key is deprecated and '
                 'will be removed. Use `test.enabled` instead.')

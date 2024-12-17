@@ -31,7 +31,6 @@ class ValidationMessage(object):
     :param string diagnostic: Information about what lead to the message,
         or details for resolution.
     """
-
     def __init__(
             self,
             message='Document validation error.',

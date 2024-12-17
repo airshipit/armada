@@ -42,7 +42,6 @@ class ReleaseDiff(object):
     :param new_values: The chart override values to deploy.
     :type  new_values: dict
     '''
-
     def __init__(self, old_chart, old_values, new_chart, new_values):
         self.old_chart = old_chart
         self.old_values = old_values

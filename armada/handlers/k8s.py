@@ -33,7 +33,6 @@ class K8s(object):
     '''
     Object to obtain the local kube config file
     '''
-
     def __init__(self, bearer_token=None):
         '''
         Initialize connection to Kubernetes

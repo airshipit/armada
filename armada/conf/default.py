@@ -116,7 +116,8 @@ def register_opts(conf):
 
 def list_opts():
     return {
-        'DEFAULT': default_options,
+        'DEFAULT':
+        default_options,
         'keystone_authtoken': (
             ks_loading.get_session_conf_options()
             + ks_loading.get_auth_common_conf_options()

@@ -32,6 +32,6 @@ class SchemaTestCase(unittest.TestCase):
         import, and importing the schemas again in manually results in
         duplicates.
         """
-        with self.assertRaisesRegexp(RuntimeError,
-                                     'Duplicate schema specified for: .*'):
+        with self.assertRaisesRegex(RuntimeError,
+                                    'Duplicate schema specified for: .*'):
             schema._load_schemas()

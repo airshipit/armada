@@ -84,7 +84,6 @@ class ChartDeployAwareLogger(logging.Logger):
     """Includes name of chart currently being deployed (if any) in log
     messages.
     """
-
     def _log(self, level, msg, *args, **kwargs):
         chart = get_current_chart()
         if chart:

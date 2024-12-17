@@ -49,14 +49,13 @@ def lock_and_thread(lock_name="lock"):
 
     :param lock_name: name of the lock to create
     """
-
     def lock_decorator(func):
         @functools.wraps(func)
         def func_wrapper(*args, **kwargs):
             bearer_token = None
             found_helm = False
             for arg in args:
-                if type(arg) == Helm:
+                if type(arg) is Helm:
                     bearer_token = arg.bearer_token
                     found_helm = True
 

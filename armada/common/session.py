@@ -37,7 +37,6 @@ class ArmadaSession(object):
         value may also be supplied instead of a tuple to indicate only the
         read timeout to use
     """
-
     def __init__(
             self,
             host,
@@ -186,7 +185,6 @@ class ArmadaSession(object):
 
 class TcpKeepaliveAdapter(requests.adapters.HTTPAdapter):
     """"Transport adapter" that enables TCP keepalives."""
-
     def init_poolmanager(self, connections, maxsize, block=False):
         options = HTTPConnection.default_socket_options + [
             (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),

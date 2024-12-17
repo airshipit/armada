@@ -32,7 +32,6 @@ class ChartBuilder(object):
     This class handles taking chart intentions as a parameter and turning those
     into proper Helm chart metadata.
     '''
-
     @classmethod
     def from_chart_doc(cls, chart, helm):
         '''

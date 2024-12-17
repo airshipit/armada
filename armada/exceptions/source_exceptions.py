@@ -28,7 +28,6 @@ class GitException(SourceException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, location):
         self._location = location
         self._message = (
@@ -40,7 +39,6 @@ class GitException(SourceException):
 
 class GitAuthException(SourceException):
     '''Exception that occurs when authentication fails for cloning a repo.'''
-
     def __init__(self, repo_url, ssh_key_path):
         self._repo_url = repo_url
         self._ssh_key_path = ssh_key_path
@@ -57,7 +55,6 @@ class GitAuthException(SourceException):
 class GitProxyException(SourceException):
     '''Exception when an error occurs cloning a Git repository
        through a proxy.'''
-
     def __init__(self, location):
         self._location = location
         self._message = ('Could not resolve proxy [', self._location, '].')
@@ -67,7 +64,6 @@ class GitProxyException(SourceException):
 
 class GitSSHException(SourceException):
     '''Exception that occurs when an SSH key could not be found.'''
-
     def __init__(self, ssh_key_path):
         self._ssh_key_path = ssh_key_path
 
@@ -79,7 +75,6 @@ class GitSSHException(SourceException):
 
 class SourceCleanupException(SourceException):
     '''Exception that occurs for an invalid dir.'''
-
     def __init__(self, target_dir):
         self._target_dir = target_dir
         self._message = self._target_dir + ' is not a valid directory.'
@@ -95,7 +90,6 @@ class TarballDownloadException(SourceException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, tarball_url):
         self._tarball_url = tarball_url
         self._message = 'Unable to download from ' + self._tarball_url
@@ -110,7 +104,6 @@ class TarballExtractException(SourceException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, tarball_dir):
         self._tarball_dir = tarball_dir
         self._message = 'Unable to extract ' + self._tarball_dir
@@ -125,7 +118,6 @@ class InvalidPathException(SourceException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, path):
         self._path = path
         self._message = 'Unable to access path ' + self._path
@@ -140,7 +132,6 @@ class ChartSourceException(SourceException):
     **Troubleshoot:**
     *Coming Soon*
     '''
-
     def __init__(self, chart_name, source_type):
         self._chart_name = chart_name
         self._source_type = source_type

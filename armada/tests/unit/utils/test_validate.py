@@ -80,7 +80,6 @@ class ValidateOwnExamplesTestCase(BaseValidateTest):
     ``armada/examples`` passes internal Armada schema validation.
 
     """
-
     def test_own_document_examples(self):
         examples_path = os.path.join(os.getcwd(), 'examples')
         example_files = [
@@ -215,7 +214,7 @@ data:
 class ValidateNegativeTestCase(BaseValidateTest):
     def test_validate_no_dictionary_expect_type_error(self):
         expected_error = 'The provided input "invalid" must be a dictionary.'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TypeError, expected_error, validate.validate_armada_documents,
             ['invalid'])
 

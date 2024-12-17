@@ -64,7 +64,8 @@ class OverrideTestCase(testtools.TestCase):
             documents_copy = copy.deepcopy(original_documents)
             values_documents = list(yaml.safe_load_all(g.read()))
 
-        override = ('manifest:simple-armada:release_prefix=' 'overridden', )
+        override = ('manifest:simple-armada:release_prefix='
+                    'overridden', )
         # Case 1: Checking if primitive gets updated.
         ovr = Override(original_documents, override, [values_yaml])
         ovr.update_manifests()
@@ -102,7 +103,8 @@ class OverrideTestCase(testtools.TestCase):
             original_documents = list(yaml.safe_load_all(f.read()))
 
         original_documents[-1]['data']['test'] = {'foo': 'bar'}
-        override = ('manifest:simple-armada:test=' '{"foo": "bar"}', )
+        override = ('manifest:simple-armada:test='
+                    '{"foo": "bar"}', )
         ovr = Override(original_documents, override, [])
         self.assertRaises(json.decoder.JSONDecodeError, ovr.update_manifests)
 
@@ -346,7 +348,8 @@ class OverrideNegativeTestCase(testtools.TestCase):
         with open(self.base_manifest) as f:
             original_documents = list(yaml.safe_load_all(f.read()))
 
-        override = ('manifest:simple-armada:name=' 'overridden', )
+        override = ('manifest:simple-armada:name='
+                    'overridden', )
         ovr = Override(original_documents, override)
         self.assertRaises(
             override_exceptions.InvalidOverrideValueException,

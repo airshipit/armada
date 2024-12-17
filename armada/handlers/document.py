@@ -28,7 +28,6 @@ LOG = logging.getLogger(__name__)
 
 class ReferenceResolver(object):
     """Class for handling different data references to resolve the data."""
-
     @classmethod
     def resolve_reference(cls, design_ref):
         """Resolve a reference to a design document.

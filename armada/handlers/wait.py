@@ -215,7 +215,11 @@ class ChartWait():
 
 class ResourceWait(ABC):
     def __init__(
-            self, resource_type, chart_wait, labels, get_resources,
+            self,
+            resource_type,
+            chart_wait,
+            labels,
+            get_resources,
             required=True):
         self.resource_type = resource_type
         self.chart_wait = chart_wait

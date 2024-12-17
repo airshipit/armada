@@ -26,7 +26,6 @@ from armada.handlers.document import ReferenceResolver
 class Validate(api.BaseResource):
     '''Controller for validating an Armada manifest.
     '''
-
     @policy.enforce('armada:validate_manifest')
     def on_post(self, req, resp):
         try:
