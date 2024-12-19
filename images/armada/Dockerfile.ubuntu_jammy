@@ -4,7 +4,7 @@
 # 429 Too Many Requests - Server message: too many requests:
 #   You have reached your pull rate limit.
 #   You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
-ARG FROM=public.ecr.aws/ubuntu/ubuntu:jammy
+ARG FROM=public.ecr.aws/docker/library/ubuntu:jammy
 ARG ARMADA_GO=quay.io/airshipit/armada-go:latest-ubuntu_focal
 FROM ${ARMADA_GO} AS armada_go
 FROM ${FROM}
