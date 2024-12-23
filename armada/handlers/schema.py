@@ -14,8 +14,8 @@
 
 import os
 import re
+from importlib.resources import files
 
-import pkg_resources
 import yaml
 
 # Types
@@ -57,7 +57,7 @@ def _get_schema_info(name, data):
 
 
 def _get_schema_dir():
-    return pkg_resources.resource_filename('armada', 'schemas')
+    return str(files('armada') / 'schemas')
 
 
 def _load_schemas():
