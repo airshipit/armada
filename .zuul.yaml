@@ -144,7 +144,7 @@
       cilium_version: "1.16.0"
       flannel_setup: false
       flannel_version: v0.25.4
-      helm_version: "v3.15.4"
+      helm_version: "v3.16.4"
       crictl_version: "v1.30.1"
       zuul_osh_relative_path: ../../openstack/openstack-helm
       zuul_osh_infra_relative_path: ../../openstack/openstack-helm-infra
@@ -160,7 +160,7 @@
     parent: armada-base
     vars:
       site: airskiff
-      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.15.4-linux-amd64.tar.gz
+      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz
       HTK_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
       OSH_INFRA_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
       OSH_COMMIT: 540df5cb0dbdaed63c202e2d6f2b7891062f8203
