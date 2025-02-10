@@ -161,9 +161,9 @@
     vars:
       site: airskiff
       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz
-      HTK_COMMIT: 3a4fb2185dec899a2f77e6ff46a04947ac89cd6c
-      OSH_INFRA_COMMIT: 3a4fb2185dec899a2f77e6ff46a04947ac89cd6c
-      OSH_COMMIT: 450f355bc7dd68c449700c8c5f3ff89d45103474
+      HTK_COMMIT: 962333df313e04a01923ca8394d2a44f2afbb714
+      OSH_INFRA_COMMIT: 962333df313e04a01923ca8394d2a44f2afbb714
+      OSH_COMMIT: 5a3f2080c12bb56238b150c69a06064c64d61d0f
       CLONE_ARMADA: false
       DISTRO: ubuntu_jammy
       DOCKER_REGISTRY: localhost:5000
