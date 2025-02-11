@@ -12,7 +12,7 @@ charset-normalizer==3.4.0
 click==8.1.7
 cliff==4.8.0
 cmd2==2.5.8
-cryptography==42.0.8
+cryptography==44.0.1
 debtcollector==3.0.0
 decorator==5.1.1
 deepdiff==8.1.1
