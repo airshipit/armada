@@ -358,6 +358,7 @@ network_policy:
 manifests:
   configmap_bin: true
   configmap_etc: true
+  configmap_gnp: false
   deployment_api: true
   ingress_api: true
   job_image_repo_sync: true
