@@ -64,7 +64,7 @@
     run: tools/gate/playbooks/build-charts.yaml
     nodeset: armada-single-node-jammy
     vars:
-      HTK_COMMIT: 43fd7143481b6ddda0dbd2f26bf6ec39a417b15b
+      HTK_COMMIT: b6fa5ad3dc8daef9fa08a70d981f2bf2a9ca55cf
 
 
 - job:
@@ -94,11 +94,11 @@
     name: armada-base
     abstract: true
     roles:
-      - zuul: openstack/openstack-helm-infra
+      - zuul: airship/kubernetes-entrypoint
+      - zuul: openstack/openstack-helm
       - zuul: zuul/zuul-jobs
     required-projects:
       - name: openstack/openstack-helm
-      - name: openstack/openstack-helm-infra
       - name: openstack/openstack-helm-plugin
       - name: airship/treasuremap
         override-checkout: v1.9
@@ -136,8 +136,8 @@
       loopback_device: /dev/loop100
       loopback_image: "/opt/ext_vol/openstack-helm/ceph-loop.img"
       ceph_osd_data_device: /dev/loop100
-      kube_version_repo: "v1.31"
-      kube_version: "1.31.3-1.1"
+      kube_version_repo: "v1.32"
+      kube_version: "1.32.1-1.1"
       calico_setup: true
       calico_version: "v3.27.4"
       cilium_setup: false
@@ -148,8 +148,8 @@
       metallb_version: "0.13.12"
       helm_version: "v3.14.0"
       crictl_version: "v1.30.1"
-      zuul_osh_infra_relative_path: ../openstack-helm-infra
-      gate_scripts_relative_path: ../openstack-helm-infra
+      zuul_osh_infra_relative_path: ../openstack-helm
+      gate_scripts_relative_path: ../openstack-helm
       run_helm_tests: "no"
 
 - job:
@@ -161,9 +161,9 @@
     vars:
       site: airskiff
       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz
-      HTK_COMMIT: 962333df313e04a01923ca8394d2a44f2afbb714
-      OSH_INFRA_COMMIT: 962333df313e04a01923ca8394d2a44f2afbb714
-      OSH_COMMIT: 5a3f2080c12bb56238b150c69a06064c64d61d0f
+      HTK_COMMIT: master
+      OSH_COMMIT: master
+      OSH_INFRA_COMMIT: master
       CLONE_ARMADA: false
       DISTRO: ubuntu_jammy
       DOCKER_REGISTRY: localhost:5000

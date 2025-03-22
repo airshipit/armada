@@ -111,3 +111,4 @@ etc/armada/policy.yaml
 # IDEs
 .idea/
 .vscode/
+.devcontainer/
