@@ -64,7 +64,7 @@
     run: tools/gate/playbooks/build-charts.yaml
     nodeset: armada-single-node-jammy
     vars:
-      HTK_COMMIT: b6fa5ad3dc8daef9fa08a70d981f2bf2a9ca55cf
+      HTK_COMMIT: 49c117443391cec75e0bd52bb4a9d033325927ad
 
 
 - job:
@@ -161,9 +161,8 @@
     vars:
       site: airskiff
       HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz
-      HTK_COMMIT: master
-      OSH_COMMIT: master
-      OSH_INFRA_COMMIT: master
+      HTK_COMMIT: 49c117443391cec75e0bd52bb4a9d033325927ad
+      OSH_COMMIT: 49c117443391cec75e0bd52bb4a9d033325927ad
       CLONE_ARMADA: false
       DISTRO: ubuntu_jammy
       DOCKER_REGISTRY: localhost:5000
