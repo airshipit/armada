@@ -23,6 +23,9 @@ labels:
   test:
     node_selector_key: ucp-control-plane
     node_selector_value: enabled
+  bootstrap:
+    node_selector_key: armada-bootstrap
+    node_selector_value: enabled
   node_selector_key: ucp-control-plane
   node_selector_value: enabled
 
@@ -42,6 +45,32 @@ images:
     exclude:
       - dep_check
       - image_repo_sync
+
+bootstrap_apiserver:
+  command_prefix:
+  - kube-apiserver
+  - --advertise-address=$(ADVERTISE_ADDRESS)
+  - --allow-privileged=true
+  - --anonymous-auth=false
+  - --bind-address=0.0.0.0
+  - --client-ca-file=/etc/kubernetes/apiserver/pki/cluster-ca.pem
+  - --etcd-cafile=/etc/kubernetes/apiserver/pki/etcd-client-ca.pem
+  - --etcd-certfile=/etc/kubernetes/apiserver/pki/etcd-client.pem
+  - --etcd-keyfile=/etc/kubernetes/apiserver/pki/etcd-client-key.pem
+  - --kubelet-certificate-authority=/etc/kubernetes/apiserver/pki/kubelet-client-ca.pem
+  - --kubelet-client-certificate=/etc/kubernetes/apiserver/pki/kubelet-client.pem
+  - --kubelet-client-key=/etc/kubernetes/apiserver/pki/kubelet-client-key.pem
+  - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+  - --service-account-issuer=https://kubernetes.default.svc.cluster.local
+  - --service-account-key-file=/etc/kubernetes/apiserver/pki/service-account.pub
+  - --service-account-signing-key-file=/etc/kubernetes/apiserver/pki/service-account.key
+  - --tls-cert-file=/etc/kubernetes/apiserver/pki/apiserver.pem
+  - --tls-private-key-file=/etc/kubernetes/apiserver/pki/apiserver-key.pem
+  genesis_arguments: []
+  arguments:
+  - --etcd-servers=https://localhost:12379
+  - --secure-port=6444
+  - --endpoint-reconciler-type=none
 
 network:
   api:
@@ -229,6 +258,12 @@ pod:
             initialDelaySeconds: 15
             periodSeconds: 10
   security_context:
+    armada_bootstrap:
+      container:
+        armada:
+          runAsUser: 0
+        manager:
+          runAsUser: 0
     armada:
       pod:
         runAsUser: 1000
@@ -247,6 +282,23 @@ pod:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
   env:
+    armada_bootstrap:
+      - name: ARMADA_LOGFILE
+        value: /tmp/log/bootstrap-armada.log
+      - name: ARMADA_METRICS_OUTPUT_DIR
+        value: /tmp/metrics
+      - name: ARMADA_METRICS_MAX_ATTEMPTS
+        value: '10'
+      - name: KUBECONFIG
+        value: /root/.kube/config
+    manager_bootstrap:
+      - name: ARMADA_OPERATOR_LOGFILE
+        value: /tmp/log/bootstrap-armada-operator.log
+      - name: KUBECONFIG
+        value: /root/.kube/config
+    apiserver_bootstrap:
+      - name: KUBECONFIG
+        value: /etc/kubernetes/admin/config
     # NOTE(@drewwalters96): These configuration values change the Armada API's
     #    uWSGI configuration.
     armada_api:
@@ -273,6 +325,59 @@ pod:
 #      - name: NO_PROXY
 #        value: 10.96.0.1
   mounts:
+    bootstrap:
+      armada:
+        volumeMounts:
+        - name: assets
+          mountPath: /etc/genesis/armada/assets
+        - name: auth
+          mountPath: /root/.kube
+        - name: ipc
+          mountPath: /ipc
+        - name: log
+          mountPath: /tmp/log
+        - name: metrics
+          mountPath: /tmp/metrics
+        volumes:
+        - name: assets
+          hostPath:
+            path: /etc/genesis/armada/assets
+        - name: auth
+          hostPath:
+            path: /etc/genesis/armada/auth
+        - name: manifest
+          hostPath:
+            path: /etc/kubernetes/manifests
+        - name: ipc
+          emptyDir: { }
+        - name: log
+          hostPath:
+            path: /var/log/armada
+        - name: metrics
+          hostPath:
+            path: '/var/log/node-exporter-textfiles'
+        - name: config
+          hostPath:
+            path: /etc/genesis/apiserver
+      manager:
+        volumeMounts:
+        - name: auth
+          mountPath: /root/.kube
+        - name: log
+          mountPath: /tmp/log
+      monitor:
+        volumeMounts:
+        - mountPath: /ipc
+          name: ipc
+        - mountPath: /etc/kubernetes/manifests
+          name: manifest
+      apiserver:
+        volumeMounts:
+        - name: auth
+          mountPath: /etc/kubernetes/admin
+        - name: config
+          mountPath: /etc/kubernetes/apiserver
+          readOnly: true
     armada_api:
       init_container: null
       armada_api:
@@ -303,6 +408,34 @@ pod:
     prestop_sleep: 20
   resources:
     enabled: false
+    armada_bootstrap:
+      limits:
+        cpu: "8"
+        memory: "8Gi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+    manager_bootstrap:
+      limits:
+        cpu: "8"
+        memory: "8Gi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+    monitor_bootstrap:
+      limits:
+        cpu: "8"
+        memory: "8Gi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+    apiserver_bootstrap:
+      limits:
+        cpu: "8"
+        memory: "8Gi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
     api:
       limits:
         memory: "128Mi"
@@ -360,6 +493,7 @@ manifests:
   configmap_etc: true
   configmap_gnp: false
   deployment_api: true
+  daemonset_bootstrap: false
   ingress_api: true
   job_image_repo_sync: true
   job_ks_endpoints: true

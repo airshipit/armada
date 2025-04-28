@@ -105,9 +105,11 @@ spec:
       nodeSelector:
         {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value }}
       terminationGracePeriodSeconds: {{ .Values.pod.lifecycle.termination_grace_period.api.timeout | default "30" }}
+{{- if or (not .Values.conf.armada.DEFAULT.disable_keystone) (not (hasKey .Values.conf.armada.DEFAULT "disable_keystone")) }}
       initContainers:
 {{ tuple $envAll "api" $mounts_armada_api_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
 {{ dict "envAll" $envAll "application" "armada" "container" "armada_api_init" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
+{{- end }}
       containers:
 {{- if .Values.conf.armada.DEFAULT.enable_operator }}
         - name: manager

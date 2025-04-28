@@ -1,0 +1,187 @@
+{{/*
+Copyright 2025 The Openstack-Helm Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+
+{{- if .Values.manifests.daemonset_bootstrap }}
+{{- $envAll := . }}
+{{- $labels :=  tuple $envAll "armada" "bootstrap" | include "helm-toolkit.snippets.kubernetes_metadata_labels" -}}
+{{- $mounts_armada_bootstrap := .Values.pod.mounts.bootstrap.armada }}
+{{- $mounts_manager_bootstrap := .Values.pod.mounts.bootstrap.manager }}
+{{- $mounts_monitor_bootstrap := .Values.pod.mounts.bootstrap.monitor }}
+{{- $mounts_apiserver_bootstrap := .Values.pod.mounts.bootstrap.apiserver }}
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: armada-bootstrap
+spec:
+  selector:
+    matchLabels:
+{{ $labels | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ $labels | indent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - /bin/bash
+        - -c
+        - |-
+          set -x
+
+          if [ ! -e "${ARMADA_LOGFILE}" ]; then
+            touch "${ARMADA_LOGFILE}"
+          fi
+          tail -f "${ARMADA_LOGFILE}" &
+
+          declare -i attempt=1
+
+          while true; do
+              sleep 10
+              if armada \
+                      apply \
+                      --target-manifest cluster-bootstrap \
+                      $([[ $attempt -le $ARMADA_METRICS_MAX_ATTEMPTS ]] && echo --metrics-output "${ARMADA_METRICS_OUTPUT_DIR}/armada-bootstrap-${attempt}.prom") \
+                      /etc/genesis/armada/assets/manifest.yaml &>> "${ARMADA_LOGFILE}"; then
+                  break
+              fi
+              attempt+=1
+          done
+          touch /ipc/armada-done
+          sleep 10000
+{{- if .Values.pod.env.armada_bootstrap }}
+        env:
+{{- range .Values.pod.env.armada_bootstrap }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+{{- end }}
+{{- end }}
+{{ tuple $envAll "api" | include "helm-toolkit.snippets.image" | indent 8 }}
+        name: armada
+{{ tuple $envAll $envAll.Values.pod.resources.armada_bootstrap | include "helm-toolkit.snippets.kubernetes_resources" | indent 8 }}
+{{ dict "envAll" $envAll "application" "armada_bootstrap" "container" "armada" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 8 }}
+{{ if $mounts_armada_bootstrap.volumeMounts }}
+        volumeMounts:
+{{ toYaml $mounts_armada_bootstrap.volumeMounts | indent 8 }}
+{{ end }}
+{{- if .Values.conf.armada.DEFAULT.enable_operator }}
+      - command:
+        - /bin/sh
+        - -c
+        - |-
+          set -x
+
+          if [ ! -e "${ARMADA_OPERATOR_LOGFILE}" ]; then
+            touch "${ARMADA_OPERATOR_LOGFILE}"
+          fi
+          tail -f "${ARMADA_OPERATOR_LOGFILE}" &
+
+          /manager \
+            --health-probe-bind-address=:8081 \
+            --metrics-bind-address=127.0.0.1:8080 \
+            --leader-elect \
+            --leader-elect-namespace=ucp 2>&1 | tee -a "${ARMADA_OPERATOR_LOGFILE}"
+{{- if .Values.pod.env.manager_bootstrap }}
+        env:
+{{- range .Values.pod.env.manager_bootstrap }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+{{- end }}
+{{- end }}
+{{ tuple $envAll "operator" | include "helm-toolkit.snippets.image" | indent 8 }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+{{ tuple $envAll $envAll.Values.pod.resources.manager_bootstrap | include "helm-toolkit.snippets.kubernetes_resources" | indent 8 }}
+{{ dict "envAll" $envAll "application" "armada_bootstrap" "container" "manager" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 8 }}
+{{ if $mounts_manager_bootstrap.volumeMounts }}
+        volumeMounts:
+{{ toYaml $mounts_manager_bootstrap.volumeMounts | indent 8 }}
+{{ end }}
+{{- end }}
+      - command:
+        - /bin/sh
+        - -c
+        - |-
+          set -x
+
+          while ! [ -e /ipc/armada-done ]; do
+            sleep 5
+          done
+
+          rm -f /etc/kubernetes/manifests/bootstrap-armada.yaml
+          sleep 10000
+{{ tuple $envAll "monitor" | include "helm-toolkit.snippets.image" | indent 8 }}
+        name: monitor
+{{ tuple $envAll $envAll.Values.pod.resources.monitor_bootstrap | include "helm-toolkit.snippets.kubernetes_resources" | indent 8 }}
+{{ dict "envAll" $envAll "application" "armada" "container" "manager" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 8 }}
+{{ if $mounts_monitor_bootstrap.volumeMounts }}
+        volumeMounts:
+{{ toYaml $mounts_monitor_bootstrap.volumeMounts | indent 8 }}
+{{ end }}
+      - command:
+        {{- range .Values.bootstrap_apiserver.command_prefix }}
+        - {{ . }}
+        {{- end }}
+        {{- range .Values.bootstrap_apiserver.genesis_arguments }}
+        - {{ . }}
+        {{- end }}
+        {{- range .Values.bootstrap_apiserver.arguments }}
+        - {{ . }}
+        {{- end }}
+{{- if .Values.pod.env.apiserver_bootstrap }}
+        env:
+        {{- range .Values.pod.env.apiserver_bootstrap }}
+        - name: {{ .name | quote }}
+          value: {{ .value | quote }}
+        {{- end }}
+{{- end }}
+{{ tuple $envAll "apiserver" | include "helm-toolkit.snippets.image" | indent 8 }}
+        name: kubectl-apiserver
+{{ tuple $envAll $envAll.Values.pod.resources.apiserver_bootstrap | include "helm-toolkit.snippets.kubernetes_resources" | indent 8 }}
+{{ dict "envAll" $envAll "application" "armada" "container" "manager" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 8 }}
+{{ if $mounts_apiserver_bootstrap.volumeMounts }}
+        volumeMounts:
+{{ toYaml $mounts_apiserver_bootstrap.volumeMounts | indent 8 }}
+{{ end }}
+      dnsPolicy: Default
+      hostNetwork: true
+      nodeSelector:
+        {{ .Values.labels.bootstrap.node_selector_key }}: {{ .Values.labels.bootstrap.node_selector_value }}
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - operator: Exists
+{{ if $mounts_armada_bootstrap.volumes }}
+      volumes:
+{{ toYaml $mounts_armada_bootstrap.volumes | indent 8 }}
+{{ end }}
+
+{{- end }}
