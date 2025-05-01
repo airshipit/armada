@@ -16,7 +16,7 @@ LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc
       org.opencontainers.image.vendor='The Airship Authors' \
       org.opencontainers.image.licenses='Apache-2.0'
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
@@ -89,7 +89,7 @@ COPY . ./
 COPY --from=armada_go /usr/local/bin/armada /usr/local/bin/armada-go
 
 # Setting the version explicitly for PBR
-ENV PBR_VERSION 0.8.0
+ENV PBR_VERSION=0.8.0
 
 RUN \
     chown -R armada:users . && \

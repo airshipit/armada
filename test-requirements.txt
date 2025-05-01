@@ -10,7 +10,7 @@ pyflakes
 sphinx-rtd-theme==0.5.0
 stestr==4.1.0
 testrepository==0.0.20
-testresources==2.0.1
+testresources==2.0.2
 testscenarios==0.5.0
 # testtools==2.5.0
 # tox>=3.28.0, <4.0.0
