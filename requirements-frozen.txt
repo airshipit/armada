@@ -97,7 +97,7 @@ rfc3986==2.0.0
 Routes==2.5.1
 rpds-py==0.22.3
 rsa==4.9
-setuptools==70.1.0
+setuptools==78.1.1
 six==1.17.0
 smmap==5.0.1
 SQLAlchemy==1.4.54
