@@ -144,31 +144,6 @@ spec:
         volumeMounts:
 {{ toYaml $mounts_monitor_bootstrap.volumeMounts | indent 8 }}
 {{ end }}
-      - command:
-        {{- range .Values.bootstrap_apiserver.command_prefix }}
-        - {{ . }}
-        {{- end }}
-        {{- range .Values.bootstrap_apiserver.genesis_arguments }}
-        - {{ . }}
-        {{- end }}
-        {{- range .Values.bootstrap_apiserver.arguments }}
-        - {{ . }}
-        {{- end }}
-{{- if .Values.pod.env.apiserver_bootstrap }}
-        env:
-        {{- range .Values.pod.env.apiserver_bootstrap }}
-        - name: {{ .name | quote }}
-          value: {{ .value | quote }}
-        {{- end }}
-{{- end }}
-{{ tuple $envAll "apiserver" | include "helm-toolkit.snippets.image" | indent 8 }}
-        name: kubectl-apiserver
-{{ tuple $envAll $envAll.Values.pod.resources.apiserver_bootstrap | include "helm-toolkit.snippets.kubernetes_resources" | indent 8 }}
-{{ dict "envAll" $envAll "application" "armada" "container" "manager" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 8 }}
-{{ if $mounts_apiserver_bootstrap.volumeMounts }}
-        volumeMounts:
-{{ toYaml $mounts_apiserver_bootstrap.volumeMounts | indent 8 }}
-{{ end }}
       dnsPolicy: Default
       hostNetwork: true
       nodeSelector:
@@ -183,5 +158,4 @@ spec:
       volumes:
 {{ toYaml $mounts_armada_bootstrap.volumes | indent 8 }}
 {{ end }}
-
 {{- end }}

@@ -46,31 +46,6 @@ images:
       - dep_check
       - image_repo_sync
 
-bootstrap_apiserver:
-  command_prefix:
-  - kube-apiserver
-  - --advertise-address=$(ADVERTISE_ADDRESS)
-  - --allow-privileged=true
-  - --anonymous-auth=false
-  - --bind-address=0.0.0.0
-  - --client-ca-file=/etc/kubernetes/apiserver/pki/cluster-ca.pem
-  - --etcd-cafile=/etc/kubernetes/apiserver/pki/etcd-client-ca.pem
-  - --etcd-certfile=/etc/kubernetes/apiserver/pki/etcd-client.pem
-  - --etcd-keyfile=/etc/kubernetes/apiserver/pki/etcd-client-key.pem
-  - --kubelet-certificate-authority=/etc/kubernetes/apiserver/pki/kubelet-client-ca.pem
-  - --kubelet-client-certificate=/etc/kubernetes/apiserver/pki/kubelet-client.pem
-  - --kubelet-client-key=/etc/kubernetes/apiserver/pki/kubelet-client-key.pem
-  - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-  - --service-account-issuer=https://kubernetes.default.svc.cluster.local
-  - --service-account-key-file=/etc/kubernetes/apiserver/pki/service-account.pub
-  - --service-account-signing-key-file=/etc/kubernetes/apiserver/pki/service-account.key
-  - --tls-cert-file=/etc/kubernetes/apiserver/pki/apiserver.pem
-  - --tls-private-key-file=/etc/kubernetes/apiserver/pki/apiserver-key.pem
-  genesis_arguments: []
-  arguments:
-  - --etcd-servers=https://localhost:12379
-  - --secure-port=6444
-  - --endpoint-reconciler-type=none
 
 network:
   api:
@@ -296,9 +271,6 @@ pod:
         value: /tmp/log/bootstrap-armada-operator.log
       - name: KUBECONFIG
         value: /root/.kube/config
-    apiserver_bootstrap:
-      - name: KUBECONFIG
-        value: /etc/kubernetes/admin/config
     # NOTE(@drewwalters96): These configuration values change the Armada API's
     #    uWSGI configuration.
     armada_api:
@@ -371,13 +343,6 @@ pod:
           name: ipc
         - mountPath: /etc/kubernetes/manifests
           name: manifest
-      apiserver:
-        volumeMounts:
-        - name: auth
-          mountPath: /etc/kubernetes/admin
-        - name: config
-          mountPath: /etc/kubernetes/apiserver
-          readOnly: true
     armada_api:
       init_container: null
       armada_api:
@@ -423,13 +388,6 @@ pod:
         cpu: "100m"
         memory: "128Mi"
     monitor_bootstrap:
-      limits:
-        cpu: "8"
-        memory: "8Gi"
-      requests:
-        cpu: "100m"
-        memory: "128Mi"
-    apiserver_bootstrap:
       limits:
         cpu: "8"
         memory: "8Gi"
