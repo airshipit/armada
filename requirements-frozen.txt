@@ -15,7 +15,7 @@ cmd2==2.6.1
 cryptography==42.0.8
 debtcollector==3.0.0
 decorator==5.2.1
-deepdiff==8.5.0
+deepdiff==8.6.1
 dnspython==2.7.0
 dogpile.cache==1.4.0
 durationpy==0.10
