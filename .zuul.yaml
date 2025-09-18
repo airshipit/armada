@@ -104,6 +104,8 @@
       CLONE_ARMADA: false
       MAKE_ARMADA_IMAGES: true
       USE_ARMADA_GO: false
+      DISTRO: ubuntu_jammy
+      DOCKER_REGISTRY: localhost:5000
       gate_scripts_relative_path: ../../airship/treasuremap
 
 - job:

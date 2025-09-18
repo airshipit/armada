@@ -89,7 +89,7 @@ COPY . ./
 COPY --from=armada_go /usr/local/bin/armada /usr/local/bin/armada-go
 
 # Setting the version explicitly for PBR
-ENV PBR_VERSION=0.8.0
+ENV PBR_VERSION=6.1.1
 
 RUN \
     chown -R armada:users . && \

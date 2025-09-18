@@ -33,16 +33,17 @@ from armada.api.controller.validation import Validate
 from armada.api.controller.versions import Versions
 from armada.exceptions import base_exception as exceptions
 
-conf.set_app_default_configs()
 CONF = cfg.CONF
 
 
-def create(enable_middleware=CONF.middleware):
+def create(enable_middleware=None):
     """Entry point for initializing Armada server.
 
     :param enable_middleware: Whether to enable middleware.
     :type enable_middleware: bool
     """
+    if enable_middleware is None:
+        enable_middleware = getattr(CONF, "middleware", True)
 
     if enable_middleware:
         api = falcon.App(
@@ -76,9 +77,6 @@ def create(enable_middleware=CONF.middleware):
         api.add_route("/api/v1.0/{}".format(route), service)
     api.add_route('/versions', Versions())
 
-    # Initialize policy config options.
-    policy.Enforcer(CONF)
-
     # Error handlers (FILO handling)
     api.add_error_handler(Exception, exceptions.default_exception_handler)
     api.add_error_handler(
@@ -90,11 +88,29 @@ def create(enable_middleware=CONF.middleware):
     return api
 
 
-def paste_start_armada(global_conf, **kwargs):
-    # At this time just ignore everything in the paste configuration
-    # and rely on olso_config
+def paste_start_armada(global_conf, **local_conf):
+    # Initialize configuration
+    conf.set_app_default_configs()
 
+    # Ensure CONF is initialized before using it
+    if not CONF.config_file:
+        raise RuntimeError(
+            "Configuration files are not loaded. "
+            " Ensure 'armada.conf' is accessible.")
+
+    # Create and return the API
+    api = create()
     return api
 
 
-api = create()
+if __name__ == "__main__":
+    conf.set_app_default_configs()
+
+    # Ensure CONF is initialized before using it
+    if not CONF.config_file:
+        raise RuntimeError(
+            "Configuration files are not loaded. "
+            "Ensure 'armada.conf' is accessible.")
+
+    enforcer = policy.Enforcer(CONF)
+    api = create()

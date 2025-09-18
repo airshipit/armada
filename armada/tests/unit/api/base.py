@@ -16,6 +16,7 @@ import os
 
 from falcon import testing as falcon_testing
 import mock
+from oslo_config import cfg
 
 from armada.api import server
 import armada.conf
@@ -27,6 +28,8 @@ class BaseControllerTest(test_base.ArmadaTestCase):
     """Base class for unit testing falcon controllers."""
     def setUp(self):
         super(BaseControllerTest, self).setUp()
+        # Initialize oslo_config parser
+        cfg.CONF([], project='armada', default_config_files=[])
         # Override the default configuration file lookup with references to
         # the sample configuration files to avoid oslo.conf errors when
         # creating the server below.

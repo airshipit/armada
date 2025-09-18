@@ -95,11 +95,15 @@
 # Deprecated group/name - [DEFAULT]/logdir
 #log_dir = <None>
 
-# Uses logging handler designed to watch file system. When log file is moved or
-# removed this handler will open a new log file with specified path
+# DEPRECATED: Uses logging handler designed to watch file system. When log file
+# is moved or removed this handler will open a new log file with specified path
 # instantaneously. It makes sense only if log_file option is specified and
 # Linux platform is used. This option is ignored if log_config_append is set.
 # (boolean value)
+# This option is deprecated for removal.
+# Its value may be silently ignored in the future.
+# Reason: This function is known to have bene broken for long time, and depends
+# on the unmaintained library
 #watch_log_file = false
 
 # Use syslog for logging. Existing syslog format is DEPRECATED and will be
@@ -125,8 +129,10 @@
 # set. (boolean value)
 #use_stderr = false
 
-# Log output to Windows Event Log. (boolean value)
-#use_eventlog = false
+# (Optional) Set the 'color' key according to log levels. This option takes
+# effect only when logging to stderr or stdout is used. This option is ignored
+# if log_config_append is set. (boolean value)
+#log_color = false
 
 # The amount of time before the log files are rotated. This option is ignored
 # unless log_rotation_type is set to "interval". (integer value)
@@ -200,10 +206,16 @@
 # Maximum number of logged messages per rate_limit_interval. (integer value)
 #rate_limit_burst = 0
 
-# Log level name used by rate limiting: CRITICAL, ERROR, INFO, WARNING, DEBUG
-# or empty string. Logs with level greater or equal to rate_limit_except_level
-# are not filtered. An empty string means that all levels are filtered. (string
-# value)
+# Log level name used by rate limiting. Logs with level greater or equal to
+# rate_limit_except_level are not filtered. An empty string means that all
+# levels are filtered. (string value)
+# Possible values:
+# CRITICAL - <No description provided>
+# ERROR - <No description provided>
+# INFO - <No description provided>
+# WARNING - <No description provided>
+# DEBUG - <No description provided>
+# '' - <No description provided>
 #rate_limit_except_level = CRITICAL
 
 # Enables or disables fatal status of deprecations. (boolean value)
@@ -260,6 +272,14 @@
 # information back as part of a request. (list value)
 #backends =
 
+# A list of network addresses to limit source ip allowed to access healthcheck
+# information. Any request from ip outside of these network addresses are
+# ignored. (list value)
+#allowed_source_ranges =
+
+# Ignore requests with proxy headers. (boolean value)
+#ignore_proxied_requests = false
+
 # Check the presence of a file to determine if an application is running on a
 # port. Used by DisableByFileHealthcheck plugin. (string value)
 #disable_by_file_path = <None>
@@ -268,6 +288,10 @@
 # is running on a port. Expects a "port:path" list of strings. Used by
 # DisableByFilesPortsHealthcheck plugin. (list value)
 #disable_by_file_paths =
+
+# Check the presence of files. Used by EnableByFilesHealthcheck plugin. (list
+# value)
+#enable_by_file_paths =
 
 
 [keystone_authtoken]
@@ -342,14 +366,14 @@
 # (string value)
 #default_domain_name = <None>
 
-# User ID (string value)
+# User's user ID (string value)
 #user_id = <None>
 
-# Username (string value)
+# User's username (string value)
 # Deprecated group/name - [keystone_authtoken]/user_name
 #username = <None>
 
-# User's domain id (string value)
+# User's domain ID (string value)
 #user_domain_id = <None>
 
 # User's domain name (string value)
@@ -510,6 +534,16 @@
 # used to validate tokens that have restricted access rules. (string value)
 #service_type = <None>
 
+# Enable the SASL(Simple Authentication and Security Layer) if the SASL_enable
+# is true, else disable. (boolean value)
+#memcache_sasl_enabled = false
+
+# the user name for the SASL (string value)
+#memcache_username =
+
+# the username password for SASL (string value)
+#memcache_password =
+
 # Authentication type to load (string value)
 # Deprecated group/name - [keystone_authtoken]/auth_plugin
 #auth_type = <None>
@@ -529,13 +563,6 @@
 # Deprecated group/name - [DEFAULT]/max_request_body_size
 #max_request_body_size = 114688
 
-# DEPRECATED: The HTTP Header that will be used to determine what the original
-# request protocol scheme was, even if it was hidden by a SSL termination
-# proxy. (string value)
-# This option is deprecated for removal.
-# Its value may be silently ignored in the future.
-#secure_proxy_ssl_header = X-Forwarded-Proto
-
 # Whether the application is behind a proxy or not. This determines if the
 # middleware should parse the headers or not. (boolean value)
 #enable_proxy_headers_parsing = false
@@ -550,13 +577,18 @@
 # From oslo.policy
 #
 
-# This option controls whether or not to enforce scope when evaluating
-# policies. If ``True``, the scope of the token used in the request is compared
-# to the ``scope_types`` of the policy being enforced. If the scopes do not
-# match, an ``InvalidScope`` exception will be raised. If ``False``, a message
-# will be logged informing operators that policies are being invoked with
-# mismatching scope. (boolean value)
-#enforce_scope = false
+# DEPRECATED: This option controls whether or not to enforce scope when
+# evaluating policies. If ``True``, the scope of the token used in the request
+# is compared to the ``scope_types`` of the policy being enforced. If the
+# scopes do not match, an ``InvalidScope`` exception will be raised. If
+# ``False``, a message will be logged informing operators that policies are
+# being invoked with mismatching scope. (boolean value)
+# This option is deprecated for removal.
+# Its value may be silently ignored in the future.
+# Reason: This configuration was added temporarily to facilitate a smooth
+# transition to the new RBAC. OpenStack will always enforce scope checks. This
+# configuration option is deprecated and will be removed in the 2025.2 cycle.
+#enforce_scope = true
 
 # This option controls whether or not to use old deprecated defaults when
 # evaluating policies. If ``True``, the old deprecated defaults are not going
@@ -567,12 +599,12 @@
 # deprecated policy check string is logically OR'd with the new policy check
 # string, allowing for a graceful upgrade experience between releases with new
 # policies, which is the default behavior. (boolean value)
-#enforce_new_defaults = false
+#enforce_new_defaults = true
 
 # The relative or absolute path of a file that maps roles to permissions for a
 # given service. Relative paths must be specified in relation to the
 # configuration file setting this option. (string value)
-#policy_file = policy.json
+#policy_file = policy.yaml
 
 # Default rule. Enforced when a requested rule is not found. (string value)
 #policy_default_rule = default
@@ -602,3 +634,7 @@
 
 # Absolute path client key file REST based policy check (string value)
 #remote_ssl_client_key_file = <None>
+
+# Timeout in seconds for REST based policy check (floating point value)
+# Minimum value: 0
+#remote_timeout = 60
