@@ -42,11 +42,11 @@ class ChartWaitTestCase(base.ArmadaTestCase):
 
     def test_get_timeout(self):
         unit = self.get_unit({'timeout': 5, 'wait': {'timeout': 10}})
-        self.assertEquals(unit.get_timeout(), 10)
+        self.assertEqual(unit.get_timeout(), 10)
 
     def test_get_timeout_default(self):
         unit = self.get_unit({})
-        self.assertEquals(unit.get_timeout(), const.DEFAULT_CHART_TIMEOUT)
+        self.assertEqual(unit.get_timeout(), const.DEFAULT_CHART_TIMEOUT)
 
     def test_get_timeout_override(self):
         unit = self.get_unit(
@@ -57,23 +57,23 @@ class ChartWaitTestCase(base.ArmadaTestCase):
                 }
             })
 
-        self.assertEquals(unit.get_timeout(), 20)
+        self.assertEqual(unit.get_timeout(), 20)
 
     def test_get_timeout_deprecated(self):
         unit = self.get_unit({'timeout': 5})
-        self.assertEquals(unit.get_timeout(), 5)
+        self.assertEqual(unit.get_timeout(), 5)
 
     def test_is_native_enabled_default_false(self):
         unit = self.get_unit({})
-        self.assertEquals(unit.is_native_enabled(), False)
+        self.assertEqual(unit.is_native_enabled(), False)
 
     def test_is_native_enabled_true(self):
         unit = self.get_unit({'wait': {'native': {'enabled': True}}})
-        self.assertEquals(unit.is_native_enabled(), True)
+        self.assertEqual(unit.is_native_enabled(), True)
 
     def test_is_native_enabled_false(self):
         unit = self.get_unit({'wait': {'native': {'enabled': False}}})
-        self.assertEquals(unit.is_native_enabled(), False)
+        self.assertEqual(unit.is_native_enabled(), False)
 
     def test_waits_init(self):
         unit = self.get_unit({
