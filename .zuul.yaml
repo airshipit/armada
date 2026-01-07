@@ -111,10 +111,11 @@
 - job:
     name: armada-docker-publish-ubuntu_jammy
     timeout: 3600
+    voting: false
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node-jammy
-    secrets:
-      - airship_armada_quay_creds
+    # secrets:
+    #   - airship_armada_quay_creds
     vars:
       publish: true
       distro: ubuntu_jammy
@@ -124,7 +125,7 @@
           commit: true
         static:
           - latest
-          - airflow_3.1.1
+          - airflow_3.1.5
 
 
 - secret:
