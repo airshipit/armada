@@ -111,11 +111,11 @@
 - job:
     name: armada-docker-publish-ubuntu_jammy
     timeout: 3600
-    voting: false
+    voting: true
     run: tools/gate/playbooks/docker-image-build.yaml
     nodeset: armada-single-node-jammy
-    # secrets:
-    #   - airship_armada_quay_creds
+    secrets:
+      - airship_armada_quay_creds_2026
     vars:
       publish: true
       distro: ubuntu_jammy
@@ -153,6 +153,32 @@
           q1aBs85YhFSQ4ogvwqI0DABXjXwM2eDLj0s6aBp717sIwUk7roTtbVgkRaWs5WILrwE4G
           xELJhFCWVJ4enONX8Kb9kYxue1Kd6Ku9JaE+UrUDgyxKLOPDgg7S3dnchbUeg38UurKa+
           c5srPrJs5JL00hb3GVJ7ORIX4dFdYvJRAZNqExyx15kq6iPYv8QHQg5ai/XAGQ=
+
+- secret:
+    name: airship_armada_quay_creds_2026
+    data:
+      username: !encrypted/pkcs1-oaep
+        - xUkpHMBJobtoYWE8hRDc3r/nsgwbS9BccMVxZTEK8wiZsvGDU8V8nT6fQjnlO9P/yIraZ
+          y3Tlnhf37fZo+OMaodFgtgf24c3l8GfVhwR3gnwHi25eLadPzbF0/lPK15/YdjNO1r0fC
+          CsAzmUiKGJXqE231jzbtUQXr/JYbiwHzO7dbqQNCxqiFiUyv7zGK9LNM1fnfTZFCUM6B3
+          x6t8aUNe4PLXNzWzFzt7H/IZRdwIrfFZAY3KE2hvD+k2AsgSiCv3AikjPEUY16XsylGrJ
+          e5aUZXxPlsGBGvzJlmLupRn8zHAiuQeQEBnCAVmHPZmAcncPCdi8fxiBZ3Y0Gegd80OWk
+          QoxvVIJhlWXpcYwptlzWjiLGILusgL0/+e/2q5/uz2IF4g8Tzwd5nz5MozdPfnKUU/e2F
+          E5lCnf/sh++AUn+imCwhQs9QZa/qs40CUTlQdiUjROjfiYLnxuZB2t3MPsCa3GYogINqm
+          w01gc2N9b5t9wiofoumb8P7qzGrEIa2H0rtjQV55ug+iL91cNObw3FTZsBVeFOGcxU1GF
+          gMHnRcFKw8/bJfEXsqKD7V6FsrHM5vDJ3iz8J7C60/MJT3O7tphtuXWSOio9snm+CaFV7
+          +BAb4wagUh20RlbsFhunpI4lTA2mgifpwX0mf1WwvPF9FrAhJ3dHrpoOb6c3ZM=
+      password: !encrypted/pkcs1-oaep
+        - LHZw0IgmY143O3jOXEf+SPLoEQsF39BQhfa5ZuR7Yz8kIP1KAgUOpAGtCcVCyUIVsPTVq
+          M7nJ0TMaUdKjkTLaXJan0Sgu7EkX/IkWThG27J8Fk2a3Sds3zpcWNSEIYHkQ4MoIQqJiV
+          xSkHlY1R4MRJSvrofCOsiR5qnRJeSqZ4wzWVi2ppg4lKSk1GADBByHkaeVQMhdQj3Uaq1
+          XpGLs/sEGqno5vCktk8/zl2NnePU5N43Ssmb4ThxRleUXiZ50XK8zIur7qOWPug7oHdWo
+          HbzdnpMQ4LyE0X2s8M1elETSogyaoRbDTaUInTO/pFEhBRlzJaA1KJ39h4CKezN5k7fVj
+          2VaHTCG/7tP21N0QbaFZgBsnbEaAOKQGId0rXAk6tdWQyp3oVgw4yAAMbPkFUyWa/YZhY
+          +voS2Soc5W6XzlGWdIx3On/Gyi89TZaqpzdgSqouiWG4Y6X0YaASiz7OIoroOPUdseCdV
+          48PLOpQFfGmHHHR0Q6EZVLRVPNp8CIx2NVqtfptOJ4XQL+1FHdQJ/53JDm34CRDolF3if
+          Riya0WK4MxRkYTbnqAPIGOQ8Ag35jNqcV9wQdUZfR/BZPpd/ysB88wJbE5xbB89T1h7vI
+          K2GDAlbd3EYj5kaVYr67W1Gy7XebSTkAvwSD2Si0OdidkfnbQrfHBc6GNCzH0s=
 
 - job:
     name: armada-upload-git-mirror
