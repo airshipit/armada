@@ -188,7 +188,7 @@
       git_mirror_repository: airshipit/armada
     secrets:
       - name: git_mirror_credentials
-        secret: armada-airshipit-github-secret-2023-03-23
+        secret: armada-airshipit-github-ed25519-secret-2026-01-13
         pass-to-parent: true
 
 - secret:
@@ -238,3 +238,22 @@
           fm17RWjM2EbRdFuNmPymrHSvc3gWTUe25nPbKDpovPhU0K1493QZgYLUqmlvh7RRw4eHa
           GHLQTPtXMpsrl+c3A/2hpXcUvYHhmxvlFLla7p0mgmD2uNB5wRDqU88p/ub0z0jHCLO5Q
           +izMoqA6r8FuVMjccHc8DEwZcsuQ3jvZk1XCxY3mAkPHiAoyxvQtxfNeRuBZw0=
+
+
+- secret:
+    name: armada-airshipit-github-ed25519-secret-2026-01-13
+    data:
+      user: git
+      host: github.com
+      host_key: github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+      ssh_key: !encrypted/pkcs1-oaep
+        - Uq0TGnghBh3S2ybFki/6gQI4gXBYNYFYctUrcZjM3qq7y0g6qOV9Lxh0jRfVAgfdij1h5
+          9Mm1DcLZjJ277pkR4wscM/URtWDjmT9Ny2GtfuqX6YnYvuDD5kaYfXrrgBq2Yi0hiRu/v
+          lAu4Qsn3kDDprx9dCi978wNa4jB6jXL4X6SP6kw8wp/+oMxkeiBtOBa41K1FbPIjuE/uY
+          Y/D1FFQkyx3ql0rovovY51BKAby5d+sBJAkf4Nar+rliVWgDpKwkDOEvveO2Ly2xamlKy
+          rajRDFnGQuGmXtX9uSH/02K9VgrQsZ2G2QIxNV+w7VGQNTM/Px2vwFZvfI3GFyF/sbLvL
+          Uupp2lQTKh/UG3U+FvXj48k+grX7xrYNuduMvFbwx/EAu/6Jw9cBKaYgPPc2DyaxC5oBM
+          UDbwEJH0AFR7rVYGvfhbSbP6GociYGXtO1OwBxzKf7fdvrO6tbwT7r0TvZIq6SxSjtJJx
+          M6M/b9uKogRn90v1b0V8ut+BRjQfRkov5ILK2hoOGNJPVq1WtqmLuxsQtb8BIzl02E8te
+          V4nh7czO699XpKRyQoqP3eJiNvxLKX0vHVGubcmOPvu1yE5f1kJAPjt7C9ximI+XHBqmd
+          z6z1uga8DmbIC0JDsHjaUkerPU2RzUiQ+ff7lkBW5aCxE6vJyRpTZOHUSvuLBk=
