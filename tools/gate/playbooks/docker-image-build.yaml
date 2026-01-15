@@ -53,6 +53,7 @@
         - pip:
             name: docker
             executable: pip3
+            break_system_packages: true
       become: True
 
     - name: Install tox python module for ansible docker login
@@ -60,6 +61,7 @@
         - pip:
             name: tox
             executable: pip3
+            break_system_packages: true
       become: True
 
 
@@ -67,7 +69,7 @@
       when: not publish
       shell: |
         set -ex
-        sudo -E -H pip3 install tox
+        sudo -E -H pip3 install tox --break-system-packages
         make run_images
       args:
         chdir: "{{ zuul.project.src_dir }}"

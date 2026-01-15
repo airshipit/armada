@@ -1,0 +1,101 @@
+#
+# In order to fix rate limit error
+#
+# 429 Too Many Requests - Server message: too many requests:
+#   You have reached your pull rate limit.
+#   You may increase the limit by authenticating and upgrading: https://www.docker.com/increase-rate-limit
+ARG FROM=quay.io/airshipit/ubuntu:noble
+ARG ARMADA_GO=quay.io/airshipit/armada-go:latest-ubuntu_noble
+FROM ${ARMADA_GO} AS armada_go
+FROM ${FROM}
+
+LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode' \
+      org.opencontainers.image.url='https://airshipit.org' \
+      org.opencontainers.image.documentation='https://docs.airshipit.org/armada' \
+      org.opencontainers.image.source='https://opendev.org/airship/armada' \
+      org.opencontainers.image.vendor='The Airship Authors' \
+      org.opencontainers.image.licenses='Apache-2.0'
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+EXPOSE 8000
+
+RUN set -ex && \
+    apt-get update && apt-get upgrade -y && \
+    apt-get -y install \
+    ca-certificates \
+    curl \
+    netbase \
+    python3-dev \
+    python3-setuptools \
+    --no-install-recommends \
+    && apt-get autoremove -yqq --purge \
+    && apt-get clean \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/doc-base
+
+WORKDIR /armada
+
+# Add armada user
+RUN groupmod -n armada ubuntu \
+      && usermod -l armada -d $(pwd) ubuntu
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["server"]
+
+COPY requirements-frozen.txt ./
+
+ENV LD_LIBRARY_PATH=/usr/local/lib
+
+ARG HELM_ARTIFACT_URL
+
+
+RUN set -ex \
+        && buildDeps=' \
+        automake \
+        gcc \
+        libssl-dev \
+        libyaml-dev \
+        libtool \
+        make \
+        python3-pip \
+        ' \
+        && apt-get -qq update \
+        # Keep git separate so it's not removed below
+        && apt-get install -y $buildDeps git --no-install-recommends \
+        && python3 -m pip install -U pip --break-system-packages --ignore-installed \
+        && pip3 install -r requirements-frozen.txt --no-cache-dir --break-system-packages \
+        && curl -fSSL -O ${HELM_ARTIFACT_URL} \
+        && tar -xvf $(basename ${HELM_ARTIFACT_URL}) \
+        && mv linux-amd64/helm /usr/local/bin \
+        && apt-get purge -y --auto-remove $buildDeps \
+        && apt-get autoremove -yqq --purge \
+        && apt-get clean \
+        && rm -rf \
+            /var/lib/apt/lists/* \
+            /tmp/* \
+            /var/tmp/* \
+            /usr/share/man \
+            /usr/share/doc \
+            /usr/share/doc-base
+
+COPY . ./
+COPY --from=armada_go /usr/local/bin/armada /usr/local/bin/armada-go
+
+# Setting the version explicitly for PBR
+ENV PBR_VERSION=6.1.1
+
+RUN \
+    chown -R armada:users . && \
+    pip3 install -e . --verbose --use-pep517 --break-system-packages \
+    && echo "/armada" \
+        > /usr/local/lib/python3.12/dist-packages/armada.pth
+
+USER armada
