@@ -69,7 +69,7 @@ Paste==3.10.1
 PasteDeploy==3.1.0
 pbr==7.0.3
 pecan==1.7.0
-pip==24.0
+pip==26.0
 prettytable==3.17.0
 prometheus_client==0.23.1
 psutil==7.1.3
