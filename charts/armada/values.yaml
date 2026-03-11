@@ -446,6 +446,9 @@ network_policy:
     egress:
       - {}
 
+# List of extra manifests to deploy
+extraObjects: []
+
 manifests:
   configmap_bin: true
   configmap_etc: true
