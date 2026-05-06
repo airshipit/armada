@@ -104,6 +104,8 @@
       CLONE_ARMADA: false
       MAKE_ARMADA_IMAGES: true
       USE_ARMADA_GO: false
+      helm_version: 3.20.0
+      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.20.0-linux-amd64.tar.gz
       DISTRO: ubuntu_noble
       DOCKER_REGISTRY: localhost:5000
       gate_scripts_relative_path: ../../airship/treasuremap
