@@ -71,7 +71,11 @@ class Helm(object):
 
     def list_releases(self):
         return self._run(
-            'ls', ['--all-namespaces', '--all'], timeout=DEFAULT_HELM_TIMEOUT)
+            'ls', [
+                '--all-namespaces', '--deployed', '--failed', '--pending',
+                '--superseded', '--uninstalling'
+            ],
+            timeout=DEFAULT_HELM_TIMEOUT)
 
     def list_release_ids(self):
         return [

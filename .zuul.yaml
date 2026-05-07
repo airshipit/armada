@@ -58,34 +58,43 @@
 
 - job:
     name: armada-chart-build-gate
-    description: |
-      Builds charts using pinned Helm toolkit.
-    timeout: 900
-    run: tools/gate/playbooks/build-charts.yaml
+    timeout: 3600
+    parent: airship-chart-build-base
     nodeset: armada-single-node-noble
+    required-projects:
+      - name: airship/treasuremap
+        override-checkout: v1.9
     vars:
-      HTK_COMMIT: 80041dfbb5c22aa67dcd8dfa3332a943aa0d366c
+      HTK_COMMIT: d89bc42b57f8c2898520181550b5019dcf31c06f
 
 
 - job:
     name: armada-chart-build-latest-htk
-    description: |
-      Builds charts using latest Helm toolkit.
-    timeout: 900
-    voting: true
-    run: tools/gate/playbooks/build-charts.yaml
+    timeout: 3600
+    voting: false
+    parent: airship-chart-build-base
     nodeset: armada-single-node-noble
+    required-projects:
+      - name: airship/treasuremap
+        override-checkout: v1.9
     vars:
       HTK_COMMIT: master
 
 - job:
     name: armada-docker-build-gate-ubuntu_noble
     timeout: 3600
-    run: tools/gate/playbooks/docker-image-build.yaml
+    voting: false
+    parent: airship-docker-build-gate-base
     nodeset: armada-single-node-noble
+    required-projects:
+      - name: airship/treasuremap
+        override-checkout: v1.9
     vars:
       publish: false
       distro: ubuntu_noble
+      run_verbose_build: true
+      trivy_fail_on_vulns: true
+      trivy_severity: CRITICAL,HIGH
       tags:
         dynamic:
           patch_set: true
@@ -95,7 +104,7 @@
     description: |
       Deploy Memcached using Airskiff and submitted Armada changes.
     parent: treasuremap-airskiff-infra-deploy-base
-    nodeset: treasuremap-airskiff-1node-ubuntu_noble
+    nodeset: treasuremap-airskiff-5nodes-ubuntu_noble
     required-projects:
       - name: airship/treasuremap
         override-checkout: v1.9
@@ -104,21 +113,22 @@
       CLONE_ARMADA: false
       MAKE_ARMADA_IMAGES: true
       USE_ARMADA_GO: false
-      helm_version: 3.20.0
-      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v3.20.0-linux-amd64.tar.gz
+      helm_version: 4.1.4
+      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v4.1.4-linux-amd64.tar.gz
       DISTRO: ubuntu_noble
-      DOCKER_REGISTRY: localhost:5000
+      DOCKER_REGISTRY: "control-plane.minikube.internal:5000"
       gate_scripts_relative_path: ../../airship/treasuremap
 
 - job:
     name: armada-docker-publish-ubuntu_noble
     timeout: 3600
-    voting: true
-    run: tools/gate/playbooks/docker-image-build.yaml
+    parent: airship-docker-build-gate-base
     nodeset: armada-single-node-noble
-    secrets:
-      - airship_armada_quay_creds_2026
+    required-projects:
+      - name: airship/treasuremap
+        override-checkout: v1.9
     vars:
+      quay_creds: "{{ airship_armada_quay_creds_2026 }}"
       publish: true
       distro: ubuntu_noble
       tags:

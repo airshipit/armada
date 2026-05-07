@@ -35,7 +35,7 @@ IMAGE_ALIAS              := ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${I
 UBUNTU_BASE_IMAGE ?=
 
 # Helm binary download url
-HELM_ARTIFACT_URL ?= https://get.helm.sh/helm-v3.20.0-linux-amd64.tar.gz
+HELM_ARTIFACT_URL ?= https://get.helm.sh/helm-v4.1.4-linux-amd64.tar.gz
 
 # VERSION INFO
 GIT_COMMIT = $(shell git rev-parse HEAD)
@@ -120,11 +120,11 @@ else
 endif
 ifneq ($(DISTRO), $(DISTRO_ALIAS))
 	docker tag $(IMAGE) $(IMAGE_ALIAS)
-ifeq ($(DOCKER_REGISTRY), localhost:5000)
+ifeq (,$(findstring quay.io,$(DOCKER_REGISTRY)))
 	docker push $(IMAGE_ALIAS)
 endif
 endif
-ifeq ($(DOCKER_REGISTRY), localhost:5000)
+ifeq (,$(findstring quay.io,$(DOCKER_REGISTRY)))
 	docker push $(IMAGE)
 endif
 ifeq ($(PUSH_IMAGE), true)
