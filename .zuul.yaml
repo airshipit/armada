@@ -128,10 +128,10 @@
       - name: airship/treasuremap
         override-checkout: v1.9
     secrets:
-      - name: airship_armada_quay_creds_2026
+      - name: quay_creds
         secret: airship_armada_quay_creds_2026
+        pass-to-parent: true
     vars:
-      quay_creds: "{{ airship_armada_quay_creds_2026 }}"
       publish: true
       distro: ubuntu_noble
       tags:
