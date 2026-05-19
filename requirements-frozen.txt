@@ -27,7 +27,7 @@ gitdb==4.0.12
 GitPython==3.1.45
 google-auth==2.43.0
 greenlet==3.3.0
-idna==3.11
+idna==3.15
 iso8601==2.1.0
 Jinja2==3.1.6
 jsonschema==4.25.1
