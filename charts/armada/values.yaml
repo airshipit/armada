@@ -31,14 +31,14 @@ labels:
 
 images:
   tags:
-    api: 'quay.io/airshipit/armada:latest-ubuntu_jammy'
-    operator: 'quay.io/airshipit/armada-operator:latest-ubuntu_jammy'
-    dep_check: 'quay.io/stackanetes/kubernetes-entrypoint:latest-ubuntu_jammy'
-    ks_endpoints: 'quay.io/airshipit/heat:2024.1-ubuntu_jammy'
-    ks_service: 'quay.io/airshipit/heat:2024.1-ubuntu_jammy'
-    ks_user: 'quay.io/airshipit/heat:2024.1-ubuntu_jammy'
+    api: 'quay.io/airshipit/armada:latest-ubuntu_noble'
+    operator: 'quay.io/airshipit/armada-operator:latest-ubuntu_noble'
+    dep_check: 'quay.io/stackanetes/kubernetes-entrypoint:latest-ubuntu_noble'
+    ks_endpoints: 'quay.io/airshipit/heat:2025.2-ubuntu_noble'
+    ks_service: 'quay.io/airshipit/heat:2025.2-ubuntu_jammy'
+    ks_user: 'quay.io/airshipit/heat:2025.2-ubuntu_noble'
     image_repo_sync: 'quay.io/airshipit/docker:27.5.0'
-    test: 'quay.io/airshipit/armada:latest-ubuntu_jammy'
+    test: 'quay.io/airshipit/armada:latest-ubuntu_noble'
   pull_policy: "IfNotPresent"
   local_registry:
     active: false
