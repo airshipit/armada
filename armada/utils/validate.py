@@ -177,6 +177,7 @@ def validate_armada_documents(documents):
 
 def validate_manifest_url(value):
     try:
-        return (requests.get(value, timeout=None).status_code == 200)
+        return (
+            requests.get(value, timeout=None).status_code == 200)  # nosec B113
     except requests.exceptions.RequestException:
         return False

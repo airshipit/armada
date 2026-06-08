@@ -27,8 +27,8 @@ RUN set -ex && \
     apt-get -y install \
     ca-certificates \
     curl \
+    libpython3.12 \
     netbase \
-    python3-dev \
     python3-setuptools \
     --no-install-recommends \
     && apt-get autoremove -yqq --purge \
@@ -41,16 +41,13 @@ RUN set -ex && \
         /usr/share/doc \
         /usr/share/doc-base
 
-WORKDIR /armada
-
 # Add armada user
 RUN (userdel -r ubuntu || true) 2>/dev/null \
       && (groupdel ubuntu || true) 2>/dev/null \
       && groupadd -g 1000 armada \
-      && useradd -u 1000 -g armada -m -d $(pwd) -s /bin/bash armada
+      && useradd -u 1000 -g armada -m -d /armada -s /bin/bash armada
 
-ENTRYPOINT ["./entrypoint.sh"]
-CMD ["server"]
+WORKDIR /armada
 
 COPY requirements-frozen.txt ./
 
@@ -67,6 +64,7 @@ RUN set -ex \
         libyaml-dev \
         libtool \
         make \
+        python3-dev \
         python3-pip \
         ' \
         && apt-get -qq update \
@@ -92,12 +90,13 @@ COPY . ./
 COPY --from=armada_go /usr/local/bin/armada /usr/local/bin/armada-go
 
 # Setting the version explicitly for PBR
-ENV PBR_VERSION=6.1.1
+ENV PBR_VERSION=1.1.0
 
 RUN \
-    chown -R armada:users . && \
-    pip3 install -e . --verbose --use-pep517 --break-system-packages \
-    && echo "/armada" \
-        > /usr/local/lib/python3.12/dist-packages/armada.pth
+    chown -R armada:armada . && \
+    pip3 install . --no-cache-dir --break-system-packages
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["server"]
 
 USER armada

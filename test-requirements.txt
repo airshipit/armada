@@ -1,17 +1,17 @@
-bandit==1.6.0
+bandit
 # cmd2>=1.5.0
-coverage==5.3
+coverage
 flake8-import-order
 importlib-metadata
 flake8 >= 6.0.0
 grpcio-tools>=1.16.0
 os-testr>=1.0.0 # Apache-2.0
 pyflakes
-sphinx-rtd-theme==0.5.0
-stestr==4.1.0
-testrepository==0.0.20
-testresources==2.0.2
-testscenarios==0.5.0
+sphinx-rtd-theme
+stestr
+testrepository
+testresources
+testscenarios
 # testtools==2.5.0
 # tox>=3.28.0, <4.0.0
 # typing-extensions>=3.7.2

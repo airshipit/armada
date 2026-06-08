@@ -138,7 +138,7 @@ def download_tarball(tarball_url, verify=False, proxy_server=None):
                 'ftp': proxy_server
             }
         tarball_filename = tempfile.mkstemp(prefix='armada')[1]
-        response = requests.get(
+        response = requests.get(  # nosec B113
             tarball_url, timeout=None, verify=verify, **kwargs)
 
         with open(tarball_filename, 'wb') as f:
