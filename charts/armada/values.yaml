@@ -49,13 +49,6 @@ images:
 
 network:
   api:
-    ingress:
-      annotations:
-        nginx.ingress.kubernetes.io/rewrite-target: /
-      classes:
-        cluster: nginx-cluster
-        namespace: nginx
-      public: true
     node_port:
       enabled: false
       port: 31903
@@ -455,14 +448,14 @@ manifests:
   configmap_gnp: false
   deployment_api: true
   daemonset_bootstrap: false
-  ingress_api: true
+  ingress_api: false
   job_image_repo_sync: true
   job_ks_endpoints: true
   job_ks_service: true
   job_ks_user: true
-  secret_ingress_tls: true
+  secret_ingress_tls: false
   secret_keystone: true
   service: true
-  service_ingress: true
+  service_ingress: false
   test_armada_api: true
   network_policy: false

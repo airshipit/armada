@@ -65,7 +65,7 @@
       - name: airship/treasuremap
         override-checkout: v1.9
     vars:
-      HTK_COMMIT: d89bc42b57f8c2898520181550b5019dcf31c06f
+      HTK_COMMIT: 9b9bed08fbba1aaa5880733afeefddef4a9fd302
 
 
 - job:
@@ -114,7 +114,7 @@
       MAKE_ARMADA_IMAGES: true
       USE_ARMADA_GO: false
       helm_version: 4.2.0
-      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v4.2.0-linux-amd64.tar.gz
+      HELM_ARTIFACT_URL: https://get.helm.sh/helm-v4.2.2-linux-amd64.tar.gz
       DISTRO: ubuntu_noble
       DOCKER_REGISTRY: "control-plane.minikube.internal:5000"
       gate_scripts_relative_path: ../../airship/treasuremap
