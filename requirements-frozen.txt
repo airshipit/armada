@@ -77,7 +77,7 @@ py==1.11.0
 pycadf==4.0.1
 pycparser==3.0
 Pygments==2.20.0
-PyJWT==2.13.0
+PyJWT==2.15.0
 pylibyaml==0.1.0
 pyparsing==3.3.2
 pyperclip==1.11.0
