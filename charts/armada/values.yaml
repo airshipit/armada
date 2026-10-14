@@ -205,13 +205,6 @@ monitoring:
       port: 8000
 
 pod:
-  mandatory_access_control:
-    type: apparmor
-    armada-api:
-      init: runtime/default
-      armada-api: runtime/default
-    armada-api-test:
-      armada-api-test: runtime/default
   probes:
     armada:
       api:
@@ -239,9 +232,13 @@ pod:
         armada_api_init:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          appArmorProfile:
+            type: RuntimeDefault
         armada_api:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          appArmorProfile:
+            type: RuntimeDefault
     api_test:
       pod:
         runAsUser: 1000
@@ -249,6 +246,8 @@ pod:
         armada_api_test:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
+          appArmorProfile:
+            type: RuntimeDefault
   env:
     armada_bootstrap:
       - name: ARMADA_LOGFILE
